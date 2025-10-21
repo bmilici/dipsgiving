@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Dipsgiving",
   description: "The official Dipsgiving website – see you November 2025!",
+  icons: {
+  icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
