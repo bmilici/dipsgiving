@@ -12,7 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE = "https://dipsgiving.vercel.app"; 
+// Once your domain is live, change this to: "https://dipsgiving.com"
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: "Dipsgiving",
   description: "Official Dipsgiving site — see you November 2025!",
   icons: {
@@ -23,11 +27,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Dipsgiving",
     description: "Celebrate the art of dip — one scoop at a time.",
-    url: "https://dipsgiving.com",
+    url: SITE,
     siteName: "Dipsgiving",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.png", // <- place the OG image you generated here
         width: 1200,
         height: 630,
         alt: "Dipsgiving logo with chip and dip",
@@ -51,9 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>
