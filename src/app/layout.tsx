@@ -20,8 +20,7 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: [
-      // optional: if you later add a 180x180 PNG at /apple-touch-icon.png
-      // "/apple-touch-icon.png",
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
     other: [
       { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#9a3412" }, // warm orange-brown
