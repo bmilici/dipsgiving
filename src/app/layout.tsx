@@ -14,9 +14,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Dipsgiving",
-  description: "The official Dipsgiving website – see you November 2025!",
+  description: "Official Dipsgiving site — see you November 2025!",
   icons: {
-  icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      // optional: if you later add a 180x180 PNG at /apple-touch-icon.png
+      // "/apple-touch-icon.png",
+    ],
+    other: [
+      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#9a3412" }, // warm orange-brown
+    ],
   },
 };
 
