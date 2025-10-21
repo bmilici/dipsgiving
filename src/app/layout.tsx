@@ -16,15 +16,31 @@ export const metadata: Metadata = {
   title: "Dipsgiving",
   description: "Official Dipsgiving site — see you November 2025!",
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#9a3412" }],
+  },
+  openGraph: {
+    title: "Dipsgiving",
+    description: "Celebrate the art of dip — one scoop at a time.",
+    url: "https://dipsgiving.com",
+    siteName: "Dipsgiving",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Dipsgiving logo with chip and dip",
+      },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#9a3412" }, // warm orange-brown
-    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Dipsgiving",
+    description: "Celebrate the art of dip — one scoop at a time.",
+    images: ["/og-image.png"],
   },
 };
 
