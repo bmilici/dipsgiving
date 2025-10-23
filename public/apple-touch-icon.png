@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24"></stop>
+      <stop offset="1" stop-color="#f59e0b"></stop>
+    </linearGradient>
+  </defs>
+  <!-- soft background so it looks nice on light/dark tabs -->
+  <rect width="512" height="512" rx="128" fill="#fff3e6"></rect>
+  <!-- tortilla chip -->
+  <path d="M96 360c0 24 20 44 45 44h230c25 0 45-20 45-44 0-11-4-21-10-29L289 102c-7-11-19-18-33-18s-26 7-33 18L106 331c-6 8-10 18-10 29z" fill="url(#g)" stroke="#4b2e2b" stroke-width="22" stroke-linejoin="round"></path>
+  <!-- chip speckles -->
+  <g fill="#4b2e2b">
+    <circle cx="220" cy="188" r="10"></circle><circle cx="276" cy="208" r="10"></circle><circle cx="248" cy="246" r="10"></circle>
+    <circle cx="312" cy="262" r="10"></circle><circle cx="188" cy="272" r="10"></circle><circle cx="228" cy="304" r="10"></circle>
+    <circle cx="288" cy="312" r="10"></circle><circle cx="340" cy="300" r="10"></circle><circle cx="168" cy="318" r="10"></circle>
+  </g>
+</svg>

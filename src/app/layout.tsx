@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE = "https://dipsgiving.vercel.app"; 
+const SITE = "https://dipsgiving.com"; 
 // Once your domain is live, change this to: "https://dipsgiving.com"
 
 export const metadata: Metadata = {

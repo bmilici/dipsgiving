@@ -1,64 +1,392 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
+import { auth, db } from "@/lib/firebase";
+import {
+  collection,
+  doc,
+  increment,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import DipSignupForm from "@/components/DipSignupForm";
 
-// 👉 Set your exact date/time here (local time is fine)
-const EVENT_TITLE = "4th Annual Dipsgiving";
-const EVENT_DATE = new Date("2025-11-22T16:00:00"); // Sat Nov 22, 2025 @ 4:00 PM
-// If you don’t know the exact time yet, you can use "2025-11-01T00:00:00"
+/* -----------------------------------------------------------------------------
+   Small hooks/utilities
+----------------------------------------------------------------------------- */
 
-function getTimeParts(target: Date) {
-  const diff = +target - +new Date();
-  if (diff <= 0) return { done: true, days: 0, hours: 0, minutes: 0, seconds: 0 };
+// Countdown target (adjust as needed)
+const targetDate = new Date("2025-11-22T16:00:00-05:00");
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diff / (1000 * 60)) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
-  return { done: false, days, hours, minutes, seconds };
+/** Count down to a specific date, ticking every second (client only). */
+function useCountdown(to: Date) {
+  const [ms, setMs] = useState(() => Math.max(0, +to - Date.now()));
+  useEffect(() => {
+    const id = setInterval(() => setMs(Math.max(0, +to - Date.now())), 1000);
+    return () => clearInterval(id);
+  }, [to]);
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const seconds = Math.floor((ms / 1000) % 60);
+  return { days, hours, minutes, seconds };
 }
 
-export default function Page() {
-  const [t, setT] = useState(getTimeParts(EVENT_DATE));
+/** True only after the component has mounted in the browser. */
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
+}
 
+/** Ensure there is an anonymous Firebase Auth user available. */
+function useEnsureAnonAuth() {
+  const [ready, setReady] = useState(false);
   useEffect(() => {
-    const id = setInterval(() => setT(getTimeParts(EVENT_DATE)), 1000);
-    return () => clearInterval(id);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        try {
+          await signInAnonymously(auth);
+        } catch {
+          // form + vote buttons will surface auth errors when needed
+        }
+      }
+      setReady(true);
+    });
+    return () => unsub();
   }, []);
+  return ready;
+}
+
+/* -----------------------------------------------------------------------------
+   UI bits
+----------------------------------------------------------------------------- */
+
+function Pill({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-2xl bg-white/90 px-5 py-3 text-center shadow-sm">
+      <div className="text-3xl font-bold text-orange-700">{value}</div>
+      <div className="text-xs uppercase tracking-wide text-orange-600/80">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+type Dip = {
+  id: string;
+  name: string;
+  dip: string;
+  notes?: string;
+  votes: number;
+  year: number;
+};
+
+/* -----------------------------------------------------------------------------
+   Vote Section
+----------------------------------------------------------------------------- */
+
+function VoteSection() {
+  const authReady = useEnsureAnonAuth();
+  const year = useMemo(() => new Date().getFullYear(), []);
+  const [dips, setDips] = useState<Dip[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // live list of dips for current year, top by votes
+  useEffect(() => {
+    const q = query(
+      collection(db, "dips"),
+      where("year", "==", year),
+      orderBy("votes", "desc")
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const next: Dip[] = [];
+        snap.forEach((d) => next.push({ id: d.id, ...(d.data() as any) }));
+        setDips(next);
+      },
+      (err) => {
+        // If an index is required, Firestore will error once and show you a clickable URL in the console.
+        console.error(err);
+      }
+    );
+    return () => unsub();
+  }, [year]);
+
+  async function voteOnce(dipId: string) {
+    setError(null);
+    setBusyId(dipId);
+    try {
+      const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
+      const uid = user.uid;
+
+      // one vote doc per user per dip (rules enforce uniqueness)
+      const voteRef = doc(db, "dips", dipId, "votes", uid);
+      await setDoc(voteRef, { createdAt: serverTimestamp() });
+
+      // bump the vote counter
+      await updateDoc(doc(db, "dips", dipId), { votes: increment(1) });
+    } catch (e: any) {
+      setError(
+        "Could not record your vote. You may have already voted for this dip."
+      );
+      console.error(e);
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-amber-50 to-orange-100 p-6">
-      <div className="w-full max-w-2xl text-center">
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-orange-700">
-          {EVENT_TITLE}
-        </h1>
-        <p className="mt-3 text-lg text-orange-800/80">
-          Website is being updated. See you in <span className="font-semibold">November 2025</span>!
+    <section id="vote" className="scroll-mt-24 py-12">
+      <div className="mx-auto max-w-5xl px-4">
+        <h2 className="mb-4 text-3xl font-semibold text-orange-900">Vote</h2>
+        <p className="mb-6 text-orange-800/80">
+          One vote per person per dip. Thanks for keeping it friendly 😄
         </p>
-        <p className="mt-1 text-sm text-gray-600">{EVENT_DATE.toLocaleString()}</p>
 
-        <div className="mt-8 grid grid-cols-4 gap-3">
-          {["Days", "Hours", "Minutes", "Seconds"].map((label, i) => {
-            const vals = [t.days, t.hours, t.minutes, t.seconds] as const;
-            return (
-              <div key={label} className="rounded-2xl bg-white/80 shadow p-4">
-                <div className="text-4xl font-bold text-orange-700 tabular-nums">{vals[i]}</div>
-                <div className="mt-1 text-xs uppercase tracking-wide text-gray-600">{label}</div>
-              </div>
-            );
-          })}
-        </div>
-
-        {t.done && (
-          <div className="mt-6 text-xl font-semibold text-green-700">
-            🥳 It’s Dipsgiving day!
+        {error && (
+          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            {error}
           </div>
         )}
 
-        <div className="mt-10 text-xs text-gray-500">
-          dipsgiving.com • © {new Date().getFullYear()}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {dips.map((d) => (
+            <div
+              key={d.id}
+              className="rounded-2xl border border-orange-200 bg-white/70 p-4 shadow-sm"
+            >
+              <div className="mb-1 text-sm text-orange-700/80">{d.name}</div>
+              <div className="text-lg font-semibold text-orange-900">
+                {d.dip}
+              </div>
+              {d.notes && (
+                <div className="mt-1 text-sm text-orange-700/80">{d.notes}</div>
+              )}
+
+              <div className="mt-4 flex items-center justify-between">
+                <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
+                  {d.votes} vote{d.votes === 1 ? "" : "s"}
+                </span>
+                <button
+                  onClick={() => voteOnce(d.id)}
+                  disabled={!authReady || busyId === d.id}
+                  className={`rounded-xl px-3 py-1.5 text-sm font-medium transition
+                    ${
+                      !authReady || busyId === d.id
+                        ? "bg-orange-300 text-white/80"
+                        : "bg-orange-600 text-white hover:bg-orange-700"
+                    }`}
+                >
+                  {busyId === d.id ? "Voting…" : "Vote"}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {!dips.length && (
+          <div className="rounded-xl border border-orange-200 bg-white/60 p-4 text-orange-800/80">
+            No dips yet—be the first! (Or try refreshing.)
+          </div>
+        )}
       </div>
+    </section>
+  );
+}
+
+/* -----------------------------------------------------------------------------
+   Page
+----------------------------------------------------------------------------- */
+
+export default function Page() {
+  // ensure anon auth available for the whole page
+  useEnsureAnonAuth();
+
+  // Hydration-safe countdown values (Option A)
+  const mounted = useMounted();
+  const live = useCountdown(targetDate);
+  const { days, hours, minutes, seconds } = mounted
+    ? live
+    : { days: "--", hours: "--", minutes: "--", seconds: "--" };
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
+      {/* Top nav */}
+      <header className="sticky top-0 z-20 border-b border-orange-200/60 bg-white/70 backdrop-blur">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <a href="#" className="text-lg font-semibold text-orange-900">
+            Dipsgiving
+          </a>
+          <ul className="flex gap-5 text-sm font-medium text-orange-800/90">
+            <li>
+              <a href="#about" className="hover:text-orange-900">
+                About
+              </a>
+            </li>
+            {/* <li>
+              <a href="#gallery" className="hover:text-orange-900">
+                Gallery
+              </a>
+            </li>*/}
+            <li>
+              <a href="#signup" className="hover:text-orange-900">
+                Sign Up
+              </a>
+            </li>
+            <li>
+              <a href="#vote" className="hover:text-orange-900">
+                Vote
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      {/* Hero with countdown */}
+      <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-14">
+        <h1 className="mb-2 text-center text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl">
+          4th Annual Dipsgiving
+        </h1>
+        <p className="mb-8 text-center text-orange-800/85">
+          See you in November 22nd at 4PM 2025!
+        </p>
+
+        <div
+          className={`mx-auto grid max-w-2xl grid-cols-4 gap-3 transition-opacity duration-500 ${
+            mounted ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <Pill label="Days" value={days} />
+          <Pill label="Hours" value={hours} />
+          <Pill label="Minutes" value={minutes} />
+          <Pill label="Seconds" value={seconds} />
+        </div>
+
+        <p className="mt-4 text-center text-xs text-orange-700/70">
+          {/*{targetDate.toLocaleString()}*/}
+        </p>
+      </section>
+
+      {/* About */}
+      <section
+        id="about"
+        className="scroll-mt-24 border-t border-amber-200/20 bg-[#0f3b3a] py-14 text-[#f9e7b1]"
+      >
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-4 sm:grid-cols-3">
+          {/* Trophy / visual */}
+          <div className="sm:col-span-1 flex items-start justify-center sm:justify-start">
+            <div className="relative">
+              {/* simple “trophy” silhouette using emoji; replace with an SVG if you like */}
+              <span className="text-8xl drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]">🏆</span>
+              <div className="absolute -inset-3 -z-10 rounded-full bg-amber-400/10 blur-xl" />
+            </div>
+          </div>
+
+          {/* Copy */}
+          <div className="sm:col-span-2 space-y-6">
+            <header className="space-y-2">
+              <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">4th Annual</p>
+              <h2 className="text-4xl sm:text-5xl font-semibold leading-tight">Dipsgiving</h2>
+              <p className="text-emerald-100/85">
+                Bring a bathing suit &amp; a dip—<span className="font-medium">we have the booze &amp; dippers</span>.
+                One form per dip, please!
+              </p>
+            </header>
+
+            {/* divider */}
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
+
+            {/* Details */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Saturday</div>
+                <div className="text-lg font-semibold">Nov 22 @ 4PM</div>
+              </div>
+              <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Location</div>
+                <div className="text-lg font-semibold">10600 Highgrove Pl, Ft Myers 33913</div>
+              </div>
+            </div>
+
+            {/* Serving size note */}
+            <p className="text-sm text-amber-200/85">
+              <span className="tracking-wide uppercase text-amber-300/90">Suggested serving size:</span> 10–15 people
+            </p>
+
+            {/* divider */}
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
+
+            {/* Big Dipper + Babysitter */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">
+                  Best Dip Receives
+                </div>
+                <div className="text-lg font-semibold">The First Annual “Big Dipper” Trophy</div>
+              </div>
+              <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Kids</div>
+                <div className="text-lg font-semibold">There will be a babysitter</div>
+              </div>
+            </div>
+
+            {/* RSVP / Text line */}
+            <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4 text-emerald-50">
+              <p className="text-center text-sm sm:text-base">
+                Text <span className="font-semibold tracking-wide">301-661-1626</span> for the link to reserve your dip.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* Gallery (placeholder – swap with your component when ready) 
+      <section id="gallery" className="scroll-mt-24 py-12">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="mb-6 text-3xl font-semibold text-orange-900">
+            Gallery
+          </h2>
+          <div className="rounded-2xl border border-orange-200 bg-white/70 p-6 text-orange-800/85">
+            <p>
+              Add{" "}
+              <code className="rounded bg-orange-100 px-1">
+                src/components/GalleryGrid.tsx
+              </code>{" "}
+              to show photos here.
+            </p>
+          </div>
+        </div>
+      </section>
+      */}
+
+      {/* Sign Up */}
+      <section
+        id="signup"
+        className="scroll-mt-24 border-t border-orange-200/60 bg-white/50 py-12"
+      >
+        <div className="mx-auto max-w-4xl px-4">
+          <DipSignupForm />
+        </div>
+      </section>
+
+      {/* Vote */}
+      <VoteSection />
+
+      <footer className="border-t border-orange-200/60 bg-white/60 py-8">
+        <p className="text-center text-sm text-orange-800/70">
+          dipsgiving.com • © {new Date().getFullYear()}
+        </p>
+      </footer>
     </main>
   );
 }
