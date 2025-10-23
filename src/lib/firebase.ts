@@ -1,9 +1,11 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+'use client';
 
-const firebaseConfig = {
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+
+const cfg = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
@@ -13,17 +15,25 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log(
-  "Firebase config:",
-  { projectId: firebaseConfig.projectId, authDomain: firebaseConfig.authDomain,
-    apiKeyHead: firebaseConfig.apiKey?.slice(0, 6) }
-);
+function getClientApp(): FirebaseApp | null {
+  // Never initialize on the server
+  if (typeof window === 'undefined') return null;
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  // Guard against missing envs in prod
+  if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId) {
+    console.warn('[firebase] Missing NEXT_PUBLIC_* envs; skipping init.');
+    return null;
+  }
 
-console.log("🔥 Firebase projectId:", firebaseConfig.projectId);
-console.log("🔥 Firebase authDomain:", firebaseConfig.authDomain);
+  return getApps().length ? getApp() : initializeApp(cfg);
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export default app;
+export function getClientAuth(): Auth | null {
+  const app = getClientApp();
+  return app ? getAuth(app) : null;
+}
+
+export function getClientDB(): Firestore | null {
+  const app = getClientApp();
+  return app ? getFirestore(app) : null;
+}
