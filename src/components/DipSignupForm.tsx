@@ -1,9 +1,10 @@
+// src/components/DipSignupForm.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { getClientAuth, getClientDB } from "@/lib/firebase";
 
 type FormState = {
   name: string;
@@ -17,8 +18,13 @@ export default function DipSignupForm() {
   const [status, setStatus] = useState<null | { type: "ok" | "err"; msg: string }>(null);
   const [authed, setAuthed] = useState(false);
 
-  // Ensure the user is signed in anonymously (required by your Firestore rules)
+  // Obtain client-only handles (null on server or if envs missing)
+  const auth = getClientAuth();
+  const db = getClientDB();
+
+  // Ensure the user is signed in anonymously (required by Firestore rules)
   useEffect(() => {
+    if (!auth) return; // guard for SSR / missing envs
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setAuthed(true);
@@ -33,10 +39,9 @@ export default function DipSignupForm() {
       }
     });
     return () => unsub();
-  }, []);
+  }, [auth]);
 
   const year = useMemo(() => new Date().getFullYear(), []);
-
   const disabled = loading || !authed;
 
   function update<K extends keyof FormState>(key: K, v: FormState[K]) {
@@ -59,6 +64,10 @@ export default function DipSignupForm() {
       setStatus({ type: "err", msg: "Inputs are too long. Keep it friendly 😅" });
       return;
     }
+    if (!db) {
+      setStatus({ type: "err", msg: "Database not ready. Please refresh and try again." });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -67,7 +76,7 @@ export default function DipSignupForm() {
         dip,
         notes,
         votes: 0,
-        year,                    // e.g., 2025
+        year, // e.g., 2025
         createdAt: serverTimestamp(),
       });
 
