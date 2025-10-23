@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -17,6 +16,12 @@ import {
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
 import DipSignupForm from "@/components/DipSignupForm";
+import dynamic from "next/dynamic";
+
+// --- lazy client import to avoid SSR hydration issues
+const RegisterForm = dynamic(() => import("@/components/RegisterForm"), {
+  ssr: false,
+});
 
 /* -----------------------------------------------------------------------------
    Small hooks/utilities
@@ -204,7 +209,7 @@ function VoteSection() {
         </div>
 
         {!dips.length && (
-          <div className="rounded-xl border border-orange-200 bg-white/60 p-4 text-orange-800/80">
+          <div className="rounded-XL border border-orange-200 bg-white/60 p-4 text-orange-800/80">
             No dips yet—be the first! (Or try refreshing.)
           </div>
         )}
@@ -240,6 +245,11 @@ export default function Page() {
             <li>
               <a href="#about" className="hover:text-orange-900">
                 About
+              </a>
+            </li>
+            <li>
+              <a href="#register" className="hover:text-orange-900">
+                Register
               </a>
             </li>
             <li>
@@ -285,18 +295,27 @@ export default function Page() {
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-4 sm:grid-cols-3">
           <div className="sm:col-span-1 flex items-start justify-center sm:justify-start">
             <div className="relative">
-              <span className="text-8xl drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]">🏆</span>
+              <span className="text-8xl drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                🏆
+              </span>
               <div className="absolute -inset-3 -z-10 rounded-full bg-amber-400/10 blur-xl" />
             </div>
           </div>
 
           <div className="sm:col-span-2 space-y-6">
             <header className="space-y-2">
-              <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">4th Annual</p>
-              <h2 className="text-4xl sm:text-5xl font-semibold leading-tight">Dipsgiving</h2>
+              <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">
+                4th Annual
+              </p>
+              <h2 className="text-4xl sm:text-5xl font-semibold leading-tight">
+                Dipsgiving
+              </h2>
               <p className="text-emerald-100/85">
-                Bring a bathing suit &amp; a dip—<span className="font-medium">we have the booze &amp; dippers</span>.
-                One form per dip, please!
+                Bring a bathing suit &amp; a dip—{" "}
+                <span className="font-medium">
+                  we have the booze &amp; dippers
+                </span>
+                . One form per dip, please!
               </p>
             </header>
 
@@ -304,17 +323,26 @@ export default function Page() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
-                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Saturday</div>
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">
+                  Saturday
+                </div>
                 <div className="text-lg font-semibold">Nov 22 @ 4PM</div>
               </div>
               <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
-                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Location</div>
-                <div className="text-lg font-semibold">10600 Highgrove Pl, Ft Myers 33913</div>
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">
+                  Location
+                </div>
+                <div className="text-lg font-semibold">
+                  10600 Highgrove Pl, Ft Myers 33913
+                </div>
               </div>
             </div>
 
             <p className="text-sm text-amber-200/85">
-              <span className="tracking-wide uppercase text-amber-300/90">Suggested serving size:</span> 10–15 people
+              <span className="tracking-wide uppercase text-amber-300/90">
+                Suggested serving size:
+              </span>{" "}
+              10–15 people
             </p>
 
             <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
@@ -324,24 +352,44 @@ export default function Page() {
                 <div className="text-amber-300/90 text-xs uppercase tracking-wide">
                   Best Dip Receives
                 </div>
-                <div className="text-lg font-semibold">The First Annual “Big Dipper” Trophy</div>
+                <div className="text-lg font-semibold">
+                  The First Annual “Big Dipper” Trophy
+                </div>
               </div>
               <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
-                <div className="text-amber-300/90 text-xs uppercase tracking-wide">Kids</div>
-                <div className="text-lg font-semibold">There will be a babysitter</div>
+                <div className="text-amber-300/90 text-xs uppercase tracking-wide">
+                  Kids
+                </div>
+                <div className="text-lg font-semibold">
+                  There will be a babysitter
+                </div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4 text-emerald-50">
               <p className="text-center text-sm sm:text-base">
-                Text <span className="font-semibold tracking-wide">301-661-1626</span> for the link to reserve your dip.
+                Text{" "}
+                <span className="font-semibold tracking-wide">
+                  301-661-1626
+                </span>{" "}
+                for the link to reserve your dip.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Sign Up */}
+      {/* Register */}
+      <section
+        id="register"
+        className="scroll-mt-24 border-t border-orange-200/60 bg-white/50 py-12"
+      >
+        <div className="mx-auto max-w-4xl px-4">
+          <RegisterForm />
+        </div>
+      </section>
+
+      {/* Sign Up (dips) */}
       <section
         id="signup"
         className="scroll-mt-24 border-t border-orange-200/60 bg-white/50 py-12"
