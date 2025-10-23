@@ -1,39 +1,75 @@
-// src/lib/firebase.ts
-'use client';
+<script type="module">
+  // ---- Firebase (v9+ modular) ----
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp,
+    query, where, getDocs, limit
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+  // TODO: replace with your real config from Firebase console
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
 
-const cfg = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  const registrationsCol = collection(db, "dipsgiving_registrations"); // collection name
 
-function getClientApp(): FirebaseApp | null {
-  // Never initialize on the server
-  if (typeof window === 'undefined') return null;
+  // ---- Modal wiring (unchanged basics) ----
+  const openBtn  = document.getElementById('open-register');
+  const dlg      = document.getElementById('register-dialog');
+  const closeBtn = document.getElementById('close-register');
+  const cancelBtn= document.getElementById('cancel-register');
+  const form     = document.getElementById('register-form');
+  const statusEl = document.getElementById('form-status');
+  const tsField  = document.getElementById('ts-field');
 
-  // Guard against missing envs in prod
-  if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId) {
-    console.warn('[firebase] Missing NEXT_PUBLIC_* envs; skipping init.');
-    return null;
+  function openDialog(e){
+    e && e.preventDefault();
+    tsField.value = new Date().toISOString();
+    dlg.showModal?.() || alert('Registration not supported on this browser.');
   }
+  openBtn.addEventListener('click', openDialog);
+  closeBtn.addEventListener('click', () => dlg.close());
+  cancelBtn.addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => {
+    const r = dlg.getBoundingClientRect();
+    if (!(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom)) dlg.close();
+  });
 
-  return getApps().length ? getApp() : initializeApp(cfg);
-}
+  // ---- Submit to Firestore ----
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.hidden = false;
+    statusEl.textContent = 'Submitting…';
 
-export function getClientAuth(): Auth | null {
-  const app = getClientApp();
-  return app ? getAuth(app) : null;
-}
+    const data = Object.fromEntries(new FormData(form)); // {name, email, phone, dip_name, party_size, notes, ...}
+    data.party_size = Number(data.party_size || 1);
+    data.event = "4th Annual Dipsgiving";
+    data.user_ts = new Date(tsField.value || Date.now()).toISOString();
+    data.created_at = serverTimestamp();
 
-export function getClientDB(): Firestore | null {
-  const app = getClientApp();
-  return app ? getFirestore(app) : null;
-}
+    try {
+      // Optional: prevent duplicate emails
+      const dupQ = query(registrationsCol, where('email','==', data.email), limit(1));
+      const dupSnap = await getDocs(dupQ);
+      if (!dupSnap.empty) {
+        statusEl.textContent = 'Looks like you already registered with this email. Need to update? Reply to the confirmation email or contact us.';
+        return;
+      }
+
+      await addDoc(registrationsCol, data);
+      statusEl.textContent = 'All set! You’re registered.';
+      form.reset();
+      setTimeout(() => dlg.close(), 900);
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = 'Error saving your registration. Please try again.';
+    }
+  });
+</script>
