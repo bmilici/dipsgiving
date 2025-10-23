@@ -1,7 +1,7 @@
+// src/app/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
-import { auth, db } from "@/lib/firebase";
+import { useEffect, useMemo, useState } from "react";
 import {
   collection,
   doc,
@@ -15,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
+import { getClientAuth, getClientDB } from "@/lib/firebase";
 import DipSignupForm from "@/components/DipSignupForm";
 
 /* -----------------------------------------------------------------------------
@@ -45,10 +46,13 @@ function useMounted() {
   return mounted;
 }
 
-/** Ensure there is an anonymous Firebase Auth user available. */
+/** Ensure there is an anonymous Firebase Auth user available (client only). */
 function useEnsureAnonAuth() {
   const [ready, setReady] = useState(false);
+  const auth = getClientAuth(); // null on server or if envs missing
+
   useEffect(() => {
+    if (!auth) return; // guard
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         try {
@@ -60,7 +64,8 @@ function useEnsureAnonAuth() {
       setReady(true);
     });
     return () => unsub();
-  }, []);
+  }, [auth]);
+
   return ready;
 }
 
@@ -94,6 +99,9 @@ type Dip = {
 
 function VoteSection() {
   const authReady = useEnsureAnonAuth();
+  const auth = getClientAuth();
+  const db = getClientDB();
+
   const year = useMemo(() => new Date().getFullYear(), []);
   const [dips, setDips] = useState<Dip[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -101,6 +109,7 @@ function VoteSection() {
 
   // live list of dips for current year, top by votes
   useEffect(() => {
+    if (!db) return; // guard for SSR / missing envs
     const q = query(
       collection(db, "dips"),
       where("year", "==", year),
@@ -114,17 +123,18 @@ function VoteSection() {
         setDips(next);
       },
       (err) => {
-        // If an index is required, Firestore will error once and show you a clickable URL in the console.
+        // If an index is required, Firestore will error once and show a URL in the console.
         console.error(err);
       }
     );
     return () => unsub();
-  }, [year]);
+  }, [db, year]);
 
   async function voteOnce(dipId: string) {
     setError(null);
     setBusyId(dipId);
     try {
+      if (!auth || !db) throw new Error("Auth/DB not ready");
       const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
       const uid = user.uid;
 
@@ -211,7 +221,7 @@ export default function Page() {
   // ensure anon auth available for the whole page
   useEnsureAnonAuth();
 
-  // Hydration-safe countdown values (Option A)
+  // Hydration-safe countdown values
   const mounted = useMounted();
   const live = useCountdown(targetDate);
   const { days, hours, minutes, seconds } = mounted
@@ -232,11 +242,6 @@ export default function Page() {
                 About
               </a>
             </li>
-            {/* <li>
-              <a href="#gallery" className="hover:text-orange-900">
-                Gallery
-              </a>
-            </li>*/}
             <li>
               <a href="#signup" className="hover:text-orange-900">
                 Sign Up
@@ -257,7 +262,7 @@ export default function Page() {
           4th Annual Dipsgiving
         </h1>
         <p className="mb-8 text-center text-orange-800/85">
-          See you in November 22nd at 4PM 2025!
+          See you on November 22nd at 4PM, 2025!
         </p>
 
         <div
@@ -270,10 +275,6 @@ export default function Page() {
           <Pill label="Minutes" value={minutes} />
           <Pill label="Seconds" value={seconds} />
         </div>
-
-        <p className="mt-4 text-center text-xs text-orange-700/70">
-          {/*{targetDate.toLocaleString()}*/}
-        </p>
       </section>
 
       {/* About */}
@@ -282,16 +283,13 @@ export default function Page() {
         className="scroll-mt-24 border-t border-amber-200/20 bg-[#0f3b3a] py-14 text-[#f9e7b1]"
       >
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-4 sm:grid-cols-3">
-          {/* Trophy / visual */}
           <div className="sm:col-span-1 flex items-start justify-center sm:justify-start">
             <div className="relative">
-              {/* simple “trophy” silhouette using emoji; replace with an SVG if you like */}
               <span className="text-8xl drop-shadow-[0_6px_16px_rgba(0,0,0,0.35)]">🏆</span>
               <div className="absolute -inset-3 -z-10 rounded-full bg-amber-400/10 blur-xl" />
             </div>
           </div>
 
-          {/* Copy */}
           <div className="sm:col-span-2 space-y-6">
             <header className="space-y-2">
               <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">4th Annual</p>
@@ -302,10 +300,8 @@ export default function Page() {
               </p>
             </header>
 
-            {/* divider */}
             <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
 
-            {/* Details */}
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
                 <div className="text-amber-300/90 text-xs uppercase tracking-wide">Saturday</div>
@@ -317,15 +313,12 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Serving size note */}
             <p className="text-sm text-amber-200/85">
               <span className="tracking-wide uppercase text-amber-300/90">Suggested serving size:</span> 10–15 people
             </p>
 
-            {/* divider */}
             <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
 
-            {/* Big Dipper + Babysitter */}
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="rounded-2xl border border-amber-300/30 bg-white/5 p-4">
                 <div className="text-amber-300/90 text-xs uppercase tracking-wide">
@@ -339,7 +332,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* RSVP / Text line */}
             <div className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4 text-emerald-50">
               <p className="text-center text-sm sm:text-base">
                 Text <span className="font-semibold tracking-wide">301-661-1626</span> for the link to reserve your dip.
@@ -348,26 +340,6 @@ export default function Page() {
           </div>
         </div>
       </section>
-
-
-      {/* Gallery (placeholder – swap with your component when ready) 
-      <section id="gallery" className="scroll-mt-24 py-12">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-6 text-3xl font-semibold text-orange-900">
-            Gallery
-          </h2>
-          <div className="rounded-2xl border border-orange-200 bg-white/70 p-6 text-orange-800/85">
-            <p>
-              Add{" "}
-              <code className="rounded bg-orange-100 px-1">
-                src/components/GalleryGrid.tsx
-              </code>{" "}
-              to show photos here.
-            </p>
-          </div>
-        </div>
-      </section>
-      */}
 
       {/* Sign Up */}
       <section
