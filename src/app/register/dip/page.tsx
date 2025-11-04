@@ -18,7 +18,7 @@ export default function RegisterDipPage() {
         </h2>
 
         <p className="mb-6 text-center text-orange-800/80">
-          Before submitting your dip, please check the Dip List to make sure no one has already registered the same dip. Let’s keep the table diverse!
+          Before submitting your dip, please check the Dip List below to make sure no one has already registered the same dip. Let’s keep the table diverse!
         </p>
 
         <InlineRegisterForm />
