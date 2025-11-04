@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: "Official Dipsgiving site — see you November 2025!",
   icons: {
     icon: [
-      { url: "/favicon.ico" },
+      { url: "/favicon-dipsgiving.ico" },
       { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
     ],
