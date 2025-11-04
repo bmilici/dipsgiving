@@ -80,9 +80,23 @@ export default function Page() {
           <p className="text-emerald-100/85">
           For questions please reach out to Erika at{" "}
           <a href="sms:+13016611626" className="underline decoration-amber-300/70 hover:decoration-amber-300">
-            (301) 661-1626
-  </a>.
-</p>
+            (301) 661-1626 </a>.
+          </p>
+          <p className="text-emerald-100/85">
+            Location:{" "}
+            <a
+              href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-amber-300/70 hover:decoration-amber-300"
+            >
+              10600 Highgrove Place, Fort Myers, Florida 33913
+            </a>
+          </p>
+          {/* Gate code */}
+          <p className="text-sm text-amber-300/90 font-medium tracking-wide">
+            Gate Code: <span className="text-[#f9e7b1]">18445</span>
+          </p>
         </div>
       </section>
 
