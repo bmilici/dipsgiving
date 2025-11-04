@@ -29,13 +29,6 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
-      <header className="sticky top-0 z-20 border-b border-orange-200/60 bg-white/70 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a href="#" className="text-lg font-semibold text-orange-900">
-            Dipsgiving
-          </a>
-        </nav>
-      </header>
 
       {/* Hero */}
       <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 text-center">
