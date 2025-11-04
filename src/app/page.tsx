@@ -76,7 +76,7 @@ export default function HomePage() {
             href="/register"
             className="rounded-2xl bg-orange-700 px-6 py-3 text-white text-lg font-medium shadow hover:bg-orange-800 transition"
           >
-            Register Your Dip
+            Click to RSVP
           </Link>
         </div>
       </section>
