@@ -1,6 +1,6 @@
 "use client";
 
-import InlineRegisterForm from "@/components/InlineRegisterForm";
+import InlineRegisterForm from "../../../components/InlineRegisterForm";
 import Link from "next/link";
 import { useEffect } from "react";
 
