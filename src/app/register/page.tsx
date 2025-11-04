@@ -1,7 +1,7 @@
 "use client";
 
-import InlineRegisterForm from "../../components/InlineRegisterForm";
 import Link from "next/link";
+import InlineRegisterForm from "../../components/InlineRegisterForm"; // ← relative path
 
 export default function RegisterPage() {
   return (

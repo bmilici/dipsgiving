@@ -1,12 +1,12 @@
 "use client";
 
-import InlineRegisterForm from "../../../components/InlineRegisterForm";
 import Link from "next/link";
 import { useEffect } from "react";
+import InlineRegisterForm from "../../../components/InlineRegisterForm"; // ← relative path
 
 export default function RegisterDipPage() {
+  // open the form in “dip-only” mode
   useEffect(() => {
-    // tell InlineRegisterForm to open dip-only mode
     window.dispatchEvent(new CustomEvent("open-dip-only"));
   }, []);
 
