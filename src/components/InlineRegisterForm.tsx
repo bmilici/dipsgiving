@@ -1,8 +1,24 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  where,
+  Firestore
+} from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
+
+type DipItem = {
+  id: string;
+  name?: string | null;
+  dip_name?: string | null;
+  notes?: string | null;
+};
 
 export default function InlineRegisterForm() {
   const db = getClientDB();
@@ -12,12 +28,42 @@ export default function InlineRegisterForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // 🔹 Allow external trigger from modal for dip-only mode
+  // 🔹 Allow the modal to switch this component to dip-only mode
   useEffect(() => {
     const handler = () => setAddingDipOnly(true);
     window.addEventListener("open-dip-only", handler);
     return () => window.removeEventListener("open-dip-only", handler);
   }, []);
+
+  // 🔹 Live list of registered dips
+  const [dips, setDips] = useState<DipItem[]>([]);
+  useEffect(() => {
+    if (!db) return;
+    // All docs that have a dip (bringing_dip == true), newest first
+    const q = query(
+      collection(db, "registrations"),
+      where("bringing_dip", "==", true),
+      orderBy("created_at", "desc")
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const items: DipItem[] = [];
+      snap.forEach((doc) => {
+        const d = doc.data() as any;
+        if (d?.dip_name) {
+          items.push({
+            id: doc.id,
+            name: d?.name ?? null,
+            dip_name: d?.dip_name ?? null,
+            notes: d?.notes ?? null,
+          });
+        }
+      });
+      setDips(items);
+    }, (err) => {
+      console.error("Dip list subscribe error:", err);
+    });
+    return () => unsub();
+  }, [db]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,7 +99,7 @@ export default function InlineRegisterForm() {
         type: addingDipOnly ? "dip_only" : "full_rsvp",
       });
 
-      setStatus("🎉 Success! Your RSVP was submitted.");
+      setStatus("🎉 Success! Thanks!");
       form.reset();
       setBringingDip(false);
       setAddingDipOnly(false);
@@ -68,132 +114,170 @@ export default function InlineRegisterForm() {
     }
   }
 
-  // UI
   const showRSVPForm = !addingDipOnly;
   const showDipOnlyForm = addingDipOnly;
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-      {/* RSVP mode */}
-      {showRSVPForm && (
-        <>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-orange-800">
-              Your Name
+    <div className="mx-auto max-w-3xl">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
+        {showRSVPForm && (
+          <>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-orange-800">
+                Your Name
+              </label>
+              <input
+                name="name"
+                required
+                className="w-full rounded-lg border border-orange-300 p-3"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-orange-800">Phone</label>
+              <input
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                className="w-full rounded-lg border border-orange-300 p-3"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-orange-800">
+                Party Size
+              </label>
+              <input
+                name="party_size"
+                type="number"
+                defaultValue={1}
+                min={1}
+                max={20}
+                className="w-full rounded-lg border border-orange-300 p-3"
+              />
+            </div>
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={bringingDip}
+                onChange={(e) => setBringingDip(e.target.checked)}
+                className="h-4 w-4 accent-orange-600"
+              />
+              <span className="text-sm font-medium text-orange-900">
+                I’m bringing a dip
+              </span>
             </label>
-            <input
-              name="name"
-              required
-              className="w-full rounded-lg border border-orange-300 p-3"
-            />
+          </>
+        )}
+
+        {showDipOnlyForm && (
+          <p className="text-sm text-orange-800/90">
+            Already registered? Add your dip below.
+          </p>
+        )}
+
+        {(bringingDip || showDipOnlyForm) && (
+          <div className="space-y-5 rounded-xl border border-orange-200/70 bg-orange-50/40 p-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-orange-800">
+                Dip Name
+              </label>
+              <input
+                name="dip_name"
+                required
+                className="w-full rounded-lg border border-orange-300 p-3"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-orange-800">
+                Notes / Allergens
+              </label>
+              <textarea
+                name="notes"
+                rows={3}
+                className="w-full rounded-lg border border-orange-300 p-3"
+              />
+            </div>
           </div>
+        )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-orange-800">Phone</label>
-            <input
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              className="w-full rounded-lg border border-orange-300 p-3"
-            />
-          </div>
+        <div className="flex flex-col items-center gap-4">
+          <button
+            type="submit"
+            disabled={busy}
+            className="rounded-lg bg-orange-600 px-6 py-3 text-white font-medium hover:bg-orange-700 disabled:opacity-60"
+          >
+            {busy
+              ? "Submitting…"
+              : addingDipOnly
+              ? "Submit Dip"
+              : "Click to RSVP"}
+          </button>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-orange-800">
-              Party Size
-            </label>
-            <input
-              name="party_size"
-              type="number"
-              defaultValue={1}
-              min={1}
-              max={20}
-              className="w-full rounded-lg border border-orange-300 p-3"
-            />
-          </div>
+          {!addingDipOnly && (
+            <button
+              type="button"
+              onClick={() => setAddingDipOnly(true)}
+              className="text-sm text-orange-700 underline hover:text-orange-900"
+            >
+              Add a Dip (Already Registered?)
+            </button>
+          )}
 
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={bringingDip}
-              onChange={(e) => setBringingDip(e.target.checked)}
-              className="h-4 w-4 accent-orange-600"
-            />
-            <span className="text-sm font-medium text-orange-900">
-              I’m bringing a dip
-            </span>
-          </label>
-        </>
-      )}
-
-      {/* Dip-only mode */}
-      {showDipOnlyForm && (
-        <p className="text-sm text-orange-800/90">
-          Already registered? Add your dip below.
-        </p>
-      )}
-
-      {(bringingDip || showDipOnlyForm) && (
-        <div className="space-y-5 rounded-xl border border-orange-200/70 bg-orange-50/40 p-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-orange-800">
-              Dip Name
-            </label>
-            <input
-              name="dip_name"
-              required
-              className="w-full rounded-lg border border-orange-300 p-3"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-orange-800">
-              Notes / Allergens
-            </label>
-            <textarea
-              name="notes"
-              rows={3}
-              className="w-full rounded-lg border border-orange-300 p-3"
-            />
-          </div>
+          {addingDipOnly && (
+            <button
+              type="button"
+              onClick={() => setAddingDipOnly(false)}
+              className="text-sm text-gray-600 underline hover:text-gray-900"
+            >
+              Back to RSVP
+            </button>
+          )}
         </div>
-      )}
 
-      <div className="flex flex-col items-center gap-4">
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-lg bg-orange-600 px-6 py-3 text-white font-medium hover:bg-orange-700 disabled:opacity-60"
-        >
-          {busy
-            ? "Submitting…"
-            : addingDipOnly
-            ? "Submit Dip"
-            : "Click to RSVP"}
-        </button>
-
-        {!addingDipOnly && (
-          <button
-            type="button"
-            onClick={() => setAddingDipOnly(true)}
-            className="text-sm text-orange-700 underline hover:text-orange-900"
-          >
-            Add a Dip (Already Registered?)
-          </button>
+        {status && (
+          <p className="text-sm text-orange-800 text-center" aria-live="polite">
+            {status}
+          </p>
         )}
+      </form>
 
-        {addingDipOnly && (
-          <button
-            type="button"
-            onClick={() => setAddingDipOnly(false)}
-            className="text-sm text-gray-600 underline hover:text-gray-900"
-          >
-            Back to RSVP
-          </button>
-        )}
+      {/* Registered dips list */}
+      <div className="mt-10">
+        <h3 className="mb-3 text-lg font-semibold text-orange-900">
+          Registered Dips <span className="text-orange-700/70">({dips.length})</span>
+        </h3>
+
+        <div className="max-h-64 overflow-auto rounded-xl border border-orange-200 bg-white/70 p-3">
+          {dips.length === 0 ? (
+            <div className="text-sm text-orange-700/80">No dips yet—be the first!</div>
+          ) : (
+            <ul className="grid gap-2">
+              {dips.map((d) => (
+                <li
+                  key={d.id}
+                  className="rounded-lg border border-orange-200/70 bg-orange-50/60 px-3 py-2"
+                >
+                  <div className="font-medium text-orange-900">
+                    {d.dip_name}
+                  </div>
+                  <div className="text-xs text-orange-700/80">
+                    {d.name ? `by ${d.name}` : "by RSVP’d guest"}
+                  </div>
+                  {d.notes && (
+                    <div className="mt-1 text-xs text-orange-700/80">
+                      {d.notes}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-
-      {status && <p className="text-sm text-orange-800 text-center">{status}</p>}
-    </form>
+    </div>
   );
 }
