@@ -36,7 +36,7 @@ export default function Page() {
           4th Annual Dipsgiving
         </h1>
         <p className="mb-8 text-orange-800/85">
-          See you on November 22nd at 4PM, 2025!
+          See you on November 22nd at 4PM!
         </p>
 
         <div className="mx-auto mb-8 grid max-w-2xl grid-cols-4 gap-3">
