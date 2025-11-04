@@ -88,7 +88,6 @@ export default function DipListPage() {
                 <div className="text-sm text-orange-700/80">
                   {d.name ? `by ${d.name}` : "by RSVP’d guest"}
                 </div>
-                 If you want notes back, uncomment:
                 {d.notes && (
                   <div className="mt-1 text-xs text-orange-700/80">{d.notes}</div>
                 )} 
