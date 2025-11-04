@@ -1,13 +1,7 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import type { RegisterModalHandle } from "@/components/RegisterModal";
-
-// Lazy-load modal on client
-const RegisterModal = dynamic(() => import("@/components/RegisterModal"), {
-  ssr: false,
-});
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 function Pill({ label, value }: { label: string; value: number | string }) {
   return (
@@ -21,11 +15,8 @@ function Pill({ label, value }: { label: string; value: number | string }) {
 }
 
 export default function Page() {
-  const registerRef = useRef<RegisterModalHandle | null>(null);
-
   const targetDate = new Date("2025-11-22T16:00:00-05:00");
   const [ms, setMs] = useState(() => Math.max(0, +targetDate - Date.now()));
-
   useEffect(() => {
     const id = setInterval(() => setMs(Math.max(0, +targetDate - Date.now())), 1000);
     return () => clearInterval(id);
@@ -62,28 +53,24 @@ export default function Page() {
           <Pill label="Seconds" value={seconds} />
         </div>
 
-        {/* Two buttons under countdown */}
+        {/* Two buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button
-            onClick={() => registerRef.current?.open(false)}
+          <Link
+            href="/register"
             className="rounded-xl bg-orange-600 px-8 py-3 text-lg font-semibold text-white shadow-sm hover:bg-orange-700 transition"
           >
             RSVP
-          </button>
-
-          <button
-            onClick={() => registerRef.current?.open(true)}
+          </Link>
+          <Link
+            href="/register/dip"
             className="rounded-xl bg-amber-100 px-8 py-3 text-lg font-semibold text-orange-800 shadow-sm hover:bg-amber-200 transition"
           >
             Already RSVP’d? Register Dip
-          </button>
+          </Link>
         </div>
       </section>
 
-      {/* Modal with form + dip list */}
-      <RegisterModal ref={registerRef} />
-
-      {/* About (trimmed for brevity — keep your full content) */}
+      {/* About */}
       <section className="border-t border-amber-200/20 bg-[#0f3b3a] py-14 text-[#f9e7b1]">
         <div className="mx-auto max-w-5xl px-4 space-y-6 text-center">
           <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">
