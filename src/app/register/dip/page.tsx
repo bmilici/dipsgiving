@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import InlineRegisterForm from "../../../components/InlineRegisterForm"; // ← relative path
+import InlineRegisterForm from "../../../components/InlineRegisterForm";
 
 export default function RegisterDipPage() {
   // open the form in “dip-only” mode
@@ -12,22 +12,22 @@ export default function RegisterDipPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
-        
-        <p className="text-center text-orange-800/80 mb-6">
-        Before submitting your dip, please check the{" "}
-        <a
-            href="/dips"
-            className="font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-4"
-        >
-            Dip List
-        </a>{" "}
-        to make sure no one has already registered the same dip. Let’s keep the table diverse!
-        </p>
-
       <section className="mx-auto max-w-4xl px-4 py-10">
-        <h2 className="mb-6 text-3xl font-bold text-orange-900 text-center">
+        <h2 className="mb-4 text-3xl font-bold text-orange-900 text-center">
           Add Your Dip
         </h2>
+
+        <p className="mb-6 text-center text-orange-800/80">
+          Before submitting your dip, please check the{" "}
+          <Link
+            href="/dips"
+            className="font-semibold text-orange-700 hover:text-orange-900 underline underline-offset-4"
+          >
+            Dip List
+          </Link>{" "}
+          to make sure no one has already registered the same dip. Let’s keep the table diverse!
+        </p>
+
         <InlineRegisterForm />
       </section>
     </main>
