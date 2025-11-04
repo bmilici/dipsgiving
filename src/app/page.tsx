@@ -65,7 +65,7 @@ export default function Page() {
             href="/register/dip"
             className="rounded-xl bg-amber-100 px-8 py-3 text-lg font-semibold text-orange-800 shadow-sm hover:bg-amber-200 transition"
           >
-            Already RSVP’d? Register Dip
+            Register Dip(Already RSVP’d?)
           </Link>
         </div>
       </section>
