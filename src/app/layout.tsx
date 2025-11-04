@@ -12,18 +12,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE = "https://dipsgiving.com"; 
+const SITE = "https://www.dipsgiving.com"; 
 // Once your domain is live, change this to: "https://dipsgiving.com"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: "Dipsgiving",
   description: "Official Dipsgiving site — see you November 2025!",
+  
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#9a3412" }],
+    icon: [
+      { url: "/favicon.png", type: "image/png" }, // <-- use this
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0f3b3a" },
+    ],
   },
+
   openGraph: {
     title: "Dipsgiving",
     description: "Celebrate the art of dip — one scoop at a time.",
