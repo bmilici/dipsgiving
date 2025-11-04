@@ -26,16 +26,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: "Dipsgiving",
   description: "Official Dipsgiving site — see you November 2025!",
+
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.ico" }, // fallback
+      { url: "/favicon.svg", type: "image/svg+xml" }, // ✅ this is your chip icon
+      { url: "/favicon.ico" }, // fallback for Google and legacy browsers
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-    other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0f3b3a" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      { rel: "mask-icon", url: "/favicon.svg", color: "#0f3b3a" }, // optional Safari accent color
+    ],
   },
+
   openGraph: {
     title: "Dipsgiving",
     description: "Celebrate the art of dip — one scoop at a time.",
