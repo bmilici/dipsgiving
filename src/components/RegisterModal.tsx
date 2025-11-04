@@ -11,11 +11,11 @@ export type RegisterModalHandle = {
 const RegisterModal = forwardRef<RegisterModalHandle>(function RegisterModal(_, ref) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
-  // We’ll send a message to the form via a custom event
   useImperativeHandle(ref, () => ({
     open: (startWithDipOnly = false) => {
       dialogRef.current?.showModal();
       if (startWithDipOnly) {
+        // Tell the form to switch to Dip-only mode
         window.dispatchEvent(new CustomEvent("open-dip-only"));
       }
     },

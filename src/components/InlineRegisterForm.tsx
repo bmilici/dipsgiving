@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   addDoc,
   collection,
@@ -8,8 +8,6 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  where,
-  Firestore
 } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 
@@ -28,40 +26,46 @@ export default function InlineRegisterForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // 🔹 Allow the modal to switch this component to dip-only mode
+  // Allow modal to force "dip-only" mode
   useEffect(() => {
     const handler = () => setAddingDipOnly(true);
     window.addEventListener("open-dip-only", handler);
     return () => window.removeEventListener("open-dip-only", handler);
   }, []);
 
-  // 🔹 Live list of registered dips
+  // Live list of dips (robust: just look for non-empty dip_name)
   const [dips, setDips] = useState<DipItem[]>([]);
   useEffect(() => {
     if (!db) return;
-    // All docs that have a dip (bringing_dip == true), newest first
+
     const q = query(
       collection(db, "registrations"),
-      where("bringing_dip", "==", true),
       orderBy("created_at", "desc")
+      // add limit(200) here if you expect a lot
     );
-    const unsub = onSnapshot(q, (snap) => {
-      const items: DipItem[] = [];
-      snap.forEach((doc) => {
-        const d = doc.data() as any;
-        if (d?.dip_name) {
-          items.push({
-            id: doc.id,
-            name: d?.name ?? null,
-            dip_name: d?.dip_name ?? null,
-            notes: d?.notes ?? null,
-          });
-        }
-      });
-      setDips(items);
-    }, (err) => {
-      console.error("Dip list subscribe error:", err);
-    });
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const items: DipItem[] = [];
+        snap.forEach((doc) => {
+          const d = doc.data() as any;
+          const dipName = (d?.dip_name ?? "").toString().trim();
+          if (dipName.length > 0) {
+            items.push({
+              id: doc.id,
+              name: d?.name ?? null,
+              dip_name: dipName,
+              notes: (d?.notes ?? null) as any,
+            });
+          }
+        });
+        setDips(items);
+      },
+      (err) => {
+        console.error("Dip list subscribe error:", err);
+      }
+    );
     return () => unsub();
   }, [db]);
 
@@ -92,8 +96,8 @@ export default function InlineRegisterForm() {
         phone: addingDipOnly ? null : phone,
         party_size: addingDipOnly ? null : party_size,
         bringing_dip: bringingDip || addingDipOnly,
-        dip_name: bringingDip || addingDipOnly ? dip_name : null,
-        notes: bringingDip || addingDipOnly ? notes : null,
+        dip_name: (bringingDip || addingDipOnly) ? dip_name : null,
+        notes: (bringingDip || addingDipOnly) ? notes : null,
         event: "4th Annual Dipsgiving",
         created_at: serverTimestamp(),
         type: addingDipOnly ? "dip_only" : "full_rsvp",
@@ -253,7 +257,9 @@ export default function InlineRegisterForm() {
 
         <div className="max-h-64 overflow-auto rounded-xl border border-orange-200 bg-white/70 p-3">
           {dips.length === 0 ? (
-            <div className="text-sm text-orange-700/80">No dips yet—be the first!</div>
+            <div className="rounded-xl border border-orange-200/70 bg-orange-50/60 px-4 py-3 text-orange-800/90">
+              No dips yet—be the first!
+            </div>
           ) : (
             <ul className="grid gap-2">
               {dips.map((d) => (

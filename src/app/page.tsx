@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { RegisterModalHandle } from "@/components/RegisterModal";
 
-// Lazy load modal client-side only
+// Lazy-load modal on client
 const RegisterModal = dynamic(() => import("@/components/RegisterModal"), {
   ssr: false,
 });
@@ -46,7 +46,7 @@ export default function Page() {
         </nav>
       </header>
 
-      {/* Hero Section with Countdown */}
+      {/* Hero */}
       <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 text-center">
         <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl">
           4th Annual Dipsgiving
@@ -62,7 +62,7 @@ export default function Page() {
           <Pill label="Seconds" value={seconds} />
         </div>
 
-        {/* 🔸 Two Main Buttons */}
+        {/* Two buttons under countdown */}
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
             onClick={() => registerRef.current?.open(false)}
@@ -75,15 +75,15 @@ export default function Page() {
             onClick={() => registerRef.current?.open(true)}
             className="rounded-xl bg-amber-100 px-8 py-3 text-lg font-semibold text-orange-800 shadow-sm hover:bg-amber-200 transition"
           >
-            Register Dip(Already RSVP’d)
+            Already RSVP’d? Register Dip
           </button>
         </div>
       </section>
 
-      {/* Attach the Modal */}
+      {/* Modal with form + dip list */}
       <RegisterModal ref={registerRef} />
 
-      {/* About Section */}
+      {/* About (trimmed for brevity — keep your full content) */}
       <section className="border-t border-amber-200/20 bg-[#0f3b3a] py-14 text-[#f9e7b1]">
         <div className="mx-auto max-w-5xl px-4 space-y-6 text-center">
           <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">
@@ -93,8 +93,8 @@ export default function Page() {
             Dipsgiving
           </h2>
           <p className="text-emerald-100/85">
-            Bring a bathing suit &amp; a dip —{" "}
-            <span className="font-medium">we have the booze &amp; dippers</span>.
+            Bring a bathing suit &amp; a dip —
+            <span className="font-medium"> we have the booze &amp; dippers</span>.
             One form per dip, please!
           </p>
         </div>
