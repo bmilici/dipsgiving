@@ -79,7 +79,7 @@ export default function Page() {
           </p>
           <p className="text-emerald-100/85">
           For questions please reach out to Erika at{" "}
-          <a href="tel:+13016611626" className="underline decoration-amber-300/70 hover:decoration-amber-300">
+          <a href="sms:+13016611626" className="underline decoration-amber-300/70 hover:decoration-amber-300">
             (301) 661-1626
   </a>.
 </p>
