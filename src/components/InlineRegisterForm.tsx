@@ -26,14 +26,14 @@ export default function InlineRegisterForm() {
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Allow modal to force "dip-only" mode
+  // Allow /register/dip page to force "dip-only" mode
   useEffect(() => {
     const handler = () => setAddingDipOnly(true);
     window.addEventListener("open-dip-only", handler);
     return () => window.removeEventListener("open-dip-only", handler);
   }, []);
 
-  // Live list of dips (robust: just look for non-empty dip_name)
+  /* ----------------------- Live dip list ----------------------- */
   const [dips, setDips] = useState<DipItem[]>([]);
   useEffect(() => {
     if (!db) return;
@@ -69,6 +69,7 @@ export default function InlineRegisterForm() {
     return () => unsub();
   }, [db]);
 
+  /* ----------------------- Submit ----------------------- */
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!db) return setStatus("Database not available. Check Firebase config.");
@@ -78,35 +79,61 @@ export default function InlineRegisterForm() {
 
     const name = String(f.get("name") || "").trim();
     const phone = String(f.get("phone") || "").trim();
-    const party_size = Number(f.get("party_size") || 1);
+    const rawParty = Number(f.get("party_size") || 1);
+    const party_size = Number.isFinite(rawParty) && rawParty > 0 ? rawParty : 1;
+
     const dip_name = String(f.get("dip_name") || "").trim();
     const notes = String(f.get("notes") || "").trim();
 
-    if (!addingDipOnly && !name)
-      return setStatus("Please enter your name to RSVP.");
-    if ((bringingDip || addingDipOnly) && !dip_name)
+    // Validation:
+    if (!name) {
+      return setStatus(
+        addingDipOnly
+          ? "Please enter your name so we can show it with your dip."
+          : "Please enter your name to RSVP."
+      );
+    }
+    if ((bringingDip || addingDipOnly) && !dip_name) {
       return setStatus("Please enter a dip name before submitting.");
+    }
 
     try {
       setBusy(true);
       setStatus("Submitting…");
 
-      await addDoc(collection(db, "registrations"), {
-        name: addingDipOnly ? null : name,
-        phone: addingDipOnly ? null : phone,
-        party_size: addingDipOnly ? null : party_size,
-        bringing_dip: bringingDip || addingDipOnly,
-        dip_name: (bringingDip || addingDipOnly) ? dip_name : null,
-        notes: (bringingDip || addingDipOnly) ? notes : null,
-        event: "4th Annual Dipsgiving",
-        created_at: serverTimestamp(),
-        type: addingDipOnly ? "dip_only" : "full_rsvp",
-      });
+      if (addingDipOnly) {
+        // ✅ Dip-only submission: requires name, does NOT count as RSVP
+        await addDoc(collection(db, "registrations"), {
+          type: "dip_only",
+          name,
+          phone: null,         // not used
+          party_size: 0,       // explicitly zero so admins don't count it
+          bringing_dip: true,  // they are registering a dip
+          dip_name,
+          notes: notes || null,
+          event: "4th Annual Dipsgiving",
+          created_at: serverTimestamp(),
+        });
+      } else {
+        // ✅ Full RSVP (may or may not include a dip)
+        await addDoc(collection(db, "registrations"), {
+          type: "full_rsvp",
+          name,
+          phone: phone || null,
+          party_size,
+          bringing_dip: bringingDip,
+          dip_name: bringingDip ? dip_name : null,
+          notes: bringingDip ? notes || null : null,
+          event: "4th Annual Dipsgiving",
+          created_at: serverTimestamp(),
+        });
+      }
 
       setStatus("🎉 Success! Thanks!");
       form.reset();
       setBringingDip(false);
-      setAddingDipOnly(false);
+      // stay in the current mode; if you prefer to go back to RSVP, uncomment:
+      // setAddingDipOnly(false);
     } catch (err: any) {
       console.error(err);
       setStatus(
@@ -118,28 +145,31 @@ export default function InlineRegisterForm() {
     }
   }
 
-  const showRSVPForm = !addingDipOnly;
-  const showDipOnlyForm = addingDipOnly;
+  const showRSVPFields = !addingDipOnly; // phone, party size, “I’m bringing a dip” checkbox
+  const showDipFields = bringingDip || addingDipOnly;
 
   return (
     <div className="mx-auto max-w-3xl">
       {/* Form */}
       <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-5">
-        {showRSVPForm && (
+        {/* Name is required for both modes */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-orange-800">
+            {addingDipOnly ? "Your Name (shown with your dip)" : "Your Name"}
+          </label>
+          <input
+            name="name"
+            required
+            className="w-full rounded-lg border border-orange-300 p-3"
+          />
+        </div>
+
+        {showRSVPFields && (
           <>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-orange-800">
-                Your Name
+                Phone (optional)
               </label>
-              <input
-                name="name"
-                required
-                className="w-full rounded-lg border border-orange-300 p-3"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-orange-800">Phone</label>
               <input
                 name="phone"
                 type="tel"
@@ -176,13 +206,13 @@ export default function InlineRegisterForm() {
           </>
         )}
 
-        {showDipOnlyForm && (
+        {addingDipOnly && (
           <p className="text-sm text-orange-800/90">
-            Already registered? Add your dip below.
+            Already RSVP’d? Add your dip below—this won’t change RSVP counts.
           </p>
         )}
 
-        {(bringingDip || showDipOnlyForm) && (
+        {showDipFields && (
           <div className="space-y-5 rounded-xl border border-orange-200/70 bg-orange-50/40 p-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-orange-800">
@@ -197,7 +227,7 @@ export default function InlineRegisterForm() {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-orange-800">
-                Notes / Allergens
+                Notes / Allergens (optional)
               </label>
               <textarea
                 name="notes"
@@ -252,7 +282,8 @@ export default function InlineRegisterForm() {
       {/* Registered dips list */}
       <div className="mt-10">
         <h3 className="mb-3 text-lg font-semibold text-orange-900">
-          Registered Dips <span className="text-orange-700/70">({dips.length})</span>
+          Registered Dips{" "}
+          <span className="text-orange-700/70">({dips.length})</span>
         </h3>
 
         {/* No inner scroll; let the page scroll naturally */}
@@ -275,14 +306,13 @@ export default function InlineRegisterForm() {
                   <div className="text-xs text-orange-700/80">
                     {d.name ? `by ${d.name}` : "by RSVP’d guest"}
                   </div>
-                  {/* Notes intentionally hidden per request */}
+                  {/* Notes hidden here by design */}
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
-
     </div>
   );
 }
