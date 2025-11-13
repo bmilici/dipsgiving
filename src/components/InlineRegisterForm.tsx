@@ -155,7 +155,7 @@ export default function InlineRegisterForm() {
         {/* Name is required for both modes */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-orange-800">
-            {addingDipOnly ? "Your Name (shown with your dip)" : "Your Name"}
+            {addingDipOnly ? "Your Name" : "Your Name"}
           </label>
           <input
             name="name"
