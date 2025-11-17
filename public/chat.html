@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Five9 Embedded Chat – Clean</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+    }
+
+    #clickToChat {
+      margin: 20px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #65758e;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #clickToChat:hover { background: #4B5DFF; }
+
+    #chatWidgetContainer {
+      display: none;
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      width: 360px;
+      max-width: 90vw;
+      height: 520px;
+      max-height: 80vh;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      overflow: hidden;
+      z-index: 9999;
+    }
+  </style>
+  <!-- Five9 Chat Wrapper -->
+  <script src="https://cdn.prod.us.five9.net/static/stable/chat/wrapper/index.js"></script>
+</head>
+<body>
+  <button id="clickToChat">Click to Chat</button>
+
+  <!-- Embedded container -->
+  <div id="chatWidgetContainer" aria-live="polite"></div>
+
+  <script>
+    const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
+    let five9Mounted = false;
+
+    function mountFive9Embedded() {
+      return new Promise((resolve) => {
+        if (five9Mounted) return resolve();
+
+        F9.Chat.Wrapper.init({
+          cdn: "prod",
+          useBusinessHours: false,
+          l10n: {
+            en: {
+              messenger: { customText: {} },
+              systemMessages: {
+                transferredToParticipant: "The chat has been transferred to {name}.",
+                transferredToGroup: "The chat has been transferred to group {group}."
+              },
+              captureFields: [
+                { k: "name", l: "Name", p: "Enter your name..." },
+                { k: "email", l: "Email Address", p: "Enter your email..." },
+                { k: "Question", l: "Question", p: "What can we help you with today?" }
+              ]
+            }
+          },
+          prepopulatedFields: [{ k: "campaign", v: "UC CHAT" }],
+          messenger: {
+            integrationId: INTEGRATION_ID,
+            embedded: true,
+            embeddedContainerId: "chatWidgetContainer",
+            displayStyle: "embedded",
+            soundNotificationEnabled: true,
+            transcriptPrintingEnabled: false,
+            menuItems: { imageUpload: true, fileUpload: true, shareLocation: true },
+            browserStorage: "sessionStorage",
+            customColors: {
+              brandColor: "65758e",
+              conversationColor: "4B5DFF",
+              actionColor: "4B5DFF"
+            }
+          },
+          clearMessagesTimeout: 3
+        });
+
+        five9Mounted = true;
+        resolve();
+      });
+    }
+
+    const box = document.getElementById("chatWidgetContainer");
+    const openBtn = document.getElementById("clickToChat");
+
+    openBtn.addEventListener("click", async () => {
+      box.style.display = "block";
+      await mountFive9Embedded();
+      const api = F9?.Chat?.Wrapper?.api;
+      if (api?.open) try { api.open(); } catch {}
+    });
+
+    // 🚀 Remove the old built-in minimize button if present
+    document.addEventListener("DOMContentLoaded", () => {
+      const oldMinBtn = document.getElementById("minus");
+      if (oldMinBtn) {
+        oldMinBtn.remove();
+        console.log("Old minimize button removed");
+      }
+    });
+  </script>
+</body>
+</html>
