@@ -83,9 +83,9 @@
             menuItems: { imageUpload: true, fileUpload: true, shareLocation: true },
             browserStorage: "sessionStorage",
             customColors: {
-              brandColor: "65758e",
-              conversationColor: "4B5DFF",
-              actionColor: "4B5DFF"
+              brandColor: "#65758e",
+              conversationColor: "#4B5DFF",
+              actionColor: "#4B5DFF"
             }
           },
           clearMessagesTimeout: 3
@@ -103,10 +103,12 @@
       box.style.display = "block";
       await mountFive9Embedded();
       const api = F9?.Chat?.Wrapper?.api;
-      if (api?.open) try { api.open(); } catch {}
+      if (api?.open) {
+        try { api.open(); } catch (e) { console.error(e); }
+      }
     });
 
-    // 🚀 Remove the old built-in minimize button if present
+    // Remove the old built-in minimize button if present
     document.addEventListener("DOMContentLoaded", () => {
       const oldMinBtn = document.getElementById("minus");
       if (oldMinBtn) {
