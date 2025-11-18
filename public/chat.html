@@ -1,3 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Five9 Embedded Chat – Dipsgiving</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+    }
+
+    #clickToChat {
+      margin: 20px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #65758e;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #clickToChat:hover { background: #4B5DFF; }
+
+    #chatWidgetContainer {
+      display: none;
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      width: 360px;
+      max-width: 90vw;
+      height: 520px;
+      max-height: 80vh;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      overflow: hidden;
+      z-index: 9999;
+    }
+  </style>
+  <!-- Five9 Chat Wrapper -->
+  <script src="https://cdn.prod.us.five9.net/static/stable/chat/wrapper/index.js"></script>
+</head>
+<body>
+  <button id="clickToChat">Click to Chat</button>
+
+  <!-- Embedded container -->
+  <div id="chatWidgetContainer" aria-live="polite"></div>
+
 <script>
   const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
   let five9Mounted = false;
@@ -213,3 +262,6 @@
     }
   });
 </script>
+
+</body>
+</html>
