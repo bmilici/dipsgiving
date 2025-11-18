@@ -50,9 +50,10 @@
   <script>
     const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
     let five9Mounted = false;
-    let five9EventsBound = false;
 
-    // ---- Notification helpers ---------------------------------------
+    // -----------------------------------------------------------------
+    // Notification helpers
+    // -----------------------------------------------------------------
 
     async function ensureNotificationPermission() {
       if (!("Notification" in window)) {
@@ -89,21 +90,67 @@
       }
     }
 
-    // Handler we’ll hook into Five9 events
-    function handleIncomingChatMessage(messagePayload) {
-      // Try to grab some text from the payload if it exists
-      const text =
-        (messagePayload && (messagePayload.text || messagePayload.body || messagePayload.message)) ||
-        "New message from Dipsgiving Support";
-      maybeNotify("Dipsgiving Support", text);
+    // Called whenever we detect a new chat message
+    function handleIncomingChatMessage(text) {
+      const msgText = text && text.trim()
+        ? text.trim()
+        : "New message from Dipsgiving Support";
+      maybeNotify("Dipsgiving Support", msgText);
     }
 
-    // ---- Five9 init --------------------------------------------------
+    // -----------------------------------------------------------------
+    // MutationObserver to detect new messages in the chat container
+    // -----------------------------------------------------------------
+
+    let observerStarted = false;
+    const seenTexts = new Set();
+
+    function startMessageObserver() {
+      if (observerStarted) return;
+      if (!("MutationObserver" in window)) {
+        console.log("MutationObserver not supported; cannot auto-detect messages.");
+        return;
+      }
+
+      const container = document.getElementById("chatWidgetContainer");
+      if (!container) {
+        console.log("No chatWidgetContainer found.");
+        return;
+      }
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const text = node.textContent && node.textContent.trim();
+              if (!text) return;
+
+              // crude de-dupe so we don't send duplicates
+              const key = text.slice(0, 200); // truncate to keep set small
+              if (!seenTexts.has(key)) {
+                seenTexts.add(key);
+                // You can add smarter checks here, e.g. look for specific
+                // classes Five9 uses for agent messages vs. customer messages.
+                handleIncomingChatMessage(text);
+              }
+            }
+          });
+        });
+      });
+
+      observer.observe(container, { childList: true, subtree: true });
+      observerStarted = true;
+      console.log("Dipsgiving chat: message observer started.");
+    }
+
+    // -----------------------------------------------------------------
+    // Five9 init
+    // -----------------------------------------------------------------
 
     function mountFive9Embedded() {
       return new Promise((resolve) => {
         if (five9Mounted) {
-          bindFive9EventsIfPossible();
+          startMessageObserver();
           return resolve();
         }
 
@@ -144,44 +191,15 @@
         });
 
         five9Mounted = true;
-        bindFive9EventsIfPossible();
+        console.log("Five9 chat widget initialized.");
+        startMessageObserver();
         resolve();
       });
     }
 
-    // Try to hook into message events from the Five9 wrapper
-    function bindFive9EventsIfPossible() {
-      if (five9EventsBound) return;
-
-      const api = F9 && F9.Chat && F9.Chat.Wrapper && F9.Chat.Wrapper.api;
-      if (!api) {
-        // API not ready yet; we'll try again next time init is called
-        return;
-      }
-
-      // NOTE:
-      // The event name here is an EXAMPLE. Different environments may expose
-      // different event APIs. If Five9 gives you a specific event like
-      // "messageReceived" or "chatMessage", update this accordingly.
-      //
-      // This is written defensively so if api.on doesn't exist, nothing breaks.
-      if (typeof api.on === "function") {
-        try {
-          // Example event name: "messageReceived"
-          api.on("messageReceived", (payload) => {
-            handleIncomingChatMessage(payload);
-          });
-          five9EventsBound = true;
-          console.log("Five9 chat message listener bound.");
-        } catch (e) {
-          console.warn("Could not bind Five9 events:", e);
-        }
-      } else {
-        console.log("Five9 API has no .on() method; update event wiring if needed.");
-      }
-    }
-
-    // ---- UI wiring ---------------------------------------------------
+    // -----------------------------------------------------------------
+    // UI wiring
+    // -----------------------------------------------------------------
 
     const box = document.getElementById("chatWidgetContainer");
     const openBtn = document.getElementById("clickToChat");
