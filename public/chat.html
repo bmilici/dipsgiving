@@ -48,8 +48,10 @@
   <div id="chatWidgetContainer" aria-live="polite"></div>
 
   <script>
+    // ---------------------- CONFIG / VERSION --------------------------
     const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
     let five9Mounted = false;
+    console.log("[Dipsgiving] chat script v3 loaded.");
 
     // -----------------------------------------------------------------
     // Notification helpers
@@ -120,36 +122,59 @@
     }
 
     // -----------------------------------------------------------------
-    // Hook console.log to catch Five9 PubNub textMessage events
+    // Helper to inspect console args for Five9 PubNub payloads
+    // -----------------------------------------------------------------
+
+    function inspectFive9ConsoleArgs(args) {
+      args.forEach((arg) => {
+        let obj = null;
+
+        if (arg && typeof arg === "object") {
+          obj = arg;
+        } else if (typeof arg === "string") {
+          // Try to parse JSON strings
+          const trimmed = arg.trim();
+          if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+            try {
+              obj = JSON.parse(trimmed);
+            } catch {
+              // not JSON, ignore
+            }
+          }
+        }
+
+        if (!obj || !obj.m || !Array.isArray(obj.m)) return;
+
+        obj.m.forEach((m) => {
+          const d = m && m.d;
+          const content = d && d.content;
+          if (d && d.type === "textMessage" && content && content.text) {
+            console.log("[Dipsgiving] Five9 textMessage detected:", content.text);
+            handleIncomingChatMessage(content.text);
+          }
+        });
+      });
+    }
+
+    // -----------------------------------------------------------------
+    // Hook ALL console methods so we catch whatever Five9 uses
     // -----------------------------------------------------------------
 
     (function hookConsoleForFive9Messages() {
-      const originalLog = console.log;
-
-      console.log = function (...args) {
-        try {
-          args.forEach((arg) => {
-            // We’re looking for the PubNub payload that looks like:
-            // { t: {...}, m: [ { d: { type: "textMessage", content: { text: "..." } } } ] }
-            if (arg && typeof arg === "object" && Array.isArray(arg.m)) {
-              arg.m.forEach((m) => {
-                const d = m && m.d;
-                const content = d && d.content;
-                if (d && d.type === "textMessage" && content && content.text) {
-                  console.debug("[Dipsgiving] Five9 textMessage detected:", content.text);
-                  handleIncomingChatMessage(content.text);
-                }
-              });
-            }
-          });
-        } catch (e) {
-          originalLog.call(console, "[Dipsgiving] Error inspecting console args:", e);
-        }
-
-        return originalLog.apply(console, args);
-      };
-
-      console.log("[Dipsgiving] console.log hook installed.");
+      const methods = ["log", "info", "debug", "warn"];
+      methods.forEach((method) => {
+        const original = console[method].bind(console);
+        console[method] = function (...args) {
+          try {
+            inspectFive9ConsoleArgs(args);
+          } catch (e) {
+            original("[Dipsgiving] Error inspecting console args:", e);
+          }
+          return original(...args);
+        };
+      });
+      // This will go through the NEW console.log, but that's fine
+      console.log("[Dipsgiving] console hooks installed (log/info/debug/warn).");
     })();
 
     // -----------------------------------------------------------------
