@@ -47,221 +47,253 @@
   <!-- Embedded container -->
   <div id="chatWidgetContainer" aria-live="polite"></div>
 
-<script>
-  const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
-  let five9Mounted = false;
+  <script>
+    const INTEGRATION_ID = "642f0167b3069f011ac9b1a8"; // replace if needed
+    let five9Mounted = false;
 
-  // -----------------------------------------------------------------
-  // Notification helpers
-  // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // Notification helpers
+    // -----------------------------------------------------------------
 
-  async function ensureNotificationPermission() {
-    console.log("[Dipsgiving] Checking notification permission…");
+    async function ensureNotificationPermission() {
+      console.log("[Dipsgiving] Checking notification permission…");
 
-    if (!("Notification" in window)) {
-      console.log("[Dipsgiving] Notifications NOT supported in this browser.");
+      if (!("Notification" in window)) {
+        console.log("[Dipsgiving] Notifications NOT supported in this browser.");
+        return false;
+      }
+
+      console.log("[Dipsgiving] Current permission:", Notification.permission);
+
+      if (Notification.permission === "granted") return true;
+
+      if (Notification.permission !== "denied") {
+        const result = await Notification.requestPermission();
+        console.log("[Dipsgiving] Permission result:", result);
+        return result === "granted";
+      }
+
+      console.log("[Dipsgiving] Permission is denied.");
       return false;
     }
 
-    console.log("[Dipsgiving] Current permission:", Notification.permission);
-
-    if (Notification.permission === "granted") return true;
-
-    if (Notification.permission !== "denied") {
-      const result = await Notification.requestPermission();
-      console.log("[Dipsgiving] Permission result:", result);
-      return result === "granted";
+    function isPageVisible() {
+      const visible = document.visibilityState === "visible";
+      console.log("[Dipsgiving] Page visible?", visible);
+      return visible;
     }
 
-    console.log("[Dipsgiving] Permission is denied.");
-    return false;
-  }
+    function maybeNotify(title, body) {
+      console.log("[Dipsgiving] maybeNotify called with:", { title, body });
 
-  function isPageVisible() {
-    const visible = document.visibilityState === "visible";
-    console.log("[Dipsgiving] Page visible?", visible);
-    return visible;
-  }
-
-  function maybeNotify(title, body) {
-    console.log("[Dipsgiving] maybeNotify called with:", { title, body });
-
-    if (!("Notification" in window)) {
-      console.log("[Dipsgiving] Notifications not supported.");
-      return;
-    }
-    if (Notification.permission !== "granted") {
-      console.log("[Dipsgiving] Permission is not granted:", Notification.permission);
-      return;
-    }
-    if (isPageVisible()) {
-      console.log("[Dipsgiving] Page is visible; skipping notification.");
-      return;
-    }
-
-    try {
-      new Notification(title, {
-        body,
-        tag: "dipsgiving-chat",
-      });
-      console.log("[Dipsgiving] Notification should be shown now.");
-    } catch (e) {
-      console.warn("[Dipsgiving] Notification error:", e);
-    }
-  }
-
-  // Called whenever we detect a new chat message
-  function handleIncomingChatMessage(text) {
-    console.log("[Dipsgiving] handleIncomingChatMessage got text:", text);
-    const msgText = text && text.trim()
-      ? text.trim()
-      : "New message from Dipsgiving Support";
-    maybeNotify("Dipsgiving Support", msgText);
-  }
-
-  // -----------------------------------------------------------------
-  // MutationObserver to detect new messages in the chat container
-  // -----------------------------------------------------------------
-
-  let observerStarted = false;
-  const seenTexts = new Set();
-
-  function startMessageObserver() {
-    if (observerStarted) {
-      console.log("[Dipsgiving] Observer already started.");
-      return;
-    }
-    if (!("MutationObserver" in window)) {
-      console.log("[Dipsgiving] MutationObserver not supported.");
-      return;
-    }
-
-    const container = document.getElementById("chatWidgetContainer");
-    if (!container) {
-      console.log("[Dipsgiving] No #chatWidgetContainer found.");
-      return;
-    }
-
-    console.log("[Dipsgiving] Starting MutationObserver on chatWidgetContainer…");
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            const text = node.textContent && node.textContent.trim();
-            if (!text) return;
-
-            console.log("[Dipsgiving] New DOM node added with text:", text);
-
-            const key = text.slice(0, 200);
-            if (!seenTexts.has(key)) {
-              seenTexts.add(key);
-              handleIncomingChatMessage(text);
-            } else {
-              console.log("[Dipsgiving] Skipping duplicate text.");
-            }
-          }
-        });
-      });
-    });
-
-    observer.observe(container, { childList: true, subtree: true });
-    observerStarted = true;
-    console.log("[Dipsgiving] Message observer started.");
-  }
-
-  // -----------------------------------------------------------------
-  // Five9 init
-  // -----------------------------------------------------------------
-
-  function mountFive9Embedded() {
-    return new Promise((resolve) => {
-      if (five9Mounted) {
-        console.log("[Dipsgiving] Five9 already mounted; re-using.");
-        startMessageObserver();
-        return resolve();
+      if (!("Notification" in window)) {
+        console.log("[Dipsgiving] Notifications not supported.");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        console.log("[Dipsgiving] Permission is not granted:", Notification.permission);
+        return;
+      }
+      if (isPageVisible()) {
+        console.log("[Dipsgiving] Page is visible; skipping notification.");
+        return;
       }
 
-      console.log("[Dipsgiving] Initializing Five9 chat widget…");
+      try {
+        new Notification(title, {
+          body,
+          tag: "dipsgiving-chat", // collapse multiple notifications
+        });
+        console.log("[Dipsgiving] Notification should be shown now.");
+      } catch (e) {
+        console.warn("[Dipsgiving] Notification error:", e);
+      }
+    }
 
-      F9.Chat.Wrapper.init({
-        cdn: "prod",
-        useBusinessHours: false,
-        l10n: {
-          en: {
-            messenger: { customText: {} },
-            systemMessages: {
-              transferredToParticipant: "The chat has been transferred to {name}.",
-              transferredToGroup: "The chat has been transferred to group {group}."
-            },
-            captureFields: [
-              { k: "name", l: "Name", p: "Enter your name..." },
-              { k: "email", l: "Email Address", p: "Enter your email..." },
-              { k: "Question", l: "Question", p: "What can we help you with today?" }
-            ]
-          }
-        },
-        prepopulatedFields: [{ k: "campaign", v: "UC CHAT" }],
-        messenger: {
-          integrationId: INTEGRATION_ID,
-          embedded: true,
-          embeddedContainerId: "chatWidgetContainer",
-          displayStyle: "embedded",
-          soundNotificationEnabled: true,
-          transcriptPrintingEnabled: false,
-          menuItems: { imageUpload: true, fileUpload: true, shareLocation: true },
-          browserStorage: "sessionStorage",
-          customColors: {
-            brandColor: "#65758e",
-            conversationColor: "#4B5DFF",
-            actionColor: "#4B5DFF"
-          }
-        },
-        clearMessagesTimeout: 3
+    // Called whenever we detect a new chat message
+    function handleIncomingChatMessage(text) {
+      console.log("[Dipsgiving] handleIncomingChatMessage got text:", text);
+      const msgText = text && text.trim()
+        ? text.trim()
+        : "New message from Dipsgiving Support";
+      maybeNotify("Dipsgiving Support", msgText);
+    }
+
+    // -----------------------------------------------------------------
+    // Hook console.log to catch Five9 PubNub textMessage events
+    // -----------------------------------------------------------------
+
+    (function hookConsoleForFive9Messages() {
+      const originalLog = console.log;
+
+      console.log = function (...args) {
+        try {
+          args.forEach((arg) => {
+            // We’re looking for the PubNub payload that looks like:
+            // { t: {...}, m: [ { d: { type: "textMessage", content: { text: "..." } } } ] }
+            if (arg && typeof arg === "object" && Array.isArray(arg.m)) {
+              arg.m.forEach((m) => {
+                const d = m && m.d;
+                const content = d && d.content;
+                if (d && d.type === "textMessage" && content && content.text) {
+                  console.debug("[Dipsgiving] Five9 textMessage detected:", content.text);
+                  handleIncomingChatMessage(content.text);
+                }
+              });
+            }
+          });
+        } catch (e) {
+          originalLog.call(console, "[Dipsgiving] Error inspecting console args:", e);
+        }
+
+        return originalLog.apply(console, args);
+      };
+
+      console.log("[Dipsgiving] console.log hook installed.");
+    })();
+
+    // -----------------------------------------------------------------
+    // MutationObserver (fallback – may not fire if chat is inside iframe)
+    // -----------------------------------------------------------------
+
+    let observerStarted = false;
+    const seenTexts = new Set();
+
+    function startMessageObserver() {
+      if (observerStarted) {
+        console.log("[Dipsgiving] Observer already started.");
+        return;
+      }
+      if (!("MutationObserver" in window)) {
+        console.log("[Dipsgiving] MutationObserver not supported.");
+        return;
+      }
+
+      const container = document.getElementById("chatWidgetContainer");
+      if (!container) {
+        console.log("[Dipsgiving] No #chatWidgetContainer found.");
+        return;
+      }
+
+      console.log("[Dipsgiving] Starting MutationObserver on chatWidgetContainer…");
+
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const text = node.textContent && node.textContent.trim();
+              if (!text) return;
+
+              console.log("[Dipsgiving] New DOM node added with text:", text);
+
+              const key = text.slice(0, 200);
+              if (!seenTexts.has(key)) {
+                seenTexts.add(key);
+                handleIncomingChatMessage(text);
+              } else {
+                console.log("[Dipsgiving] Skipping duplicate text.");
+              }
+            }
+          });
+        });
       });
 
-      five9Mounted = true;
-      console.log("[Dipsgiving] Five9 chat widget initialized.");
-      startMessageObserver();
-      resolve();
+      observer.observe(container, { childList: true, subtree: true });
+      observerStarted = true;
+      console.log("[Dipsgiving] Message observer started.");
+    }
+
+    // -----------------------------------------------------------------
+    // Five9 init
+    // -----------------------------------------------------------------
+
+    function mountFive9Embedded() {
+      return new Promise((resolve) => {
+        if (five9Mounted) {
+          console.log("[Dipsgiving] Five9 already mounted; re-using.");
+          startMessageObserver();
+          return resolve();
+        }
+
+        console.log("[Dipsgiving] Initializing Five9 chat widget…");
+
+        F9.Chat.Wrapper.init({
+          cdn: "prod",
+          useBusinessHours: false,
+          l10n: {
+            en: {
+              messenger: { customText: {} },
+              systemMessages: {
+                transferredToParticipant: "The chat has been transferred to {name}.",
+                transferredToGroup: "The chat has been transferred to group {group}."
+              },
+              captureFields: [
+                { k: "name", l: "Name", p: "Enter your name..." },
+                { k: "email", l: "Email Address", p: "Enter your email..." },
+                { k: "Question", l: "Question", p: "What can we help you with today?" }
+              ]
+            }
+          },
+          prepopulatedFields: [{ k: "campaign", v: "UC CHAT" }],
+          messenger: {
+            integrationId: INTEGRATION_ID,
+            embedded: true,
+            embeddedContainerId: "chatWidgetContainer",
+            displayStyle: "embedded",
+            soundNotificationEnabled: true,
+            transcriptPrintingEnabled: false,
+            menuItems: { imageUpload: true, fileUpload: true, shareLocation: true },
+            browserStorage: "sessionStorage",
+            customColors: {
+              brandColor: "#65758e",
+              conversationColor: "#4B5DFF",
+              actionColor: "#4B5DFF"
+            }
+          },
+          clearMessagesTimeout: 3
+        });
+
+        five9Mounted = true;
+        console.log("[Dipsgiving] Five9 chat widget initialized.");
+        startMessageObserver(); // harmless even if chat is iframe-based
+        resolve();
+      });
+    }
+
+    // -----------------------------------------------------------------
+    // UI wiring
+    // -----------------------------------------------------------------
+
+    const box = document.getElementById("chatWidgetContainer");
+    const openBtn = document.getElementById("clickToChat");
+
+    openBtn.addEventListener("click", async () => {
+      console.log("[Dipsgiving] Click to Chat button clicked.");
+      box.style.display = "block";
+
+      await mountFive9Embedded();
+
+      const granted = await ensureNotificationPermission();
+      console.log("[Dipsgiving] Notification permission granted?", granted);
+
+      const api = F9 && F9.Chat && F9.Chat.Wrapper && F9.Chat.Wrapper.api;
+      console.log("[Dipsgiving] Five9 API object:", api);
+
+      if (api && typeof api.open === "function") {
+        try { api.open(); } catch (e) { console.error("[Dipsgiving] api.open error:", e); }
+      } else {
+        console.log("[Dipsgiving] api.open is not a function.");
+      }
     });
-  }
 
-  // -----------------------------------------------------------------
-  // UI wiring
-  // -----------------------------------------------------------------
-
-  const box = document.getElementById("chatWidgetContainer");
-  const openBtn = document.getElementById("clickToChat");
-
-  openBtn.addEventListener("click", async () => {
-    console.log("[Dipsgiving] Click to Chat button clicked.");
-    box.style.display = "block";
-
-    await mountFive9Embedded();
-
-    const granted = await ensureNotificationPermission();
-    console.log("[Dipsgiving] Notification permission granted?", granted);
-
-    const api = F9 && F9.Chat && F9.Chat.Wrapper && F9.Chat.Wrapper.api;
-    console.log("[Dipsgiving] Five9 API object:", api);
-
-    if (api && typeof api.open === "function") {
-      try { api.open(); } catch (e) { console.error("[Dipsgiving] api.open error:", e); }
-    } else {
-      console.log("[Dipsgiving] api.open is not a function.");
-    }
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    console.log("[Dipsgiving] DOMContentLoaded.");
-    const oldMinBtn = document.getElementById("minus");
-    if (oldMinBtn) {
-      oldMinBtn.remove();
-      console.log("[Dipsgiving] Old minimize button removed");
-    }
-  });
-</script>
-
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("[Dipsgiving] DOMContentLoaded.");
+      const oldMinBtn = document.getElementById("minus");
+      if (oldMinBtn) {
+        oldMinBtn.remove();
+        console.log("[Dipsgiving] Old minimize button removed");
+      }
+    });
+  </script>
 </body>
 </html>
