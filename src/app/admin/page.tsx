@@ -84,8 +84,8 @@ export default function AdminDashboard() {
       totalRSVPs,
       totalAttendees,
       totalDips: dips.length,
-      latestRSVPs: full.slice(0, 20),
-      latestDips: dips.slice(0, 20),
+      latestRSVPs: full.slice(0, 30),
+      latestDips: dips.slice(0, 30),
     };
   }, [rows]);
 
