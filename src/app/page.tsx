@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Sponsors from "@/components/Sponsors"; // ✅ NEW
 
 function Pill({ label, value }: { label: string; value: number | string }) {
   return (
@@ -18,7 +19,10 @@ export default function Page() {
   const targetDate = new Date("2025-11-22T16:00:00-05:00");
   const [ms, setMs] = useState(() => Math.max(0, +targetDate - Date.now()));
   useEffect(() => {
-    const id = setInterval(() => setMs(Math.max(0, +targetDate - Date.now())), 1000);
+    const id = setInterval(
+      () => setMs(Math.max(0, +targetDate - Date.now())),
+      1000
+    );
     return () => clearInterval(id);
   }, []);
 
@@ -29,7 +33,6 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
-
       {/* Hero */}
       <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 text-center">
         <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl">
@@ -78,9 +81,14 @@ export default function Page() {
             One form per dip, please!
           </p>
           <p className="text-emerald-100/85">
-          For questions please reach out to Erika at{" "}
-          <a href="sms:+13016611626" className="underline decoration-amber-300/70 hover:decoration-amber-300">
-            (301) 661-1626 </a>.
+            For questions please reach out to Erika at{" "}
+            <a
+              href="sms:+13016611626"
+              className="underline decoration-amber-300/70 hover:decoration-amber-300"
+            >
+              (301) 661-1626{" "}
+            </a>
+            .
           </p>
           <p className="text-emerald-100/85">
             Location:{" "}
@@ -99,6 +107,9 @@ export default function Page() {
           </p>
         </div>
       </section>
+
+      {/* ✅ Sponsors go here, between About and footer */}
+      <Sponsors />
 
       <footer className="border-t border-orange-200/60 bg-white/60 py-8">
         <p className="text-center text-sm text-orange-800/70">
