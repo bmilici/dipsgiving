@@ -5,8 +5,7 @@ export default function Sponsors() {
       url: "https://www.onefreshhat.com/",
       logo: "/sponsors/onefreshhat.png",
     },
-    // Add more later:
-    // { name: "Knicks26", url: "https://knicks26.com", logo: "/sponsors/knicks26.png" },
+     { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
   ];
 
   return (
