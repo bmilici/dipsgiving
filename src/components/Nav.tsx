@@ -13,7 +13,8 @@ export default function Nav() {
     { href: "/register", label: "RSVP" },
     { href: "/register/dip", label: "Register" },
     { href: "/dips", label: "Dip List" },
-    { href: "/vote", label: "Vote" }, // ⭐ NEW TAB
+    { href: "/vote", label: "Vote" }, 
+    { href: "/winners", label: "Historic Dip Champions" },
   ];
 
   return (
