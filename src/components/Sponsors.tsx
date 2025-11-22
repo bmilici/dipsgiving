@@ -25,7 +25,7 @@ export default function Sponsors() {
               <img
                 src={s.logo}
                 alt={s.name}
-                className="h-20 object-contain"
+                className="h-32 object-contain"
               />
             </a>
           ))}
