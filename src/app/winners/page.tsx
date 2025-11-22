@@ -1,175 +1,122 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 
 type PodiumEntry = {
-  place: 1 | 2 | 3;
+  place: number;
   dip_name: string;
-  by?: string | null;
+  by: string;
+  image?: string;
 };
 
-type WinnerDoc = {
+type YearWinner = {
   id: string;
-  year: number;
-  title?: string | null;
-  description?: string | null;
-  image?: string | null;
-  podium?: PodiumEntry[];
+  image?: string;
+  podium: PodiumEntry[];
 };
 
-function Podium({ podium }: { podium: PodiumEntry[] }) {
-  // Normalize to always be 1,2,3 even if data comes unordered
-  const byPlace = {
-    1: podium.find((p) => p.place === 1),
-    2: podium.find((p) => p.place === 2),
-    3: podium.find((p) => p.place === 3),
-  };
-
-  const podiumBox = (place: 1 | 2 | 3, label: string, heightClass: string) => {
-    const p = byPlace[place];
-    return (
-      <div className={`flex flex-col items-center justify-end ${heightClass}`}>
-        <div className="w-full rounded-xl bg-white/90 border border-orange-200 px-3 py-3 text-center shadow-sm">
-          <div className="text-sm font-semibold text-orange-900">
-            {label}
-          </div>
-          <div className="mt-1 font-bold text-orange-800 truncate">
-            {p?.dip_name || "TBD"}
-          </div>
-          <div className="text-xs text-orange-700/80">
-            {p?.by ? `by ${p.by}` : ""}
-          </div>
-        </div>
-
-        {/* Podium base */}
-        <div
-          className={`mt-2 w-full rounded-b-xl bg-orange-800/90 text-amber-50 text-center font-bold py-2`}
-        >
-          #{place}
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="mt-5 grid grid-cols-3 gap-3 items-end">
-      {podiumBox(2, "🥈 Silver", "min-h-[140px]")}
-      {podiumBox(1, "🥇 Champion", "min-h-[170px]")}
-      {podiumBox(3, "🥉 Bronze", "min-h-[120px]")}
-    </div>
-  );
-}
-
-export default function WinnersPage() {
-  const [winners, setWinners] = useState<WinnerDoc[]>([]);
+export default function HistoricDipChampions() {
+  const [years, setYears] = useState<YearWinner[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getClientDB();
-    if (!db) {
-      setError("Database not available. Check Firebase config.");
-      return;
-    }
+    const load = async () => {
+      try {
+        const db = getClientDB();
+        if (!db) return setError("Database not available.");
 
-    const q = query(collection(db, "winners"), orderBy("year", "desc"));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const out: WinnerDoc[] = [];
-        snap.forEach((doc) => {
-          out.push({ id: doc.id, ...(doc.data() as any) });
+        const qSnap = await getDocs(collection(db, "winners"));
+
+        const result: YearWinner[] = [];
+
+        qSnap.forEach((doc) => {
+          const data = doc.data() as any;
+
+          result.push({
+            id: doc.id,
+            image: data.image ?? null,
+            podium: Array.isArray(data.podium) ? data.podium : [],
+          });
         });
-        setWinners(out);
-      },
-      (err) => {
+
+        // Sort by year descending
+        result.sort((a, b) => Number(b.id) - Number(a.id));
+
+        setYears(result);
+      } catch (err) {
         console.error(err);
         setError("Failed to load winners.");
       }
-    );
+    };
 
-    return () => unsub();
+    load();
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-12">
-      <div className="mx-auto max-w-6xl px-4 space-y-10">
-        <header className="text-center space-y-2">
-          <h1 className="text-4xl font-extrabold text-orange-900">
-            Historic Dip Champions
-          </h1>
-          <p className="text-orange-800/80">
-            A legendary archive of Dipsgiving greatness.
-          </p>
-        </header>
+    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
+      <div className="mx-auto max-w-5xl px-4 space-y-10">
+        <h1 className="text-4xl font-extrabold text-center text-orange-900">
+          Historic Dip Champions
+        </h1>
+        <p className="text-center text-orange-800/80">
+          A legendary archive of Dipsgiving greatness.
+        </p>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          <p className="text-red-700 bg-red-100 border border-red-300 p-3 rounded-lg text-center">
             {error}
-          </div>
+          </p>
         )}
 
-        {winners.length === 0 && !error && (
-          <div className="text-center text-orange-700/80">
+        {years.length === 0 && !error && (
+          <p className="text-center text-orange-700/90">
             No champions yet — the hall awaits its first legends.
-          </div>
+          </p>
         )}
 
-        {/* Hall of Fame Cards */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {winners.map((w) => (
-            <div
-              key={w.id}
-              className="rounded-2xl border border-orange-200 bg-white/80 p-5 shadow-sm"
-            >
-              {/* year + title */}
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-2xl font-bold text-orange-900">
-                  {w.year}
-                </h2>
-                {!!w.title && (
-                  <div className="text-sm font-semibold text-orange-700/90">
-                    {w.title}
+        {years.map((year) => (
+          <section
+            key={year.id}
+            className="bg-white/70 border border-amber-200 rounded-xl p-6 space-y-6"
+          >
+            <h2 className="text-3xl font-bold text-orange-900">
+              Dipsgiving {year.id}
+            </h2>
+
+            {/* Podium */}
+            <div className="grid sm:grid-cols-3 gap-6 text-center">
+              {year.podium
+                .sort((a, b) => a.place - b.place)
+                .map((entry) => (
+                  <div
+                    key={entry.place}
+                    className="p-4 rounded-lg border border-orange-200 bg-orange-50/50"
+                  >
+                    <div className="text-xl font-bold text-orange-900 mb-2">
+                      🏆 {entry.place === 1 ? "1st Place" : entry.place === 2 ? "2nd Place" : "3rd Place"}
+                    </div>
+
+                    {entry.image && (
+                      <img
+                        src={entry.image}
+                        alt={entry.dip_name}
+                        className="mx-auto rounded-lg h-40 w-auto object-contain mb-3"
+                      />
+                    )}
+
+                    <div className="text-lg font-semibold text-orange-900">
+                      {entry.dip_name}
+                    </div>
+                    <div className="text-sm text-orange-700">
+                      by {entry.by}
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* image */}
-              {!!w.image && (
-                <div className="mt-3 overflow-hidden rounded-xl border border-orange-200 bg-white">
-                  <img
-                    src={w.image}
-                    alt={`Dipsgiving ${w.year} winners`}
-                    className="w-full h-56 object-cover"
-                  />
-                </div>
-              )}
-
-              {/* blurb */}
-              {!!w.description && (
-                <p className="mt-4 text-orange-800/90 leading-relaxed">
-                  {w.description}
-                </p>
-              )}
-
-              {/* podium */}
-              {w.podium && w.podium.length > 0 && (
-                <Podium podium={w.podium} />
-              )}
-              {(!w.podium || w.podium.length === 0) && (
-                <div className="mt-5 text-sm text-orange-700/70 italic">
-                  Podium TBD.
-                </div>
-              )}
+                ))}
             </div>
-          ))}
-        </section>
+          </section>
+        ))}
       </div>
     </main>
   );
