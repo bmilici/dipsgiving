@@ -1,11 +1,7 @@
 export default function Sponsors() {
   const sponsors = [
-    {
-      name: "One Fresh Hat",
-      url: "https://www.onefreshhat.com/",
-      logo: "/sponsors/onefreshhat.png",
-    },
      { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
+     { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png", },
   ];
 
   return (
