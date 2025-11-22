@@ -2,6 +2,7 @@ export default function Sponsors() {
   const sponsors = [
      { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
      { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png", },
+     { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/public/sponsors/AT.webp", },     
   ];
 
   return (
