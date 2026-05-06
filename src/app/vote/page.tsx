@@ -15,6 +15,7 @@ import {
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
 import Link from "next/link";
+import { useEventSettings } from "@/lib/eventSettings";
 
 type DipReg = {
   id: string;
@@ -25,8 +26,6 @@ type DipReg = {
   year?: number | null;
   created_at?: unknown;
 };
-
-const EVENT_START: Date | null = null;
 
 function readDipIds(value: unknown): string[] {
   if (!value || typeof value !== "object") return [];
@@ -127,6 +126,7 @@ export default function VotePage() {
   const authReady = useEnsureAnonAuth();
   const auth = getClientAuth();
   const db = getClientDB();
+  const eventSettings = useEventSettings();
 
   const year = useMemo(() => new Date().getFullYear(), []);
   const [dips, setDips] = useState<DipReg[]>([]);
@@ -134,7 +134,7 @@ export default function VotePage() {
   const [status, setStatus] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<string[]>([]);
 
-  const votingOpen = EVENT_START ? Date.now() >= EVENT_START.getTime() : false;
+  const votingOpen = eventSettings.votingOpen;
 
   // Load dips from registrations (only docs with dip_name)
   useEffect(() => {
@@ -282,7 +282,10 @@ export default function VotePage() {
         {!votingOpen && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
             Voting opens after Dipsgiving starts. Date and time are{" "}
-            <strong>TBD</strong>.
+            <strong>
+              {eventSettings.dateLabel}
+              {eventSettings.timeLabel !== "TBD" ? ` at ${eventSettings.timeLabel}` : ""}
+            </strong>.
           </div>
         )}
 
@@ -360,7 +363,7 @@ export default function VotePage() {
 
         {!dips.length && (
           <div className="rounded-xl border border-orange-200 bg-white/60 p-4 text-orange-800/80">
-            No dips to vote on yet.
+            No dips are registered for the next Dipsgiving yet.
           </div>
         )}
       </div>

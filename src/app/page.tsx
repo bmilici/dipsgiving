@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Sponsors from "@/components/Sponsors"; // ✅ NEW
+import { useEventSettings } from "@/lib/eventSettings";
 
 function Pill({ label, value }: { label: string; value: number | string }) {
   return (
@@ -15,20 +16,22 @@ function Pill({ label, value }: { label: string; value: number | string }) {
 }
 
 export default function Page() {
+  const eventSettings = useEventSettings();
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
       {/* Hero */}
       <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 text-center">
         <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl">
-          5th Annual Dipsgiving
+          {eventSettings.eventName}
         </h1>
         <p className="mb-8 text-orange-800/85">
-          Date and time TBD.
+          Date and time {eventSettings.dateLabel === "TBD" ? "TBD" : "announced"}.
         </p>
 
         <div className="mx-auto mb-8 grid max-w-xl grid-cols-2 gap-3">
-          <Pill label="Date" value="TBD" />
-          <Pill label="Time" value="TBD" />
+          <Pill label="Date" value={eventSettings.dateLabel} />
+          <Pill label="Time" value={eventSettings.timeLabel} />
         </div>
 
         {/* Two buttons */}
@@ -52,7 +55,7 @@ export default function Page() {
       <section className="border-t border-amber-200/20 bg-[#0f3b3a] py-14 text-[#f9e7b1]">
         <div className="mx-auto max-w-5xl px-4 space-y-6 text-center">
           <p className="tracking-[0.2em] text-xs text-amber-300/90 uppercase">
-            5th Annual
+            {eventSettings.eventNumberLabel}
           </p>
           <h2 className="text-4xl sm:text-5xl font-semibold leading-tight">
             Dipsgiving

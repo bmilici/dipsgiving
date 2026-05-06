@@ -17,8 +17,18 @@ type YearWinner = {
   podium: PodiumEntry[];
 };
 
+type HistoricalDip = {
+  id: string;
+  archive_year: number;
+  dip_name: string;
+  by?: string | null;
+  notes?: string | null;
+  votes?: number | null;
+};
+
 export default function HistoricDipChampions() {
   const [years, setYears] = useState<YearWinner[]>([]);
+  const [historicalDips, setHistoricalDips] = useState<HistoricalDip[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,8 +38,10 @@ export default function HistoricDipChampions() {
         if (!db) return setError("Database not available.");
 
         const qSnap = await getDocs(collection(db, "winners"));
+        const historicalSnap = await getDocs(collection(db, "historicalDips"));
 
         const result: YearWinner[] = [];
+        const archived: HistoricalDip[] = [];
 
         qSnap.forEach((doc) => {
           const data = doc.data() as any;
@@ -41,10 +53,38 @@ export default function HistoricDipChampions() {
           });
         });
 
+        historicalSnap.forEach((doc) => {
+          const data = doc.data() as Record<string, unknown>;
+          const dipName = typeof data.dip_name === "string" ? data.dip_name : "";
+          const archiveYear =
+            typeof data.archive_year === "number"
+              ? data.archive_year
+              : typeof data.year === "number"
+              ? data.year
+              : null;
+
+          if (!dipName || !archiveYear) return;
+
+          archived.push({
+            id: doc.id,
+            archive_year: archiveYear,
+            dip_name: dipName,
+            by: typeof data.by === "string" ? data.by : null,
+            notes: typeof data.notes === "string" ? data.notes : null,
+            votes: typeof data.votes === "number" ? data.votes : null,
+          });
+        });
+
         // Sort by year descending
         result.sort((a, b) => Number(b.id) - Number(a.id));
+        archived.sort(
+          (a, b) =>
+            b.archive_year - a.archive_year ||
+            a.dip_name.localeCompare(b.dip_name)
+        );
 
         setYears(result);
+        setHistoricalDips(archived);
       } catch (err) {
         console.error(err);
         setError("Failed to load winners.");
@@ -53,6 +93,18 @@ export default function HistoricDipChampions() {
 
     load();
   }, []);
+
+  const dipsByYear = historicalDips.reduce<Record<number, HistoricalDip[]>>(
+    (groups, dip) => {
+      groups[dip.archive_year] = [...(groups[dip.archive_year] ?? []), dip];
+      return groups;
+    },
+    {}
+  );
+
+  const archivedYears = Object.keys(dipsByYear)
+    .map(Number)
+    .sort((a, b) => b - a);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
@@ -115,6 +167,37 @@ export default function HistoricDipChampions() {
                   </div>
                 ))}
             </div>
+          </section>
+        ))}
+
+        {archivedYears.map((year) => (
+          <section
+            key={year}
+            className="bg-white/70 border border-amber-200 rounded-xl p-6 space-y-4"
+          >
+            <h2 className="text-2xl font-bold text-orange-900">
+              {year} Historical Dips
+            </h2>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {dipsByYear[year].map((dip) => (
+                <li
+                  key={dip.id}
+                  className="rounded-lg border border-orange-200 bg-orange-50/50 p-4"
+                >
+                  <div className="font-semibold text-orange-900">
+                    {dip.dip_name}
+                  </div>
+                  <div className="text-sm text-orange-700">
+                    {dip.by ? `by ${dip.by}` : "by guest"}
+                  </div>
+                  {dip.notes && (
+                    <div className="mt-2 text-xs text-orange-700/80">
+                      {dip.notes}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </section>
         ))}
       </div>

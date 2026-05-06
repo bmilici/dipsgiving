@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 import Link from "next/link";
+import AdminGate from "@/components/AdminGate";
 
 type Reg = {
   id: string;
@@ -91,6 +92,7 @@ export default function AdminDashboard() {
   }, [rows]);
 
   return (
+    <AdminGate>
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
       <div className="mx-auto max-w-6xl px-4 space-y-8">
         <h1 className="text-3xl font-bold text-orange-900 text-center">
@@ -196,5 +198,6 @@ export default function AdminDashboard() {
         </section>
       </div>
     </main>
+    </AdminGate>
   );
 }

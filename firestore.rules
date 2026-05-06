@@ -93,6 +93,16 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /historicalDips/{dipId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /eventSettings/{settingsId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /invitationList/{inviteeId} {
       allow read: if signedIn();
       allow create, update: if signedIn()

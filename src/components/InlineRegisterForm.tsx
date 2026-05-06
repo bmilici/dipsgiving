@@ -10,6 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
+import { useEventSettings } from "@/lib/eventSettings";
 
 type DipItem = {
   id: string;
@@ -20,6 +21,7 @@ type DipItem = {
 
 export default function InlineRegisterForm() {
   const db = getClientDB();
+  const eventSettings = useEventSettings();
 
   const [bringingDip, setBringingDip] = useState(false);
   const [addingDipOnly, setAddingDipOnly] = useState(false);
@@ -111,7 +113,7 @@ export default function InlineRegisterForm() {
           bringing_dip: true,  // they are registering a dip
           dip_name,
           notes: notes || null,
-          event: "5th Annual Dipsgiving",
+          event: eventSettings.eventName,
           created_at: serverTimestamp(),
         });
       } else {
@@ -124,7 +126,7 @@ export default function InlineRegisterForm() {
           bringing_dip: bringingDip,
           dip_name: bringingDip ? dip_name : null,
           notes: bringingDip ? notes || null : null,
-          event: "5th Annual Dipsgiving",
+          event: eventSettings.eventName,
           created_at: serverTimestamp(),
         });
       }
@@ -290,7 +292,7 @@ export default function InlineRegisterForm() {
         <div className="rounded-xl border border-orange-200 bg-white/70 p-3">
           {dips.length === 0 ? (
             <div className="rounded-xl border border-orange-200/70 bg-orange-50/60 px-4 py-3 text-orange-800/90">
-              No dips yet—be the first!
+            No dips are registered for the next Dipsgiving yet.
             </div>
           ) : (
             // 1 column on mobile, 2 columns from sm+

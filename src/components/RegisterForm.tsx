@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
+import { useEventSettings } from "@/lib/eventSettings";
 
 export type RegisterFormHandle = { open: () => void; close: () => void };
 
@@ -20,6 +21,7 @@ const RegisterForm = forwardRef<RegisterFormHandle>((_props, ref) => {
   const [status, setStatus] = useState<string | null>(null);
 
   const db = getClientDB();
+  const eventSettings = useEventSettings();
 
   useImperativeHandle(ref, () => ({
     open: () => dialogRef.current?.showModal(),
@@ -69,7 +71,7 @@ const RegisterForm = forwardRef<RegisterFormHandle>((_props, ref) => {
         bringing_dip: bringingDip,
         dip_name: bringingDip ? dip_name : null,
         notes: bringingDip ? notes : null,
-        event: "5th Annual Dipsgiving",
+        event: eventSettings.eventName,
         created_at: serverTimestamp(),
       });
 

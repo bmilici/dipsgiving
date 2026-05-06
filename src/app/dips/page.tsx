@@ -73,7 +73,7 @@ export default function DipListPage() {
 
         {!error && dips.length === 0 ? (
           <p className="text-center text-orange-700">
-            No dips yet — check back soon!
+            No dips are registered for the next Dipsgiving yet.
           </p>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
