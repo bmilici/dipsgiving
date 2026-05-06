@@ -395,10 +395,10 @@
       const groundY = height() - 24 - obstacleHeight;
       let y = groundY;
 
-      // Trees, houses, and rocks stay on the ground. Bridges hang above the ground.
+      // Trees, houses, rocks, and bridges stay attached to the ground.
       // Clouds, balloons, and stars can appear in the air.
       if (useBridge) {
-        y = 42 + Math.random() * 42;
+        y = groundY;
       } else if (!useGroundObstacle) {
         const topLimit = 22;
         const bottomLimit = Math.max(topLimit + 60, height() - obstacleHeight - 116);
@@ -418,7 +418,7 @@
     function getObstacleHeight(type) {
       if (type === "tree") return 112 + Math.random() * 58;
       if (type === "house") return 98 + Math.random() * 46;
-      if (type === "bridge") return 150 + Math.random() * 36;
+      if (type === "bridge") return Math.min(260, height() - 78);
       if (type === "rock") return 72 + Math.random() * 38;
       if (type === "balloon") return 86 + Math.random() * 44;
       if (type === "star") return 68 + Math.random() * 34;
@@ -426,7 +426,7 @@
     }
 
     function getObstacleWidth(type) {
-      if (type === "bridge") return 188 + Math.random() * 42;
+      if (type === "bridge") return 270 + Math.random() * 72;
       if (type === "house") return 86 + Math.random() * 34;
       if (type === "tree") return 74 + Math.random() * 24;
       if (type === "rock") return 76 + Math.random() * 34;
@@ -531,26 +531,13 @@
 
     function getObstacleHitBoxes(obstacle) {
       if (obstacle.type === "bridge") {
-        const beamHeight = 28;
-        const supportWidth = 22;
+        const beamHeight = 34;
         return [
           {
-            x: obstacle.x + 8,
+            x: obstacle.x + 10,
             y: obstacle.y,
-            width: obstacle.width - 16,
+            width: obstacle.width - 20,
             height: beamHeight
-          },
-          {
-            x: obstacle.x + 16,
-            y: obstacle.y,
-            width: supportWidth,
-            height: obstacle.height
-          },
-          {
-            x: obstacle.x + obstacle.width - supportWidth - 16,
-            y: obstacle.y,
-            width: supportWidth,
-            height: obstacle.height
           }
         ];
       }
@@ -705,17 +692,27 @@
     }
 
     function drawBridge(o) {
+      const deckHeight = 34;
+      const supportWidth = 30;
+      const groundLine = o.y + o.height;
+
       ctx.fillStyle = "#b88b5c";
-      ctx.fillRect(o.x + 8, o.y, o.width - 16, 28);
+      ctx.fillRect(o.x + 10, o.y, o.width - 20, deckHeight);
+
       ctx.fillStyle = "#8c6f4f";
-      ctx.fillRect(o.x + 16, o.y, 22, o.height);
-      ctx.fillRect(o.x + o.width - 38, o.y, 22, o.height);
+      ctx.fillRect(o.x + 24, o.y + deckHeight, supportWidth, o.height - deckHeight);
+      ctx.fillRect(o.x + o.width - supportWidth - 24, o.y + deckHeight, supportWidth, o.height - deckHeight);
+      ctx.fillRect(o.x + 10, groundLine - 12, o.width - 20, 12);
+
       ctx.strokeStyle = "#f7d28a";
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 5;
       ctx.beginPath();
-      ctx.moveTo(o.x + 44, o.y + 28);
-      ctx.lineTo(o.x + o.width / 2, o.y + o.height * 0.48);
-      ctx.lineTo(o.x + o.width - 44, o.y + 28);
+      ctx.moveTo(o.x + 62, o.y + deckHeight);
+      ctx.lineTo(o.x + o.width / 2, o.y + o.height * 0.36);
+      ctx.lineTo(o.x + o.width - 62, o.y + deckHeight);
+      ctx.moveTo(o.x + 62, groundLine - 12);
+      ctx.lineTo(o.x + o.width / 2, o.y + o.height * 0.36);
+      ctx.lineTo(o.x + o.width - 62, groundLine - 12);
       ctx.stroke();
     }
 
