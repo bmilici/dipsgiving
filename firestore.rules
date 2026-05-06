@@ -1,0 +1,91 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnVoteDoc(voteId) {
+      return signedIn() && voteId.matches(request.auth.uid + "_[0-9]{4}");
+    }
+
+    function validVoteDoc() {
+      return request.resource.data.keys().hasOnly([
+          "uid",
+          "year",
+          "dipIds",
+          "updated_at"
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.year is int
+        && request.resource.data.dipIds is list
+        && request.resource.data.dipIds.size() <= 3;
+    }
+
+    function validVoteCreate() {
+      return validVoteDoc()
+        && request.resource.data.dipIds.size() == 1;
+    }
+
+    function validVoteUpdate() {
+      return validVoteDoc()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.year == resource.data.year
+        && (
+          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1
+          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1
+        );
+    }
+
+    function validRegistrationCreate() {
+      return request.resource.data.keys().hasAll(["name", "event", "created_at"])
+        && request.resource.data.name is string
+        && request.resource.data.event is string;
+    }
+
+    function validVoteChange() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(["votes"])
+        && request.resource.data.votes is int
+        && (
+          (
+            resource.data.keys().hasAny(["votes"])
+            && resource.data.votes is int
+            && request.resource.data.votes == resource.data.votes + 1
+          )
+          || (
+            !resource.data.keys().hasAny(["votes"])
+            && request.resource.data.votes == 1
+          )
+          || (
+            resource.data.keys().hasAny(["votes"])
+            && resource.data.votes is int
+            && resource.data.votes > 0
+            && request.resource.data.votes == resource.data.votes - 1
+          )
+        );
+    }
+
+    match /registrations/{registrationId} {
+      allow read: if true;
+      allow create: if validRegistrationCreate();
+      allow update: if signedIn() && validVoteChange();
+      allow delete: if false;
+    }
+
+    match /userVotes/{voteId} {
+      allow get: if isOwnVoteDoc(voteId);
+      allow list: if false;
+      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();
+      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();
+      allow delete: if false;
+    }
+
+    match /dips/{dipId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll(["name", "dip", "year", "createdAt"]);
+      allow update, delete: if false;
+    }
+  }
+}

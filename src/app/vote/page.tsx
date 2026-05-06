@@ -23,10 +23,19 @@ type DipReg = {
   notes?: string | null;
   votes?: number | null;
   year?: number | null;
-  created_at?: any;
+  created_at?: unknown;
 };
 
 const EVENT_START = new Date("2025-11-22T16:00:00-05:00");
+
+function readDipIds(value: unknown): string[] {
+  if (!value || typeof value !== "object") return [];
+
+  const dipIds = (value as { dipIds?: unknown }).dipIds;
+  return Array.isArray(dipIds)
+    ? dipIds.filter((dipId): dipId is string => typeof dipId === "string")
+    : [];
+}
 
 function useEnsureAnonAuth() {
   const [ready, setReady] = useState(false);
@@ -137,33 +146,40 @@ export default function VotePage() {
       orderBy("dip_name", "asc")
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const arr: DipReg[] = [];
-      snap.forEach((d) => {
-        const data = d.data() as any;
-        const dipName = (data.dip_name ?? "").toString().trim();
-        if (!dipName) return;
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const arr: DipReg[] = [];
+        snap.forEach((d) => {
+          const data = d.data() as Record<string, unknown>;
+          const dipName = (data.dip_name ?? "").toString().trim();
+          if (!dipName) return;
 
-        arr.push({
-          id: d.id,
-          dip_name: dipName,
-          name: data.name ?? null,
-          notes: data.notes ?? null,
-          votes: typeof data.votes === "number" ? data.votes : 0,
-          year: data.year ?? year,
-          created_at: data.created_at ?? null,
+          arr.push({
+            id: d.id,
+            dip_name: dipName,
+            name: typeof data.name === "string" ? data.name : null,
+            notes: typeof data.notes === "string" ? data.notes : null,
+            votes: typeof data.votes === "number" ? data.votes : 0,
+            year: typeof data.year === "number" ? data.year : year,
+            created_at: data.created_at ?? null,
+          });
         });
-      });
 
-      // sort by votes desc then name asc
-      arr.sort(
-        (a, b) =>
-          (b.votes ?? 0) - (a.votes ?? 0) ||
-          a.dip_name.localeCompare(b.dip_name)
-      );
+        // sort by votes desc then name asc
+        arr.sort(
+          (a, b) =>
+            (b.votes ?? 0) - (a.votes ?? 0) ||
+            a.dip_name.localeCompare(b.dip_name)
+        );
 
-      setDips(arr);
-    });
+        setDips(arr);
+      },
+      (err) => {
+        console.error("Dip list subscribe error:", err);
+        setStatus("Could not load dips. Please refresh and try again.");
+      }
+    );
 
     return () => unsub();
   }, [db, year]);
@@ -175,13 +191,19 @@ export default function VotePage() {
     const voteDocId = `${uid}_${year}`;
     const ref = doc(db, "userVotes", voteDocId);
 
-    const unsub = onSnapshot(ref, (snap) => {
-      if (!snap.exists()) setMyVotes([]);
-      else {
-        const data = snap.data() as any;
-        setMyVotes(Array.isArray(data.dipIds) ? data.dipIds : []);
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        if (!snap.exists()) setMyVotes([]);
+        else {
+          setMyVotes(readDipIds(snap.data()));
+        }
+      },
+      (err) => {
+        console.error("Vote history subscribe error:", err);
+        setStatus("Could not load your vote history. Please refresh and try again.");
       }
-    });
+    );
 
     return () => unsub();
   }, [db, authReady, auth, year]);
@@ -206,18 +228,16 @@ export default function VotePage() {
         const dipSnap = await tx.get(dipRef);
         if (!dipSnap.exists()) throw new Error("Dip not found");
 
-        const dipIds: string[] = userSnap.exists()
-          ? ((userSnap.data() as any).dipIds ?? [])
-          : [];
+        const dipIds = userSnap.exists() ? readDipIds(userSnap.data()) : [];
 
-        if (dipIds.includes(dipId)) {
-          throw new Error("You already voted for this dip.");
-        }
-        if (dipIds.length >= 3) {
+        const alreadyVoted = dipIds.includes(dipId);
+        if (!alreadyVoted && dipIds.length >= 3) {
           throw new Error("You’ve already used all 3 votes.");
         }
 
-        const nextDipIds = [...dipIds, dipId];
+        const nextDipIds = alreadyVoted
+          ? dipIds.filter((id) => id !== dipId)
+          : [...dipIds, dipId];
 
         tx.set(
           userVoteRef,
@@ -230,14 +250,13 @@ export default function VotePage() {
           { merge: true }
         );
 
-        const currentVotes = (dipSnap.data() as any).votes ?? 0;
-        tx.update(dipRef, { votes: currentVotes + 1 });
+        tx.update(dipRef, { votes: increment(alreadyVoted ? -1 : 1) });
       });
 
-      setStatus("Vote recorded 🎉");
-    } catch (e: any) {
+      setStatus(myVotes.includes(dipId) ? "Vote removed." : "Vote recorded 🎉");
+    } catch (e: unknown) {
       console.error(e);
-      setStatus(e?.message || "Could not record vote.");
+      setStatus(e instanceof Error ? e.message : "Could not record vote.");
     } finally {
       setBusyId(null);
     }
@@ -309,8 +328,7 @@ export default function VotePage() {
                     disabled={
                       !authReady ||
                       !votingOpen ||
-                      alreadyVoted ||
-                      myVotes.length >= 3 ||
+                      (!alreadyVoted && myVotes.length >= 3) ||
                       busyId === d.id
                     }
                     onClick={() => voteFor(d.id)}
@@ -318,15 +336,18 @@ export default function VotePage() {
                       ${
                         !authReady ||
                         !votingOpen ||
-                        alreadyVoted ||
-                        myVotes.length >= 3 ||
+                        (!alreadyVoted && myVotes.length >= 3) ||
                         busyId === d.id
                           ? "bg-orange-300 text-white/80"
+                          : alreadyVoted
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
                           : "bg-orange-600 text-white hover:bg-orange-700"
                       }`}
                   >
                     {busyId === d.id
-                      ? "Voting…"
+                      ? alreadyVoted
+                        ? "Removing…"
+                        : "Voting…"
                       : alreadyVoted
                       ? "Voted"
                       : "Vote"}
