@@ -15,6 +15,7 @@ import {
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
+import { useEventSettings } from "@/lib/eventSettings";
 import AdminGate from "@/components/AdminGate";
 
 type Invitee = {
@@ -40,6 +41,16 @@ const emptyDraft: Draft = {
   notes: "",
   invite_next_year: true,
 };
+
+function normalizeSmsPhone(phone: string) {
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, "");
+
+  if (!digits) return "";
+  if (trimmed.startsWith("+")) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  return digits;
+}
 
 function useEnsureAnonAuth() {
   const [ready, setReady] = useState(false);
@@ -83,10 +94,15 @@ export default function InvitationListPage() {
   const authReady = useEnsureAnonAuth();
   const db = getClientDB();
   const router = useRouter();
+  const eventSettings = useEventSettings();
   const [invitees, setInvitees] = useState<Invitee[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const [newInvitee, setNewInvitee] = useState<Draft>(emptyDraft);
+  const [selectedSmsIds, setSelectedSmsIds] = useState<Set<string>>(
+    () => new Set()
+  );
+  const [siteUrl, setSiteUrl] = useState("");
   const [queryText, setQueryText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -151,6 +167,48 @@ export default function InvitationListPage() {
 
   const invitedCount = invitees.filter((invitee) => invitee.invite_next_year).length;
   const dirtyCount = dirtyIds.size;
+  const selectedSmsRecipients = useMemo(
+    () =>
+      invitees
+        .filter((invitee) => selectedSmsIds.has(invitee.id))
+        .map((invitee) => {
+          const draft = drafts[invitee.id] ?? emptyDraft;
+          return {
+            id: invitee.id,
+            name: draft.name.trim() || invitee.name,
+            phone: normalizeSmsPhone(draft.phone || invitee.phone),
+          };
+        })
+        .filter((invitee) => invitee.phone),
+    [drafts, invitees, selectedSmsIds]
+  );
+  const selectedSmsCount = selectedSmsIds.size;
+  const selectedSmsMissingPhones = selectedSmsCount - selectedSmsRecipients.length;
+  const smsMessage = useMemo(() => {
+    const date = eventSettings.dateLabel.trim();
+    const time = eventSettings.timeLabel.trim();
+    const hasDate = date && date.toLowerCase() !== "tbd";
+    const hasTime = time && time.toLowerCase() !== "tbd";
+    const when = [hasDate ? date : "", hasTime ? time : ""]
+      .filter(Boolean)
+      .join(" at ");
+    const dateText = when ? ` is ${when}` : " details are coming soon";
+    const link = siteUrl || "https://dipsgiving.com";
+
+    return `${eventSettings.eventName}${dateText}. Here is the link: ${link}`;
+  }, [eventSettings, siteUrl]);
+
+  useEffect(() => {
+    setSiteUrl(window.location.origin);
+  }, []);
+
+  useEffect(() => {
+    setSelectedSmsIds((current) => {
+      const validIds = new Set(invitees.map((invitee) => invitee.id));
+      const next = new Set([...current].filter((id) => validIds.has(id)));
+      return next.size === current.size ? current : next;
+    });
+  }, [invitees]);
 
   useEffect(() => {
     if (!dirtyCount) return;
@@ -199,6 +257,67 @@ export default function InvitationListPage() {
       },
     }));
     setDirtyIds((current) => new Set(current).add(id));
+  }
+
+  function updateSmsSelection(id: string, selected: boolean) {
+    setSelectedSmsIds((current) => {
+      const next = new Set(current);
+      if (selected) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }
+
+  function selectSmsInvitees(source: Invitee[]) {
+    setSelectedSmsIds(
+      new Set(
+        source
+          .filter((invitee) => normalizeSmsPhone(drafts[invitee.id]?.phone ?? invitee.phone))
+          .map((invitee) => invitee.id)
+      )
+    );
+  }
+
+  function selectMarkedSmsInvitees() {
+    selectSmsInvitees(
+      invitees.filter((invitee) => {
+        const draft = drafts[invitee.id] ?? emptyDraft;
+        return draft.invite_next_year;
+      })
+    );
+  }
+
+  async function copyText(text: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus(successMessage);
+    } catch (err) {
+      console.error(err);
+      setStatus("Could not copy to clipboard.");
+    }
+  }
+
+  function openSmsComposer() {
+    if (!selectedSmsRecipients.length) {
+      setStatus("Select at least one person with a phone number.");
+      return;
+    }
+
+    const recipients = selectedSmsRecipients
+      .map((invitee) => invitee.phone)
+      .join(",");
+
+    window.location.href = `sms:${recipients}?&body=${encodeURIComponent(
+      smsMessage
+    )}`;
+    setStatus(
+      `Opened message for ${selectedSmsRecipients.length} recipient${
+        selectedSmsRecipients.length === 1 ? "" : "s"
+      }.`
+    );
   }
 
   async function saveAllInvitees() {
@@ -400,10 +519,82 @@ export default function InvitationListPage() {
           />
         </div>
 
+        <div className="rounded-xl border border-orange-200 bg-white/80 p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <div className="font-semibold text-orange-900">Send SMS Invite</div>
+              <div className="text-sm text-orange-700/80">
+                {selectedSmsRecipients.length} ready
+                {selectedSmsMissingPhones > 0
+                  ? `, ${selectedSmsMissingPhones} missing phone`
+                  : ""}
+              </div>
+              <p className="max-w-3xl rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-950">
+                {smsMessage}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={selectMarkedSmsInvitees}
+                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
+              >
+                Select Marked
+              </button>
+              <button
+                type="button"
+                onClick={() => selectSmsInvitees(filteredInvitees)}
+                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
+              >
+                Select Visible
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedSmsIds(new Set())}
+                disabled={!selectedSmsCount}
+                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50 disabled:border-orange-200 disabled:text-orange-300"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  copyText(
+                    selectedSmsRecipients
+                      .map((invitee) => invitee.phone)
+                      .join(", "),
+                    "Phone numbers copied."
+                  )
+                }
+                disabled={!selectedSmsRecipients.length}
+                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50 disabled:border-orange-200 disabled:text-orange-300"
+              >
+                Copy Numbers
+              </button>
+              <button
+                type="button"
+                onClick={() => copyText(smsMessage, "Message copied.")}
+                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
+              >
+                Copy Message
+              </button>
+              <button
+                type="button"
+                onClick={openSmsComposer}
+                disabled={!selectedSmsRecipients.length}
+                className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
+              >
+                Open Messages
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-x-auto rounded-xl border border-orange-200 bg-white/80">
-          <table className="w-full min-w-[860px] border-collapse text-sm">
+          <table className="w-full min-w-[930px] border-collapse text-sm">
             <thead className="bg-orange-100 text-left text-orange-900">
               <tr>
+                <th className="px-3 py-3 font-semibold">SMS</th>
                 <th className="px-3 py-3 font-semibold">Invite</th>
                 <th className="px-3 py-3 font-semibold">Name</th>
                 <th className="px-3 py-3 font-semibold">Phone</th>
@@ -423,6 +614,17 @@ export default function InvitationListPage() {
                       isDirty ? "bg-amber-50/60" : ""
                     }`}
                   >
+                    <td className="px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedSmsIds.has(invitee.id)}
+                        onChange={(event) =>
+                          updateSmsSelection(invitee.id, event.target.checked)
+                        }
+                        className="h-4 w-4 accent-orange-700"
+                        aria-label={`Select ${draft.name || invitee.name} for SMS`}
+                      />
+                    </td>
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
