@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
+import Link from "next/link";
 
 type Reg = {
   id: string;
@@ -95,6 +96,15 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold text-orange-900 text-center">
           Dipsgiving Dashboard
         </h1>
+
+        <div className="flex justify-center">
+          <Link
+            href="/admin/invitations"
+            className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800"
+          >
+            Invitation List
+          </Link>
+        </div>
 
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">

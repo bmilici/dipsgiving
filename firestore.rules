@@ -87,5 +87,26 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(["name", "dip", "year", "createdAt"]);
       allow update, delete: if false;
     }
+
+    match /invitationList/{inviteeId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          "name",
+          "phone",
+          "notes",
+          "invite_next_year",
+          "last_party_size",
+          "source_year",
+          "source_registration_ids",
+          "created_at",
+          "updated_at"
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.phone is string
+        && request.resource.data.notes is string
+        && request.resource.data.invite_next_year is bool;
+      allow delete: if signedIn();
+    }
   }
 }
