@@ -88,6 +88,11 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /winners/{winnerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /invitationList/{inviteeId} {
       allow read: if signedIn();
       allow create, update: if signedIn()
