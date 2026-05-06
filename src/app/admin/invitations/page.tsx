@@ -99,9 +99,7 @@ export default function InvitationListPage() {
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const [newInvitee, setNewInvitee] = useState<Draft>(emptyDraft);
-  const [selectedSmsIds, setSelectedSmsIds] = useState<Set<string>>(
-    () => new Set()
-  );
+  const [smsMessage, setSmsMessage] = useState("");
   const [smsRecipientIndex, setSmsRecipientIndex] = useState(0);
   const [siteUrl, setSiteUrl] = useState("");
   const [queryText, setQueryText] = useState("");
@@ -171,7 +169,10 @@ export default function InvitationListPage() {
   const selectedSmsRecipients = useMemo(
     () =>
       invitees
-        .filter((invitee) => selectedSmsIds.has(invitee.id))
+        .filter((invitee) => {
+          const draft = drafts[invitee.id] ?? emptyDraft;
+          return draft.invite_next_year;
+        })
         .map((invitee) => {
           const draft = drafts[invitee.id] ?? emptyDraft;
           return {
@@ -181,9 +182,12 @@ export default function InvitationListPage() {
           };
         })
         .filter((invitee) => invitee.phone),
-    [drafts, invitees, selectedSmsIds]
+    [drafts, invitees]
   );
-  const selectedSmsCount = selectedSmsIds.size;
+  const selectedSmsCount = invitees.filter((invitee) => {
+    const draft = drafts[invitee.id] ?? emptyDraft;
+    return draft.invite_next_year;
+  }).length;
   const selectedSmsMissingPhones = selectedSmsCount - selectedSmsRecipients.length;
   const nextSmsRecipient =
     selectedSmsRecipients[smsRecipientIndex] ?? selectedSmsRecipients[0] ?? null;
@@ -192,7 +196,7 @@ export default function InvitationListPage() {
         (invitee) => invitee.id === nextSmsRecipient.id
       ) + 1
     : 0;
-  const smsMessage = useMemo(() => {
+  const defaultSmsMessage = useMemo(() => {
     const date = eventSettings.dateLabel.trim();
     const time = eventSettings.timeLabel.trim();
     const hasDate = date && date.toLowerCase() !== "tbd";
@@ -211,16 +215,12 @@ export default function InvitationListPage() {
   }, []);
 
   useEffect(() => {
-    setSelectedSmsIds((current) => {
-      const validIds = new Set(invitees.map((invitee) => invitee.id));
-      const next = new Set([...current].filter((id) => validIds.has(id)));
-      return next.size === current.size ? current : next;
-    });
-  }, [invitees]);
+    setSmsMessage(defaultSmsMessage);
+  }, [defaultSmsMessage]);
 
   useEffect(() => {
     setSmsRecipientIndex(0);
-  }, [selectedSmsIds]);
+  }, [selectedSmsCount]);
 
   useEffect(() => {
     if (smsRecipientIndex < selectedSmsRecipients.length) return;
@@ -276,50 +276,13 @@ export default function InvitationListPage() {
     setDirtyIds((current) => new Set(current).add(id));
   }
 
-  function updateSmsSelection(id: string, selected: boolean) {
-    setSelectedSmsIds((current) => {
-      const next = new Set(current);
-      if (selected) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  }
-
-  function selectSmsInvitees(source: Invitee[]) {
-    setSelectedSmsIds(
-      new Set(
-        source
-          .filter((invitee) => normalizeSmsPhone(drafts[invitee.id]?.phone ?? invitee.phone))
-          .map((invitee) => invitee.id)
-      )
-    );
-  }
-
-  function selectMarkedSmsInvitees() {
-    selectSmsInvitees(
-      invitees.filter((invitee) => {
-        const draft = drafts[invitee.id] ?? emptyDraft;
-        return draft.invite_next_year;
-      })
-    );
-  }
-
-  async function copyText(text: string, successMessage: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setStatus(successMessage);
-    } catch (err) {
-      console.error(err);
-      setStatus("Could not copy to clipboard.");
-    }
-  }
-
   function openSmsComposer() {
     if (!nextSmsRecipient) {
       setStatus("Select at least one person with a phone number.");
+      return;
+    }
+    if (!smsMessage.trim()) {
+      setStatus("Message is required.");
       return;
     }
 
@@ -331,7 +294,7 @@ export default function InvitationListPage() {
     window.location.href = `sms:${encodeURIComponent(
       nextSmsRecipient.phone
     )}?&body=${encodeURIComponent(
-      smsMessage
+      smsMessage.trim()
     )}`;
     setStatus(
       selectedSmsRecipients.length === 1
@@ -541,7 +504,7 @@ export default function InvitationListPage() {
 
         <div className="rounded-xl border border-orange-200 bg-white/80 p-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2">
+            <div className="min-w-0 flex-1 space-y-2">
               <div className="font-semibold text-orange-900">Send SMS Invite</div>
               <div className="text-sm text-orange-700/80">
                 {selectedSmsRecipients.length} ready
@@ -552,59 +515,18 @@ export default function InvitationListPage() {
                   ? `, next: ${nextSmsRecipient.name} (${nextSmsPosition} of ${selectedSmsRecipients.length})`
                   : ""}
               </div>
-              <p className="max-w-3xl rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-950">
-                {smsMessage}
-              </p>
+              <textarea
+                value={smsMessage}
+                onChange={(event) => setSmsMessage(event.target.value)}
+                rows={3}
+                className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm text-orange-950"
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={selectMarkedSmsInvitees}
-                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
-              >
-                Select Marked
-              </button>
-              <button
-                type="button"
-                onClick={() => selectSmsInvitees(filteredInvitees)}
-                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
-              >
-                Select Visible
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedSmsIds(new Set())}
-                disabled={!selectedSmsCount}
-                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50 disabled:border-orange-200 disabled:text-orange-300"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  copyText(
-                    selectedSmsRecipients
-                      .map((invitee) => invitee.phone)
-                      .join(", "),
-                    "Phone numbers copied."
-                  )
-                }
-                disabled={!selectedSmsRecipients.length}
-                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50 disabled:border-orange-200 disabled:text-orange-300"
-              >
-                Copy Numbers
-              </button>
-              <button
-                type="button"
-                onClick={() => copyText(smsMessage, "Message copied.")}
-                className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-800 hover:bg-orange-50"
-              >
-                Copy Message
-              </button>
-              <button
-                type="button"
                 onClick={openSmsComposer}
-                disabled={!selectedSmsRecipients.length}
+                disabled={!selectedSmsRecipients.length || !smsMessage.trim()}
                 className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
               >
                 {selectedSmsRecipients.length > 1
@@ -616,10 +538,9 @@ export default function InvitationListPage() {
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-orange-200 bg-white/80">
-          <table className="w-full min-w-[930px] border-collapse text-sm">
+          <table className="w-full min-w-[860px] border-collapse text-sm">
             <thead className="bg-orange-100 text-left text-orange-900">
               <tr>
-                <th className="px-3 py-3 font-semibold">SMS</th>
                 <th className="px-3 py-3 font-semibold">Invite</th>
                 <th className="px-3 py-3 font-semibold">Name</th>
                 <th className="px-3 py-3 font-semibold">Phone</th>
@@ -639,17 +560,6 @@ export default function InvitationListPage() {
                       isDirty ? "bg-amber-50/60" : ""
                     }`}
                   >
-                    <td className="px-3 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedSmsIds.has(invitee.id)}
-                        onChange={(event) =>
-                          updateSmsSelection(invitee.id, event.target.checked)
-                        }
-                        className="h-4 w-4 accent-orange-700"
-                        aria-label={`Select ${draft.name || invitee.name} for SMS`}
-                      />
-                    </td>
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
