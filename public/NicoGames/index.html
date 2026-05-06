@@ -377,22 +377,49 @@
       }
     }
 
-    function spawnObstacle() {
-      const types = ["tree", "house", "bridge", "cloud", "rock", "balloon", "star"];
+    function getObstacleDelay() {
+      // Smaller delay means more obstacles. This gradually lowers as the score grows.
+      return Math.max(0.42, 1.25 - score / 900);
+    }
+
+    function createObstacle(extraX) {
+      const groundTypes = ["tree", "house", "bridge", "rock"];
+      const airTypes = ["cloud", "balloon", "star"];
+      const useGroundObstacle = Math.random() < 0.58;
+      const types = useGroundObstacle ? groundTypes : airTypes;
       const type = types[Math.floor(Math.random() * types.length)];
-      const obstacleHeight = 42 + Math.random() * 78;
+      const obstacleHeight = type === "bridge" ? 54 : 42 + Math.random() * 78;
       const obstacleWidth = type === "bridge" ? 92 : 42 + Math.random() * 48;
-      const maxY = height() - obstacleHeight - 42;
-      const y = 22 + Math.random() * Math.max(80, maxY);
+      const groundY = height() - 24 - obstacleHeight;
+      let y = groundY;
+
+      // Trees, houses, bridges, and rocks stay on the ground.
+      // Clouds, balloons, and stars can appear in the air.
+      if (!useGroundObstacle) {
+        const topLimit = 22;
+        const bottomLimit = Math.max(topLimit + 60, height() - obstacleHeight - 92);
+        y = topLimit + Math.random() * (bottomLimit - topLimit);
+      }
 
       obstacles.push({
         type,
-        x: width() + 20,
+        x: width() + 20 + extraX,
         y,
         width: obstacleWidth,
         height: obstacleHeight,
         passed: false
       });
+    }
+
+    function spawnObstacle() {
+      createObstacle(0);
+
+      // Later in the game, sometimes add another obstacle nearby.
+      // It starts after the player has had time to learn the controls.
+      const extraChance = Math.min(0.42, Math.max(0, (score - 300) / 1200));
+      if (Math.random() < extraChance) {
+        createObstacle(180 + Math.random() * 170);
+      }
     }
 
     function update(delta) {
@@ -407,14 +434,14 @@
       ship.y = Math.max(8, Math.min(height() - ship.height - 24, ship.y));
 
       score += delta * 12;
-      speed += delta * 5.5;
+      speed = Math.min(660, speed + delta * (8 + score / 260));
       scoreEl.textContent = Math.floor(score);
       groundOffset = (groundOffset + speed * delta) % 80;
 
       obstacleTimer -= delta;
       if (obstacleTimer <= 0) {
         spawnObstacle();
-        obstacleTimer = Math.max(0.72, 1.35 - score / 1200);
+        obstacleTimer = getObstacleDelay();
       }
 
       starTimer -= delta;
