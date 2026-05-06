@@ -1,0 +1,352 @@
+[debug] [2026-05-05T21:16:17.621Z] ----------------------------------------------------------------------
+[debug] [2026-05-05T21:16:17.623Z] Command:       /usr/local/bin/node /Users/bmilici/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules --project dipsgiving
+[debug] [2026-05-05T21:16:17.623Z] CLI Version:   15.16.0
+[debug] [2026-05-05T21:16:17.623Z] Platform:      darwin
+[debug] [2026-05-05T21:16:17.623Z] Node Version:  v22.14.0
+[debug] [2026-05-05T21:16:17.624Z] Time:          Tue May 05 2026 17:16:17 GMT-0400 (Eastern Daylight Time)
+[debug] [2026-05-05T21:16:17.624Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-05T21:16:18.483Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-05T21:16:18.484Z] > authorizing via signed-in user (brad.milici@gmail.com)
+[debug] [2026-05-05T21:16:18.484Z] [iam] checking project dipsgiving for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-05T21:16:18.485Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:18.485Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:18.485Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions [none]
+[debug] [2026-05-05T21:16:18.485Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions  x-goog-user-project=dipsgiving
+[debug] [2026-05-05T21:16:18.485Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-05T21:16:18.754Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions 200
+[debug] [2026-05-05T21:16:18.754Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'dipsgiving'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-05T21:16:18.756Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:18.756Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:18.756Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dipsgiving/services/firestore.googleapis.com [none]
+[debug] [2026-05-05T21:16:18.757Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dipsgiving/services/firestore.googleapis.com  x-goog-user-project=dipsgiving
+[debug] [2026-05-05T21:16:19.210Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dipsgiving/services/firestore.googleapis.com 200
+[debug] [2026-05-05T21:16:19.210Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dipsgiving/services/firestore.googleapis.com [omitted]
+[info] ✔  firestore: required API firestore.googleapis.com is enabled 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-05T21:16:19.220Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:19.220Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:19.220Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) [none]
+[debug] [2026-05-05T21:16:19.648Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) 200
+[debug] [2026-05-05T21:16:19.648Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) {"name":"projects/dipsgiving/databases/(default)","uid":"d1b9ac4b-fb03-4ea9-9f98-0ed456f7a992","createTime":"2025-10-22T16:12:48.783451Z","updateTime":"2025-10-22T16:12:48.783451Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-05T20:16:19.679781Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IIPVz/eIo5QDMI3vzIat5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-05T21:16:19.650Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:19.650Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:19.651Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [none]
+[debug] [2026-05-05T21:16:19.651Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [omitted]
+[debug] [2026-05-05T21:16:20.093Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test 200
+[debug] [2026-05-05T21:16:20.093Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-05T21:16:20.098Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.099Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.099Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases pageSize=10&pageToken=
+[debug] [2026-05-05T21:16:20.318Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases 200
+[debug] [2026-05-05T21:16:20.318Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases {"releases":[{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/3eea53d9-c3ae-4fd1-a422-b9c5d2f8f83f","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2025-11-22T23:35:38.762007Z"}]}
+[debug] [2026-05-05T21:16:20.319Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.319Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.319Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/3eea53d9-c3ae-4fd1-a422-b9c5d2f8f83f [none]
+[debug] [2026-05-05T21:16:20.445Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/3eea53d9-c3ae-4fd1-a422-b9c5d2f8f83f 200
+[debug] [2026-05-05T21:16:20.446Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/3eea53d9-c3ae-4fd1-a422-b9c5d2f8f83f [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-05T21:16:20.447Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.447Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:20.448Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [none]
+[debug] [2026-05-05T21:16:20.448Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [omitted]
+[debug] [2026-05-05T21:16:21.235Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets 200
+[debug] [2026-05-05T21:16:21.236Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets {"name":"projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function signedIn() {\n      return request.auth != null;\n    }\n\n    function isOwnVoteDoc(voteId) {\n      return signedIn() && voteId.matches(request.auth.uid + \"_[0-9]{4}\");\n    }\n\n    function validVoteDoc() {\n      return request.resource.data.keys().hasOnly([\n          \"uid\",\n          \"year\",\n          \"dipIds\",\n          \"updated_at\"\n        ])\n        && request.resource.data.uid == request.auth.uid\n        && request.resource.data.year is int\n        && request.resource.data.dipIds is list\n        && request.resource.data.dipIds.size() <= 3;\n    }\n\n    function validVoteCreate() {\n      return validVoteDoc()\n        && request.resource.data.dipIds.size() == 1;\n    }\n\n    function validVoteUpdate() {\n      return validVoteDoc()\n        && resource.data.uid == request.auth.uid\n        && request.resource.data.year == resource.data.year\n        && request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1;\n    }\n\n    function validRegistrationCreate() {\n      return request.resource.data.keys().hasAll([\"name\", \"event\", \"created_at\"])\n        && request.resource.data.name is string\n        && request.resource.data.event is string;\n    }\n\n    function validVoteIncrement() {\n      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([\"votes\"])\n        && request.resource.data.votes is int\n        && (\n          (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && request.resource.data.votes == resource.data.votes + 1\n          )\n          || (\n            !resource.data.keys().hasAny([\"votes\"])\n            && request.resource.data.votes == 1\n          )\n        );\n    }\n\n    match /registrations/{registrationId} {\n      allow read: if true;\n      allow create: if validRegistrationCreate();\n      allow update: if signedIn() && validVoteIncrement();\n      allow delete: if false;\n    }\n\n    match /userVotes/{voteId} {\n      allow get: if isOwnVoteDoc(voteId);\n      allow list: if false;\n      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();\n      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();\n      allow delete: if false;\n    }\n\n    match /dips/{dipId} {\n      allow read: if true;\n      allow create: if signedIn()\n        && request.resource.data.keys().hasAll([\"name\", \"dip\", \"year\", \"createdAt\"]);\n      allow update, delete: if false;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-05T21:16:21.251919Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-05T21:16:21.236Z] [rules] created ruleset projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73
+[debug] [2026-05-05T21:16:21.237Z] [rules] releasing cloud.firestore with ruleset projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73
+[debug] [2026-05-05T21:16:21.237Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:21.237Z] Checked if tokens are valid: true, expires at: 1778019336745
+[debug] [2026-05-05T21:16:21.238Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore [none]
+[debug] [2026-05-05T21:16:21.238Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"release":{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73"}}
+[debug] [2026-05-05T21:16:21.640Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore 200
+[debug] [2026-05-05T21:16:21.640Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-05T21:16:21.661541Z"}
+[debug] [2026-05-05T21:16:21.641Z] [rules] updated release projects/dipsgiving/releases/cloud.firestore
+[info] ✔  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/dipsgiving/overview
+[debug] [2026-05-06T12:40:10.511Z] ----------------------------------------------------------------------
+[debug] [2026-05-06T12:40:10.513Z] Command:       /usr/local/bin/node /Users/bmilici/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules --project dipsgiving
+[debug] [2026-05-06T12:40:10.513Z] CLI Version:   15.16.0
+[debug] [2026-05-06T12:40:10.513Z] Platform:      darwin
+[debug] [2026-05-06T12:40:10.513Z] Node Version:  v22.14.0
+[debug] [2026-05-06T12:40:10.513Z] Time:          Wed May 06 2026 08:40:10 GMT-0400 (Eastern Daylight Time)
+[debug] [2026-05-06T12:40:10.513Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-06T12:40:11.591Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-06T12:40:11.592Z] > authorizing via signed-in user (brad.milici@gmail.com)
+[debug] [2026-05-06T12:40:11.592Z] [iam] checking project dipsgiving for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-06T12:40:11.593Z] Checked if tokens are valid: false, expires at: 1778019336745
+[debug] [2026-05-06T12:40:11.593Z] Checked if tokens are valid: false, expires at: 1778019336745
+[debug] [2026-05-06T12:40:11.594Z] > refreshing access token with scopes: []
+[debug] [2026-05-06T12:40:11.595Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-05-06T12:40:11.595Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-06T12:40:11.766Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-05-06T12:40:11.766Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-06T12:40:11.797Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions [none]
+[debug] [2026-05-06T12:40:11.797Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions  x-goog-user-project=dipsgiving
+[debug] [2026-05-06T12:40:11.797Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-06T12:40:12.101Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions 200
+[debug] [2026-05-06T12:40:12.102Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'dipsgiving'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-06T12:40:12.103Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.103Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.103Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) [none]
+[debug] [2026-05-06T12:40:12.547Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) 200
+[debug] [2026-05-06T12:40:12.547Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) {"name":"projects/dipsgiving/databases/(default)","uid":"d1b9ac4b-fb03-4ea9-9f98-0ed456f7a992","createTime":"2025-10-22T16:12:48.783451Z","updateTime":"2025-10-22T16:12:48.783451Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-06T11:40:12.557757Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IPqFirjXpJQDMI3vzIat5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-06T12:40:12.549Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.549Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.549Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [none]
+[debug] [2026-05-06T12:40:12.550Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [omitted]
+[debug] [2026-05-06T12:40:12.905Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test 200
+[debug] [2026-05-06T12:40:12.905Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-06T12:40:12.907Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.908Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:12.908Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases pageSize=10&pageToken=
+[debug] [2026-05-06T12:40:13.083Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases 200
+[debug] [2026-05-06T12:40:13.083Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases {"releases":[{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-05T21:16:21.661541Z"}]}
+[debug] [2026-05-06T12:40:13.084Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.084Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.084Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73 [none]
+[debug] [2026-05-06T12:40:13.264Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73 200
+[debug] [2026-05-06T12:40:13.264Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/e71c3668-1126-4c9c-b1d1-cc8f8661af73 [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-06T12:40:13.265Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.265Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.266Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [none]
+[debug] [2026-05-06T12:40:13.266Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [omitted]
+[debug] [2026-05-06T12:40:13.557Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets 200
+[debug] [2026-05-06T12:40:13.557Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets {"name":"projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function signedIn() {\n      return request.auth != null;\n    }\n\n    function isOwnVoteDoc(voteId) {\n      return signedIn() && voteId.matches(request.auth.uid + \"_[0-9]{4}\");\n    }\n\n    function validVoteDoc() {\n      return request.resource.data.keys().hasOnly([\n          \"uid\",\n          \"year\",\n          \"dipIds\",\n          \"updated_at\"\n        ])\n        && request.resource.data.uid == request.auth.uid\n        && request.resource.data.year is int\n        && request.resource.data.dipIds is list\n        && request.resource.data.dipIds.size() <= 3;\n    }\n\n    function validVoteCreate() {\n      return validVoteDoc()\n        && request.resource.data.dipIds.size() == 1;\n    }\n\n    function validVoteUpdate() {\n      return validVoteDoc()\n        && resource.data.uid == request.auth.uid\n        && request.resource.data.year == resource.data.year\n        && (\n          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1\n          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1\n        );\n    }\n\n    function validRegistrationCreate() {\n      return request.resource.data.keys().hasAll([\"name\", \"event\", \"created_at\"])\n        && request.resource.data.name is string\n        && request.resource.data.event is string;\n    }\n\n    function validVoteChange() {\n      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([\"votes\"])\n        && request.resource.data.votes is int\n        && (\n          (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && request.resource.data.votes == resource.data.votes + 1\n          )\n          || (\n            !resource.data.keys().hasAny([\"votes\"])\n            && request.resource.data.votes == 1\n          )\n          || (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && resource.data.votes > 0\n            && request.resource.data.votes == resource.data.votes - 1\n          )\n        );\n    }\n\n    match /registrations/{registrationId} {\n      allow read: if true;\n      allow create: if validRegistrationCreate();\n      allow update: if signedIn() && validVoteChange();\n      allow delete: if false;\n    }\n\n    match /userVotes/{voteId} {\n      allow get: if isOwnVoteDoc(voteId);\n      allow list: if false;\n      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();\n      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();\n      allow delete: if false;\n    }\n\n    match /dips/{dipId} {\n      allow read: if true;\n      allow create: if signedIn()\n        && request.resource.data.keys().hasAll([\"name\", \"dip\", \"year\", \"createdAt\"]);\n      allow update, delete: if false;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-06T12:40:13.548143Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-06T12:40:13.557Z] [rules] created ruleset projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f
+[debug] [2026-05-06T12:40:13.558Z] [rules] releasing cloud.firestore with ruleset projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f
+[debug] [2026-05-06T12:40:13.558Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.558Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T12:40:13.558Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore [none]
+[debug] [2026-05-06T12:40:13.558Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"release":{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f"}}
+[debug] [2026-05-06T12:40:13.928Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore 200
+[debug] [2026-05-06T12:40:13.928Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T12:40:13.916484Z"}
+[debug] [2026-05-06T12:40:13.928Z] [rules] updated release projects/dipsgiving/releases/cloud.firestore
+[info] ✔  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/dipsgiving/overview
+[debug] [2026-05-06T13:03:49.112Z] ----------------------------------------------------------------------
+[debug] [2026-05-06T13:03:49.113Z] Command:       /usr/local/bin/node /Users/bmilici/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules --project dipsgiving
+[debug] [2026-05-06T13:03:49.114Z] CLI Version:   15.16.0
+[debug] [2026-05-06T13:03:49.114Z] Platform:      darwin
+[debug] [2026-05-06T13:03:49.114Z] Node Version:  v22.14.0
+[debug] [2026-05-06T13:03:49.114Z] Time:          Wed May 06 2026 09:03:49 GMT-0400 (Eastern Daylight Time)
+[debug] [2026-05-06T13:03:49.114Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-06T13:03:50.586Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-06T13:03:50.587Z] > authorizing via signed-in user (brad.milici@gmail.com)
+[debug] [2026-05-06T13:03:50.587Z] [iam] checking project dipsgiving for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-06T13:03:50.588Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:50.588Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:50.588Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions [none]
+[debug] [2026-05-06T13:03:50.588Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions  x-goog-user-project=dipsgiving
+[debug] [2026-05-06T13:03:50.588Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-06T13:03:50.920Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions 200
+[debug] [2026-05-06T13:03:50.920Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'dipsgiving'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-06T13:03:50.923Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:50.923Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:50.923Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) [none]
+[debug] [2026-05-06T13:03:51.329Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) 200
+[debug] [2026-05-06T13:03:51.329Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) {"name":"projects/dipsgiving/databases/(default)","uid":"d1b9ac4b-fb03-4ea9-9f98-0ed456f7a992","createTime":"2025-10-22T16:12:48.783451Z","updateTime":"2025-10-22T16:12:48.783451Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-06T12:03:51.362165Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IIeAz9zcpJQDMI3vzIat5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-06T13:03:51.330Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.330Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.331Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [none]
+[debug] [2026-05-06T13:03:51.331Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [omitted]
+[debug] [2026-05-06T13:03:51.754Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test 200
+[debug] [2026-05-06T13:03:51.754Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-06T13:03:51.757Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.757Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.757Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases pageSize=10&pageToken=
+[debug] [2026-05-06T13:03:51.941Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases 200
+[debug] [2026-05-06T13:03:51.941Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases {"releases":[{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T12:40:13.916484Z"}]}
+[debug] [2026-05-06T13:03:51.941Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.941Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:51.942Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f [none]
+[debug] [2026-05-06T13:03:52.081Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f 200
+[debug] [2026-05-06T13:03:52.081Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/214d63f3-6d79-4207-a448-f298e12c803f [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-06T13:03:52.082Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:52.082Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:52.083Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [none]
+[debug] [2026-05-06T13:03:52.083Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [omitted]
+[debug] [2026-05-06T13:03:52.400Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets 200
+[debug] [2026-05-06T13:03:52.400Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets {"name":"projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function signedIn() {\n      return request.auth != null;\n    }\n\n    function isOwnVoteDoc(voteId) {\n      return signedIn() && voteId.matches(request.auth.uid + \"_[0-9]{4}\");\n    }\n\n    function validVoteDoc() {\n      return request.resource.data.keys().hasOnly([\n          \"uid\",\n          \"year\",\n          \"dipIds\",\n          \"updated_at\"\n        ])\n        && request.resource.data.uid == request.auth.uid\n        && request.resource.data.year is int\n        && request.resource.data.dipIds is list\n        && request.resource.data.dipIds.size() <= 3;\n    }\n\n    function validVoteCreate() {\n      return validVoteDoc()\n        && request.resource.data.dipIds.size() == 1;\n    }\n\n    function validVoteUpdate() {\n      return validVoteDoc()\n        && resource.data.uid == request.auth.uid\n        && request.resource.data.year == resource.data.year\n        && (\n          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1\n          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1\n        );\n    }\n\n    function validRegistrationCreate() {\n      return request.resource.data.keys().hasAll([\"name\", \"event\", \"created_at\"])\n        && request.resource.data.name is string\n        && request.resource.data.event is string;\n    }\n\n    function validVoteChange() {\n      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([\"votes\"])\n        && request.resource.data.votes is int\n        && (\n          (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && request.resource.data.votes == resource.data.votes + 1\n          )\n          || (\n            !resource.data.keys().hasAny([\"votes\"])\n            && request.resource.data.votes == 1\n          )\n          || (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && resource.data.votes > 0\n            && request.resource.data.votes == resource.data.votes - 1\n          )\n        );\n    }\n\n    match /registrations/{registrationId} {\n      allow read: if true;\n      allow create: if validRegistrationCreate();\n      allow update: if signedIn() && validVoteChange();\n      allow delete: if false;\n    }\n\n    match /userVotes/{voteId} {\n      allow get: if isOwnVoteDoc(voteId);\n      allow list: if false;\n      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();\n      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();\n      allow delete: if false;\n    }\n\n    match /dips/{dipId} {\n      allow read: if true;\n      allow create: if signedIn()\n        && request.resource.data.keys().hasAll([\"name\", \"dip\", \"year\", \"createdAt\"]);\n      allow update, delete: if false;\n    }\n\n    match /invitationList/{inviteeId} {\n      allow read: if signedIn();\n      allow create, update: if signedIn()\n        && request.resource.data.keys().hasOnly([\n          \"name\",\n          \"phone\",\n          \"notes\",\n          \"invite_next_year\",\n          \"last_party_size\",\n          \"source_year\",\n          \"source_registration_ids\",\n          \"created_at\",\n          \"updated_at\"\n        ])\n        && request.resource.data.name is string\n        && request.resource.data.phone is string\n        && request.resource.data.notes is string\n        && request.resource.data.invite_next_year is bool;\n      allow delete: if signedIn();\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-06T13:03:52.431199Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-06T13:03:52.400Z] [rules] created ruleset projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270
+[debug] [2026-05-06T13:03:52.401Z] [rules] releasing cloud.firestore with ruleset projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270
+[debug] [2026-05-06T13:03:52.401Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:52.401Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:03:52.401Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore [none]
+[debug] [2026-05-06T13:03:52.401Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"release":{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270"}}
+[debug] [2026-05-06T13:03:52.767Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore 200
+[debug] [2026-05-06T13:03:52.767Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T13:03:52.798046Z"}
+[debug] [2026-05-06T13:03:52.768Z] [rules] updated release projects/dipsgiving/releases/cloud.firestore
+[info] ✔  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/dipsgiving/overview
+[debug] [2026-05-06T13:24:32.163Z] ----------------------------------------------------------------------
+[debug] [2026-05-06T13:24:32.165Z] Command:       /usr/local/bin/node /Users/bmilici/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules --project dipsgiving
+[debug] [2026-05-06T13:24:32.165Z] CLI Version:   15.16.0
+[debug] [2026-05-06T13:24:32.165Z] Platform:      darwin
+[debug] [2026-05-06T13:24:32.165Z] Node Version:  v22.14.0
+[debug] [2026-05-06T13:24:32.166Z] Time:          Wed May 06 2026 09:24:32 GMT-0400 (Eastern Daylight Time)
+[debug] [2026-05-06T13:24:32.166Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-06T13:24:33.644Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-06T13:24:33.646Z] > authorizing via signed-in user (brad.milici@gmail.com)
+[debug] [2026-05-06T13:24:33.647Z] [iam] checking project dipsgiving for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-06T13:24:33.648Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:33.648Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:33.649Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions [none]
+[debug] [2026-05-06T13:24:33.649Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions  x-goog-user-project=dipsgiving
+[debug] [2026-05-06T13:24:33.649Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-06T13:24:34.000Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions 200
+[debug] [2026-05-06T13:24:34.000Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'dipsgiving'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-06T13:24:34.002Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.002Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.003Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) [none]
+[debug] [2026-05-06T13:24:34.327Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) 200
+[debug] [2026-05-06T13:24:34.327Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) {"name":"projects/dipsgiving/databases/(default)","uid":"d1b9ac4b-fb03-4ea9-9f98-0ed456f7a992","createTime":"2025-10-22T16:12:48.783451Z","updateTime":"2025-10-22T16:12:48.783451Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-06T12:24:34.404676Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IOulrK3hpJQDMI3vzIat5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-06T13:24:34.328Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.328Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.328Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [none]
+[debug] [2026-05-06T13:24:34.328Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [omitted]
+[debug] [2026-05-06T13:24:34.748Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test 200
+[debug] [2026-05-06T13:24:34.748Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-06T13:24:34.750Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.750Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.750Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases pageSize=10&pageToken=
+[debug] [2026-05-06T13:24:34.938Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases 200
+[debug] [2026-05-06T13:24:34.939Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases {"releases":[{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T13:03:52.798046Z"}]}
+[debug] [2026-05-06T13:24:34.939Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.939Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:34.939Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270 [none]
+[debug] [2026-05-06T13:24:35.098Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270 200
+[debug] [2026-05-06T13:24:35.098Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/f01bf08a-5ffd-4d51-8d52-d116ab871270 [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-06T13:24:35.098Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:35.098Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:35.099Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [none]
+[debug] [2026-05-06T13:24:35.099Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [omitted]
+[debug] [2026-05-06T13:24:35.446Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets 200
+[debug] [2026-05-06T13:24:35.446Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets {"name":"projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function signedIn() {\n      return request.auth != null;\n    }\n\n    function isOwnVoteDoc(voteId) {\n      return signedIn() && voteId.matches(request.auth.uid + \"_[0-9]{4}\");\n    }\n\n    function validVoteDoc() {\n      return request.resource.data.keys().hasOnly([\n          \"uid\",\n          \"year\",\n          \"dipIds\",\n          \"updated_at\"\n        ])\n        && request.resource.data.uid == request.auth.uid\n        && request.resource.data.year is int\n        && request.resource.data.dipIds is list\n        && request.resource.data.dipIds.size() <= 3;\n    }\n\n    function validVoteCreate() {\n      return validVoteDoc()\n        && request.resource.data.dipIds.size() == 1;\n    }\n\n    function validVoteUpdate() {\n      return validVoteDoc()\n        && resource.data.uid == request.auth.uid\n        && request.resource.data.year == resource.data.year\n        && (\n          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1\n          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1\n        );\n    }\n\n    function validRegistrationCreate() {\n      return request.resource.data.keys().hasAll([\"name\", \"event\", \"created_at\"])\n        && request.resource.data.name is string\n        && request.resource.data.event is string;\n    }\n\n    function validVoteChange() {\n      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([\"votes\"])\n        && request.resource.data.votes is int\n        && (\n          (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && request.resource.data.votes == resource.data.votes + 1\n          )\n          || (\n            !resource.data.keys().hasAny([\"votes\"])\n            && request.resource.data.votes == 1\n          )\n          || (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && resource.data.votes > 0\n            && request.resource.data.votes == resource.data.votes - 1\n          )\n        );\n    }\n\n    match /registrations/{registrationId} {\n      allow read: if true;\n      allow create: if validRegistrationCreate();\n      allow update: if signedIn() && validVoteChange();\n      allow delete: if false;\n    }\n\n    match /userVotes/{voteId} {\n      allow get: if isOwnVoteDoc(voteId);\n      allow list: if false;\n      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();\n      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();\n      allow delete: if false;\n    }\n\n    match /dips/{dipId} {\n      allow read: if true;\n      allow create: if signedIn()\n        && request.resource.data.keys().hasAll([\"name\", \"dip\", \"year\", \"createdAt\"]);\n      allow update, delete: if false;\n    }\n\n    match /winners/{winnerId} {\n      allow read: if true;\n      allow write: if false;\n    }\n\n    match /invitationList/{inviteeId} {\n      allow read: if signedIn();\n      allow create, update: if signedIn()\n        && request.resource.data.keys().hasOnly([\n          \"name\",\n          \"phone\",\n          \"notes\",\n          \"invite_next_year\",\n          \"last_party_size\",\n          \"source_year\",\n          \"source_registration_ids\",\n          \"created_at\",\n          \"updated_at\"\n        ])\n        && request.resource.data.name is string\n        && request.resource.data.phone is string\n        && request.resource.data.notes is string\n        && request.resource.data.invite_next_year is bool;\n      allow delete: if signedIn();\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-06T13:24:35.502303Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-06T13:24:35.446Z] [rules] created ruleset projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab
+[debug] [2026-05-06T13:24:35.446Z] [rules] releasing cloud.firestore with ruleset projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab
+[debug] [2026-05-06T13:24:35.447Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:35.447Z] Checked if tokens are valid: true, expires at: 1778074810766
+[debug] [2026-05-06T13:24:35.447Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore [none]
+[debug] [2026-05-06T13:24:35.447Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"release":{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab"}}
+[debug] [2026-05-06T13:24:35.820Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore 200
+[debug] [2026-05-06T13:24:35.820Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T13:24:35.882357Z"}
+[debug] [2026-05-06T13:24:35.820Z] [rules] updated release projects/dipsgiving/releases/cloud.firestore
+[info] ✔  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/dipsgiving/overview
+[debug] [2026-05-06T13:47:42.597Z] ----------------------------------------------------------------------
+[debug] [2026-05-06T13:47:42.602Z] Command:       /usr/local/bin/node /Users/bmilici/.npm/_npx/7750544ccf494d8b/node_modules/.bin/firebase deploy --only firestore:rules --project dipsgiving
+[debug] [2026-05-06T13:47:42.603Z] CLI Version:   15.16.0
+[debug] [2026-05-06T13:47:42.603Z] Platform:      darwin
+[debug] [2026-05-06T13:47:42.603Z] Node Version:  v22.14.0
+[debug] [2026-05-06T13:47:42.603Z] Time:          Wed May 06 2026 09:47:42 GMT-0400 (Eastern Daylight Time)
+[debug] [2026-05-06T13:47:42.603Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-06T13:47:44.689Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-06T13:47:44.690Z] > authorizing via signed-in user (brad.milici@gmail.com)
+[debug] [2026-05-06T13:47:44.696Z] [iam] checking project dipsgiving for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-06T13:47:44.696Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:44.697Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:44.697Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions [none]
+[debug] [2026-05-06T13:47:44.697Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions  x-goog-user-project=dipsgiving
+[debug] [2026-05-06T13:47:44.697Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-06T13:47:45.013Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions 200
+[debug] [2026-05-06T13:47:45.013Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dipsgiving:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'dipsgiving'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-06T13:47:45.016Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.016Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.017Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) [none]
+[debug] [2026-05-06T13:47:45.354Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) 200
+[debug] [2026-05-06T13:47:45.354Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/dipsgiving/databases/(default) {"name":"projects/dipsgiving/databases/(default)","uid":"d1b9ac4b-fb03-4ea9-9f98-0ed456f7a992","createTime":"2025-10-22T16:12:48.783451Z","updateTime":"2025-10-22T16:12:48.783451Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-06T12:47:45.440052Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IJ6t0sTmpJQDMI3vzIat5pID"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-06T13:47:45.355Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.355Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.355Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [none]
+[debug] [2026-05-06T13:47:45.355Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test [omitted]
+[debug] [2026-05-06T13:47:45.815Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test 200
+[debug] [2026-05-06T13:47:45.816Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-06T13:47:45.817Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.817Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:45.817Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases pageSize=10&pageToken=
+[debug] [2026-05-06T13:47:46.001Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases 200
+[debug] [2026-05-06T13:47:46.002Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases {"releases":[{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T13:24:35.882357Z"}]}
+[debug] [2026-05-06T13:47:46.002Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.002Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.002Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab [none]
+[debug] [2026-05-06T13:47:46.183Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab 200
+[debug] [2026-05-06T13:47:46.183Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets/90ef7d67-b8ff-49f1-bcf2-44bc7ffd05ab [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-06T13:47:46.184Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.184Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.184Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [none]
+[debug] [2026-05-06T13:47:46.185Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets [omitted]
+[debug] [2026-05-06T13:47:46.532Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets 200
+[debug] [2026-05-06T13:47:46.532Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dipsgiving/rulesets {"name":"projects/dipsgiving/rulesets/c4f47de4-a1ad-42c9-92b9-540b35be2256","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    function signedIn() {\n      return request.auth != null;\n    }\n\n    function isOwnVoteDoc(voteId) {\n      return signedIn() && voteId.matches(request.auth.uid + \"_[0-9]{4}\");\n    }\n\n    function validVoteDoc() {\n      return request.resource.data.keys().hasOnly([\n          \"uid\",\n          \"year\",\n          \"dipIds\",\n          \"updated_at\"\n        ])\n        && request.resource.data.uid == request.auth.uid\n        && request.resource.data.year is int\n        && request.resource.data.dipIds is list\n        && request.resource.data.dipIds.size() <= 3;\n    }\n\n    function validVoteCreate() {\n      return validVoteDoc()\n        && request.resource.data.dipIds.size() == 1;\n    }\n\n    function validVoteUpdate() {\n      return validVoteDoc()\n        && resource.data.uid == request.auth.uid\n        && request.resource.data.year == resource.data.year\n        && (\n          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1\n          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1\n        );\n    }\n\n    function validRegistrationCreate() {\n      return request.resource.data.keys().hasAll([\"name\", \"event\", \"created_at\"])\n        && request.resource.data.name is string\n        && request.resource.data.event is string;\n    }\n\n    function validVoteChange() {\n      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([\"votes\"])\n        && request.resource.data.votes is int\n        && (\n          (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && request.resource.data.votes == resource.data.votes + 1\n          )\n          || (\n            !resource.data.keys().hasAny([\"votes\"])\n            && request.resource.data.votes == 1\n          )\n          || (\n            resource.data.keys().hasAny([\"votes\"])\n            && resource.data.votes is int\n            && resource.data.votes > 0\n            && request.resource.data.votes == resource.data.votes - 1\n          )\n        );\n    }\n\n    match /registrations/{registrationId} {\n      allow read: if true;\n      allow create: if validRegistrationCreate();\n      allow update: if signedIn() && validVoteChange();\n      allow delete: if false;\n    }\n\n    match /userVotes/{voteId} {\n      allow get: if isOwnVoteDoc(voteId);\n      allow list: if false;\n      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();\n      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();\n      allow delete: if false;\n    }\n\n    match /dips/{dipId} {\n      allow read: if true;\n      allow create: if signedIn()\n        && request.resource.data.keys().hasAll([\"name\", \"dip\", \"year\", \"createdAt\"]);\n      allow update, delete: if false;\n    }\n\n    match /winners/{winnerId} {\n      allow read: if true;\n      allow write: if false;\n    }\n\n    match /historicalDips/{dipId} {\n      allow read: if true;\n      allow write: if false;\n    }\n\n    match /eventSettings/{settingsId} {\n      allow read: if true;\n      allow write: if false;\n    }\n\n    match /invitationList/{inviteeId} {\n      allow read: if signedIn();\n      allow create, update: if signedIn()\n        && request.resource.data.keys().hasOnly([\n          \"name\",\n          \"phone\",\n          \"notes\",\n          \"invite_next_year\",\n          \"last_party_size\",\n          \"source_year\",\n          \"source_registration_ids\",\n          \"created_at\",\n          \"updated_at\"\n        ])\n        && request.resource.data.name is string\n        && request.resource.data.phone is string\n        && request.resource.data.notes is string\n        && request.resource.data.invite_next_year is bool;\n      allow delete: if signedIn();\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-06T13:47:46.605151Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-06T13:47:46.532Z] [rules] created ruleset projects/dipsgiving/rulesets/c4f47de4-a1ad-42c9-92b9-540b35be2256
+[debug] [2026-05-06T13:47:46.532Z] [rules] releasing cloud.firestore with ruleset projects/dipsgiving/rulesets/c4f47de4-a1ad-42c9-92b9-540b35be2256
+[debug] [2026-05-06T13:47:46.533Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.533Z] Checked if tokens are valid: true, expires at: 1778078847184
+[debug] [2026-05-06T13:47:46.533Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore [none]
+[debug] [2026-05-06T13:47:46.533Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"release":{"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/c4f47de4-a1ad-42c9-92b9-540b35be2256"}}
+[debug] [2026-05-06T13:47:46.933Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore 200
+[debug] [2026-05-06T13:47:46.933Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/dipsgiving/releases/cloud.firestore {"name":"projects/dipsgiving/releases/cloud.firestore","rulesetName":"projects/dipsgiving/rulesets/c4f47de4-a1ad-42c9-92b9-540b35be2256","createTime":"2025-10-22T16:12:51.087479Z","updateTime":"2026-05-06T13:47:46.981345Z"}
+[debug] [2026-05-06T13:47:46.933Z] [rules] updated release projects/dipsgiving/releases/cloud.firestore
+[info] ✔  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/dipsgiving/overview
