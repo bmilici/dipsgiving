@@ -102,6 +102,7 @@ export default function InvitationListPage() {
   const [selectedSmsIds, setSelectedSmsIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [smsRecipientIndex, setSmsRecipientIndex] = useState(0);
   const [siteUrl, setSiteUrl] = useState("");
   const [queryText, setQueryText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -184,6 +185,13 @@ export default function InvitationListPage() {
   );
   const selectedSmsCount = selectedSmsIds.size;
   const selectedSmsMissingPhones = selectedSmsCount - selectedSmsRecipients.length;
+  const nextSmsRecipient =
+    selectedSmsRecipients[smsRecipientIndex] ?? selectedSmsRecipients[0] ?? null;
+  const nextSmsPosition = nextSmsRecipient
+    ? selectedSmsRecipients.findIndex(
+        (invitee) => invitee.id === nextSmsRecipient.id
+      ) + 1
+    : 0;
   const smsMessage = useMemo(() => {
     const date = eventSettings.dateLabel.trim();
     const time = eventSettings.timeLabel.trim();
@@ -209,6 +217,15 @@ export default function InvitationListPage() {
       return next.size === current.size ? current : next;
     });
   }, [invitees]);
+
+  useEffect(() => {
+    setSmsRecipientIndex(0);
+  }, [selectedSmsIds]);
+
+  useEffect(() => {
+    if (smsRecipientIndex < selectedSmsRecipients.length) return;
+    setSmsRecipientIndex(0);
+  }, [selectedSmsRecipients.length, smsRecipientIndex]);
 
   useEffect(() => {
     if (!dirtyCount) return;
@@ -301,22 +318,25 @@ export default function InvitationListPage() {
   }
 
   function openSmsComposer() {
-    if (!selectedSmsRecipients.length) {
+    if (!nextSmsRecipient) {
       setStatus("Select at least one person with a phone number.");
       return;
     }
 
-    const recipients = selectedSmsRecipients
-      .map((invitee) => encodeURIComponent(invitee.phone))
-      .join(",");
+    const currentPosition = nextSmsPosition || 1;
+    const nextIndex =
+      currentPosition >= selectedSmsRecipients.length ? 0 : currentPosition;
 
-    window.location.href = `sms:/open?addresses=${recipients}&body=${encodeURIComponent(
+    setSmsRecipientIndex(nextIndex);
+    window.location.href = `sms:${encodeURIComponent(
+      nextSmsRecipient.phone
+    )}?&body=${encodeURIComponent(
       smsMessage
     )}`;
     setStatus(
-      `Opened message for ${selectedSmsRecipients.length} recipient${
-        selectedSmsRecipients.length === 1 ? "" : "s"
-      }.`
+      selectedSmsRecipients.length === 1
+        ? `Opened message for ${nextSmsRecipient.name}.`
+        : `Opened ${nextSmsRecipient.name} (${currentPosition} of ${selectedSmsRecipients.length}). Click again for the next individual message.`
     );
   }
 
@@ -528,6 +548,9 @@ export default function InvitationListPage() {
                 {selectedSmsMissingPhones > 0
                   ? `, ${selectedSmsMissingPhones} missing phone`
                   : ""}
+                {nextSmsRecipient && selectedSmsRecipients.length > 1
+                  ? `, next: ${nextSmsRecipient.name} (${nextSmsPosition} of ${selectedSmsRecipients.length})`
+                  : ""}
               </div>
               <p className="max-w-3xl rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-950">
                 {smsMessage}
@@ -584,7 +607,9 @@ export default function InvitationListPage() {
                 disabled={!selectedSmsRecipients.length}
                 className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
               >
-                Open Messages
+                {selectedSmsRecipients.length > 1
+                  ? "Open Next Message"
+                  : "Open Message"}
               </button>
             </div>
           </div>
