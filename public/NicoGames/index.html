@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NicoGames: Space Flyer</title>
+  <style>
+    :root {
+      --space: #17213f;
+      --panel: #ffffff;
+      --ink: #15223a;
+      --accent: #ffcb3f;
+      --blue: #3bb7ff;
+      --green: #5fd66f;
+      --pink: #ff6fae;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255, 203, 63, 0.22), transparent 26%),
+        radial-gradient(circle at 80% 20%, rgba(59, 183, 255, 0.22), transparent 24%),
+        linear-gradient(180deg, #15213f 0%, #233b72 52%, #5aa7d9 100%);
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: min(1100px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .home-link,
+    .small-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #10213d;
+      font-weight: 800;
+      text-decoration: none;
+      background: var(--accent);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+    }
+
+    .small-button {
+      background: #ffffff;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: white;
+      font-weight: 800;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .game-wrap {
+      position: relative;
+      border: 4px solid rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--space);
+      box-shadow: 0 18px 44px rgba(4, 13, 34, 0.35);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: min(68vh, 620px);
+      min-height: 420px;
+      touch-action: none;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+      background: rgba(15, 29, 61, 0.76);
+      color: white;
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.6rem);
+      line-height: 1;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .screen p {
+      max-width: 640px;
+      margin: 0;
+      font-size: clamp(1rem, 2.4vw, 1.35rem);
+      line-height: 1.45;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .big-button {
+      min-width: 160px;
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: #10213d;
+      background: var(--accent);
+      font-size: 1.05rem;
+      font-weight: 900;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+
+    .big-button:active,
+    .home-link:active,
+    .small-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .touch-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .touch-button {
+      min-height: 64px;
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .hint {
+      margin: 12px 0 0;
+      color: white;
+      font-size: 0.95rem;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 650px) {
+      .page {
+        padding: 8px;
+      }
+
+      .topbar {
+        align-items: stretch;
+      }
+
+      .scoreboard {
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      canvas {
+        height: 58vh;
+        min-height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="home-link" href="/">Home</a>
+      <div class="scoreboard" aria-live="polite">
+        <span>Score: <strong id="score">0</strong></span>
+        <span>Best: <strong id="bestScore">0</strong></span>
+      </div>
+    </div>
+
+    <section class="game-wrap" aria-label="NicoGames Space Flyer game">
+      <canvas id="gameCanvas"></canvas>
+
+      <div id="startScreen" class="screen">
+        <h1>NicoGames: Space Flyer</h1>
+        <p>Fly your spaceship up and down, dodge silly obstacles, and see how long you can last.</p>
+        <div class="button-row">
+          <button id="startButton" class="big-button" type="button">Start Game</button>
+        </div>
+      </div>
+
+      <div id="gameOverScreen" class="screen" hidden>
+        <h1>Game Over</h1>
+        <p>Your final score was <strong id="finalScore">0</strong>.</p>
+        <div class="button-row">
+          <button id="restartButton" class="big-button" type="button">Play Again</button>
+          <a class="big-button" href="/">Home</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="touch-controls" aria-label="Touch controls">
+      <button id="upButton" class="touch-button" type="button" aria-label="Move spaceship up">Up</button>
+      <button id="downButton" class="touch-button" type="button" aria-label="Move spaceship down">Down</button>
+    </div>
+
+    <p class="hint">Controls: Arrow keys, W/S, or the touch buttons.</p>
+  </main>
+
+  <script>
+    // Grab the page elements we need.
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const bestScoreEl = document.getElementById("bestScore");
+    const finalScoreEl = document.getElementById("finalScore");
+    const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const upButton = document.getElementById("upButton");
+    const downButton = document.getElementById("downButton");
+
+    const keys = { up: false, down: false };
+    const bestScoreKey = "nicoSpaceFlyerBestScore";
+    let bestScore = Number(localStorage.getItem(bestScoreKey) || 0);
+    let animationId;
+    let lastTime = 0;
+    let gameState = "start";
+    let score = 0;
+    let speed = 240;
+    let obstacleTimer = 0;
+    let starTimer = 0;
+    let groundOffset = 0;
+    let audioContext = null;
+
+    const ship = {
+      x: 90,
+      y: 180,
+      width: 74,
+      height: 44,
+      velocityY: 0
+    };
+
+    const obstacles = [];
+    const stars = [];
+    const clouds = [];
+
+    bestScoreEl.textContent = bestScore;
+
+    // Keep the canvas crisp on large and small screens.
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * pixelRatio);
+      canvas.height = Math.floor(rect.height * pixelRatio);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
+
+    function width() {
+      return canvas.getBoundingClientRect().width;
+    }
+
+    function height() {
+      return canvas.getBoundingClientRect().height;
+    }
+
+    // Tiny optional sound effect made with the browser, no audio files needed.
+    function playBeep(frequency, duration, type) {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = type || "square";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (error) {
+        // If sound is blocked by the browser, the game still works.
+      }
+    }
+
+    function resetGame() {
+      score = 0;
+      speed = 240;
+      obstacleTimer = 0;
+      starTimer = 0;
+      groundOffset = 0;
+      obstacles.length = 0;
+      stars.length = 0;
+      clouds.length = 0;
+      ship.y = height() / 2 - ship.height / 2;
+      ship.velocityY = 0;
+
+      for (let i = 0; i < 34; i += 1) {
+        stars.push({
+          x: Math.random() * width(),
+          y: Math.random() * height() * 0.72,
+          size: 1 + Math.random() * 2,
+          speed: 20 + Math.random() * 50
+        });
+      }
+
+      for (let i = 0; i < 5; i += 1) {
+        clouds.push({
+          x: Math.random() * width(),
+          y: 40 + Math.random() * height() * 0.48,
+          size: 34 + Math.random() * 38,
+          speed: 25 + Math.random() * 30
+        });
+      }
+
+      scoreEl.textContent = "0";
+    }
+
+    function startGame() {
+      resizeCanvas();
+      resetGame();
+      gameState = "playing";
+      startScreen.hidden = true;
+      gameOverScreen.hidden = true;
+      playBeep(660, 0.09, "triangle");
+      lastTime = performance.now();
+      cancelAnimationFrame(animationId);
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameState = "over";
+      finalScoreEl.textContent = Math.floor(score);
+      gameOverScreen.hidden = false;
+      playBeep(150, 0.22, "sawtooth");
+
+      if (score > bestScore) {
+        bestScore = Math.floor(score);
+        localStorage.setItem(bestScoreKey, String(bestScore));
+        bestScoreEl.textContent = bestScore;
+      }
+    }
+
+    function spawnObstacle() {
+      const types = ["tree", "house", "bridge", "cloud", "rock", "balloon", "star"];
+      const type = types[Math.floor(Math.random() * types.length)];
+      const obstacleHeight = 42 + Math.random() * 78;
+      const obstacleWidth = type === "bridge" ? 92 : 42 + Math.random() * 48;
+      const maxY = height() - obstacleHeight - 42;
+      const y = 22 + Math.random() * Math.max(80, maxY);
+
+      obstacles.push({
+        type,
+        x: width() + 20,
+        y,
+        width: obstacleWidth,
+        height: obstacleHeight,
+        passed: false
+      });
+    }
+
+    function update(delta) {
+      const movePower = 980;
+      const drag = 0.9;
+
+      if (keys.up) ship.velocityY -= movePower * delta;
+      if (keys.down) ship.velocityY += movePower * delta;
+
+      ship.velocityY *= drag;
+      ship.y += ship.velocityY * delta;
+      ship.y = Math.max(8, Math.min(height() - ship.height - 24, ship.y));
+
+      score += delta * 12;
+      speed += delta * 5.5;
+      scoreEl.textContent = Math.floor(score);
+      groundOffset = (groundOffset + speed * delta) % 80;
+
+      obstacleTimer -= delta;
+      if (obstacleTimer <= 0) {
+        spawnObstacle();
+        obstacleTimer = Math.max(0.72, 1.35 - score / 1200);
+      }
+
+      starTimer -= delta;
+      if (starTimer <= 0) {
+        stars.push({
+          x: width() + 8,
+          y: Math.random() * height() * 0.72,
+          size: 1 + Math.random() * 2,
+          speed: 30 + Math.random() * 55
+        });
+        starTimer = 0.18;
+      }
+
+      stars.forEach((star) => {
+        star.x -= star.speed * delta;
+      });
+
+      clouds.forEach((cloud) => {
+        cloud.x -= cloud.speed * delta;
+        if (cloud.x < -cloud.size * 3) {
+          cloud.x = width() + cloud.size;
+          cloud.y = 35 + Math.random() * height() * 0.48;
+        }
+      });
+
+      obstacles.forEach((obstacle) => {
+        obstacle.x -= speed * delta;
+        if (!obstacle.passed && obstacle.x + obstacle.width < ship.x) {
+          obstacle.passed = true;
+          score += 18;
+          playBeep(880, 0.04, "sine");
+        }
+      });
+
+      while (stars.length && stars[0].x < -10) stars.shift();
+      while (obstacles.length && obstacles[0].x < -140) obstacles.shift();
+
+      if (obstacles.some(hasCollision)) {
+        endGame();
+      }
+    }
+
+    function hasCollision(obstacle) {
+      // Slightly smaller hit boxes make the game feel fair for young players.
+      const shipBox = {
+        x: ship.x + 10,
+        y: ship.y + 8,
+        width: ship.width - 18,
+        height: ship.height - 16
+      };
+
+      const obstacleBox = {
+        x: obstacle.x + 6,
+        y: obstacle.y + 6,
+        width: obstacle.width - 12,
+        height: obstacle.height - 12
+      };
+
+      return (
+        shipBox.x < obstacleBox.x + obstacleBox.width &&
+        shipBox.x + shipBox.width > obstacleBox.x &&
+        shipBox.y < obstacleBox.y + obstacleBox.height &&
+        shipBox.y + shipBox.height > obstacleBox.y
+      );
+    }
+
+    function drawBackground() {
+      const w = width();
+      const h = height();
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, "#17213f");
+      sky.addColorStop(0.55, "#24538d");
+      sky.addColorStop(1, "#72d6ec");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      stars.forEach((star) => {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      clouds.forEach(drawSoftCloud);
+
+      ctx.fillStyle = "#44bd68";
+      ctx.fillRect(0, h - 24, w, 24);
+      ctx.fillStyle = "#2f9d55";
+      for (let x = -80 - groundOffset; x < w + 80; x += 80) {
+        ctx.fillRect(x, h - 24, 44, 8);
+      }
+    }
+
+    function drawSoftCloud(cloud) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.beginPath();
+      ctx.arc(cloud.x, cloud.y, cloud.size * 0.44, 0, Math.PI * 2);
+      ctx.arc(cloud.x + cloud.size * 0.42, cloud.y - 8, cloud.size * 0.52, 0, Math.PI * 2);
+      ctx.arc(cloud.x + cloud.size * 0.92, cloud.y, cloud.size * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawShip() {
+      const x = ship.x;
+      const y = ship.y;
+
+      ctx.fillStyle = "#ff5b8a";
+      ctx.beginPath();
+      ctx.moveTo(x + ship.width, y + ship.height / 2);
+      ctx.lineTo(x + 18, y);
+      ctx.lineTo(x, y + ship.height / 2);
+      ctx.lineTo(x + 18, y + ship.height);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffd84d";
+      ctx.beginPath();
+      ctx.moveTo(x + 8, y + ship.height / 2);
+      ctx.lineTo(x - 28 - Math.random() * 8, y + 10);
+      ctx.lineTo(x - 18, y + ship.height / 2);
+      ctx.lineTo(x - 28 - Math.random() * 8, y + ship.height - 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#6fe4ff";
+      ctx.beginPath();
+      ctx.arc(x + 45, y + 19, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function drawObstacle(obstacle) {
+      if (obstacle.type === "tree") drawTree(obstacle);
+      if (obstacle.type === "house") drawHouse(obstacle);
+      if (obstacle.type === "bridge") drawBridge(obstacle);
+      if (obstacle.type === "cloud") drawObstacleCloud(obstacle);
+      if (obstacle.type === "rock") drawRock(obstacle);
+      if (obstacle.type === "balloon") drawBalloon(obstacle);
+      if (obstacle.type === "star") drawBigStar(obstacle);
+    }
+
+    function drawTree(o) {
+      ctx.fillStyle = "#8a5a2b";
+      ctx.fillRect(o.x + o.width * 0.42, o.y + o.height * 0.45, o.width * 0.18, o.height * 0.55);
+      ctx.fillStyle = "#38c96f";
+      ctx.beginPath();
+      ctx.moveTo(o.x + o.width / 2, o.y);
+      ctx.lineTo(o.x, o.y + o.height * 0.64);
+      ctx.lineTo(o.x + o.width, o.y + o.height * 0.64);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawHouse(o) {
+      ctx.fillStyle = "#ffe06f";
+      ctx.fillRect(o.x + 5, o.y + o.height * 0.34, o.width - 10, o.height * 0.62);
+      ctx.fillStyle = "#ff6f6f";
+      ctx.beginPath();
+      ctx.moveTo(o.x, o.y + o.height * 0.4);
+      ctx.lineTo(o.x + o.width / 2, o.y);
+      ctx.lineTo(o.x + o.width, o.y + o.height * 0.4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#55b7ff";
+      ctx.fillRect(o.x + o.width * 0.2, o.y + o.height * 0.5, 12, 12);
+    }
+
+    function drawBridge(o) {
+      ctx.strokeStyle = "#8c6f4f";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(o.x + o.width / 2, o.y + o.height, o.width / 2, Math.PI, 0);
+      ctx.stroke();
+      ctx.fillStyle = "#b88b5c";
+      ctx.fillRect(o.x, o.y + o.height * 0.45, o.width, 12);
+    }
+
+    function drawObstacleCloud(o) {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(o.x + o.width * 0.25, o.y + o.height * 0.58, o.width * 0.25, 0, Math.PI * 2);
+      ctx.arc(o.x + o.width * 0.5, o.y + o.height * 0.42, o.width * 0.32, 0, Math.PI * 2);
+      ctx.arc(o.x + o.width * 0.75, o.y + o.height * 0.58, o.width * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawRock(o) {
+      ctx.fillStyle = "#8d98a8";
+      ctx.beginPath();
+      ctx.moveTo(o.x + o.width * 0.2, o.y + o.height);
+      ctx.lineTo(o.x, o.y + o.height * 0.5);
+      ctx.lineTo(o.x + o.width * 0.34, o.y);
+      ctx.lineTo(o.x + o.width * 0.86, o.y + o.height * 0.18);
+      ctx.lineTo(o.x + o.width, o.y + o.height);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawBalloon(o) {
+      ctx.fillStyle = "#b770ff";
+      ctx.beginPath();
+      ctx.ellipse(o.x + o.width / 2, o.y + o.height * 0.35, o.width * 0.4, o.height * 0.32, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(o.x + o.width / 2, o.y + o.height * 0.68);
+      ctx.lineTo(o.x + o.width / 2, o.y + o.height);
+      ctx.stroke();
+    }
+
+    function drawBigStar(o) {
+      const cx = o.x + o.width / 2;
+      const cy = o.y + o.height / 2;
+      const spikes = 5;
+      const outer = Math.min(o.width, o.height) * 0.48;
+      const inner = outer * 0.45;
+      ctx.fillStyle = "#ffe14d";
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i += 1) {
+        const radius = i % 2 === 0 ? outer : inner;
+        const angle = -Math.PI / 2 + (i * Math.PI) / spikes;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function draw() {
+      drawBackground();
+      obstacles.forEach(drawObstacle);
+      drawShip();
+    }
+
+    function gameLoop(time) {
+      const delta = Math.min((time - lastTime) / 1000, 0.033);
+      lastTime = time;
+
+      if (gameState === "playing") {
+        update(delta);
+        draw();
+        animationId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function setControl(direction, isPressed) {
+      keys[direction] = isPressed;
+    }
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      draw();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+        setControl("up", true);
+        event.preventDefault();
+      }
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+        setControl("down", true);
+        event.preventDefault();
+      }
+      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing") {
+        startGame();
+      }
+    });
+
+    document.addEventListener("keyup", (event) => {
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") setControl("up", false);
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") setControl("down", false);
+    });
+
+    function attachTouchButton(button, direction) {
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        setControl(direction, true);
+      });
+
+      button.addEventListener("pointerup", () => setControl(direction, false));
+      button.addEventListener("pointercancel", () => setControl(direction, false));
+      button.addEventListener("pointerleave", () => setControl(direction, false));
+    }
+
+    attachTouchButton(upButton, "up");
+    attachTouchButton(downButton, "down");
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+
+    resizeCanvas();
+    resetGame();
+    draw();
+  </script>
+</body>
+</html>
