@@ -307,10 +307,10 @@ export default function InvitationListPage() {
     }
 
     const recipients = selectedSmsRecipients
-      .map((invitee) => invitee.phone)
+      .map((invitee) => encodeURIComponent(invitee.phone))
       .join(",");
 
-    window.location.href = `sms:${recipients}?&body=${encodeURIComponent(
+    window.location.href = `sms:/open?addresses=${recipients}&body=${encodeURIComponent(
       smsMessage
     )}`;
     setStatus(
