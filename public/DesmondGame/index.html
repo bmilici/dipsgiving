@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DesmondGame: Letter Roach</title>
+  <style>
+    :root {
+      --sky: #95d9ff;
+      --grass: #64bb5c;
+      --dirt: #8b5a35;
+      --ink: #173039;
+      --panel: #fff9e8;
+      --gold: #ffd44d;
+      --red: #f05b4f;
+      --blue: #3078c7;
+      --green: #2f9b59;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.44), transparent 38%),
+        linear-gradient(180deg, #91d8ff 0%, #bfeeff 48%, #68bf63 49%, #4f9d48 100%);
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .home-link,
+    .small-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #10213d;
+      font-weight: 900;
+      text-decoration: none;
+      background: var(--gold);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+    }
+
+    .small-button {
+      background: #ffffff;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: #173039;
+      font-weight: 900;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .game-wrap {
+      position: relative;
+      border: 4px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--sky);
+      box-shadow: 0 18px 44px rgba(25, 81, 48, 0.28);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: min(68vh, 620px);
+      min-height: 430px;
+      touch-action: none;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+      background: rgba(18, 48, 46, 0.74);
+      color: white;
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.4rem);
+      line-height: 1;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .screen p {
+      max-width: 680px;
+      margin: 0;
+      font-size: clamp(1rem, 2.4vw, 1.35rem);
+      line-height: 1.45;
+    }
+
+    .button-row,
+    .touch-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .big-button,
+    .touch-button {
+      min-width: 150px;
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: #10213d;
+      background: var(--gold);
+      font-size: 1.05rem;
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .touch-controls {
+      margin-top: 12px;
+    }
+
+    .touch-button {
+      color: white;
+      background: #236fb7;
+      font-size: 1.25rem;
+    }
+
+    .big-button:active,
+    .home-link:active,
+    .small-button:active,
+    .touch-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .hint {
+      margin: 12px 0 0;
+      color: #14372d;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    @media (max-width: 650px) {
+      .page {
+        padding: 8px;
+      }
+
+      .topbar {
+        align-items: stretch;
+      }
+
+      .scoreboard {
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      canvas {
+        height: 60vh;
+        min-height: 390px;
+      }
+
+      .touch-button {
+        flex: 1 1 120px;
+        min-width: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="home-link" href="/">Home</a>
+      <div class="scoreboard" aria-live="polite">
+        <span>Score: <strong id="score">0</strong></span>
+        <span>Best: <strong id="bestScore">0</strong></span>
+        <span>Time: <strong id="timer">5.0</strong></span>
+      </div>
+    </div>
+
+    <section class="game-wrap" aria-label="DesmondGame Letter Roach game">
+      <canvas id="gameCanvas"></canvas>
+
+      <div id="startScreen" class="screen">
+        <h1>DesmondGame: Letter Roach</h1>
+        <p>Listen for the letter, then move the cockroach into the matching section before the 5 second timer runs out.</p>
+        <div class="button-row">
+          <button id="startButton" class="big-button" type="button">Start Game</button>
+        </div>
+      </div>
+
+      <div id="roundScreen" class="screen" hidden>
+        <h1 id="roundTitle">Nice!</h1>
+        <p id="roundMessage">You found the right letter.</p>
+      </div>
+
+      <div id="gameOverScreen" class="screen" hidden>
+        <h1>Game Over</h1>
+        <p id="gameOverMessage">The roach picked the wrong section.</p>
+        <p>Your final score was <strong id="finalScore">0</strong>.</p>
+        <div class="button-row">
+          <button id="restartButton" class="big-button" type="button">Play Again</button>
+          <a class="big-button" href="/">Home</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="touch-controls" aria-label="Touch controls">
+      <button id="leftButton" class="touch-button" type="button" aria-label="Move cockroach left">Left</button>
+      <button id="rightButton" class="touch-button" type="button" aria-label="Move cockroach right">Right</button>
+    </div>
+
+    <p class="hint">Controls: Arrow keys, A/D, or the touch buttons.</p>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const bestScoreEl = document.getElementById("bestScore");
+    const timerEl = document.getElementById("timer");
+    const finalScoreEl = document.getElementById("finalScore");
+    const startScreen = document.getElementById("startScreen");
+    const roundScreen = document.getElementById("roundScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const roundTitle = document.getElementById("roundTitle");
+    const roundMessage = document.getElementById("roundMessage");
+    const gameOverMessage = document.getElementById("gameOverMessage");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const leftButton = document.getElementById("leftButton");
+    const rightButton = document.getElementById("rightButton");
+
+    const bestScoreKey = "desmondLetterRoachBestScore";
+    const roundSeconds = 5;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    let bestScore = Number(localStorage.getItem(bestScoreKey) || 0);
+    let animationId;
+    let lastTime = 0;
+    let gameState = "start";
+    let score = 0;
+    let timer = roundSeconds;
+    let targetLetter = "A";
+    let sectionLetters = ["A", "B", "C"];
+    let correctSection = 0;
+    let selectedSection = 1;
+    let roachX = 0;
+    let roachTargetX = 0;
+    let resultTimer = 0;
+    let resultStatus = "safe";
+    let squishSection = 0;
+    let biteSection = 2;
+    let spokenThisRound = false;
+    let audioContext = null;
+
+    bestScoreEl.textContent = bestScore;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * pixelRatio);
+      canvas.height = Math.floor(rect.height * pixelRatio);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      setRoachTarget(true);
+      draw();
+    }
+
+    function width() {
+      return canvas.getBoundingClientRect().width;
+    }
+
+    function height() {
+      return canvas.getBoundingClientRect().height;
+    }
+
+    function sectionWidth() {
+      return width() / 3;
+    }
+
+    function sectionCenter(index) {
+      return sectionWidth() * index + sectionWidth() / 2;
+    }
+
+    function roundedRect(x, y, w, h, radius) {
+      const r = Math.min(radius, w / 2, h / 2);
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+    }
+
+    function playBeep(frequency, duration, type) {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = type || "square";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (error) {
+        // Sound is optional; the game still plays if the browser blocks it.
+      }
+    }
+
+    function sayTargetLetter() {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance("Find the letter " + targetLetter);
+      utterance.rate = 0.82;
+      utterance.pitch = 1.08;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function pickRound() {
+      const shuffled = letters.slice().sort(() => Math.random() - 0.5);
+      sectionLetters = shuffled.slice(0, 3);
+      correctSection = Math.floor(Math.random() * 3);
+      targetLetter = sectionLetters[correctSection];
+      selectedSection = 1;
+      timer = roundSeconds;
+      resultTimer = 0;
+      resultStatus = "safe";
+      spokenThisRound = false;
+      setRoachTarget(true);
+
+      const wrongSections = [0, 1, 2].filter((index) => index !== correctSection);
+      if (Math.random() < 0.5) {
+        squishSection = wrongSections[0];
+        biteSection = wrongSections[1];
+      } else {
+        squishSection = wrongSections[1];
+        biteSection = wrongSections[0];
+      }
+    }
+
+    function startGame() {
+      resizeCanvas();
+      score = 0;
+      scoreEl.textContent = "0";
+      pickRound();
+      gameState = "playing";
+      startScreen.hidden = true;
+      roundScreen.hidden = true;
+      gameOverScreen.hidden = true;
+      lastTime = performance.now();
+      cancelAnimationFrame(animationId);
+      animationId = requestAnimationFrame(gameLoop);
+      playBeep(660, 0.08, "triangle");
+    }
+
+    function showRoundResult(isCorrect) {
+      gameState = "result";
+      resultTimer = 0;
+      resultStatus = isCorrect ? "safe" : (selectedSection === squishSection ? "squished" : "eaten");
+      playBeep(isCorrect ? 820 : 150, isCorrect ? 0.08 : 0.22, isCorrect ? "sine" : "sawtooth");
+    }
+
+    function finishRoundResult() {
+      if (resultStatus === "safe") {
+        gameState = "intermission";
+        score += 1;
+        scoreEl.textContent = score;
+        roundTitle.textContent = "Nice!";
+        roundMessage.textContent = "You found " + targetLetter + ". Next letter coming up.";
+        roundScreen.hidden = false;
+        setTimeout(() => {
+          if (gameState !== "intermission") return;
+          roundScreen.hidden = true;
+          pickRound();
+          gameState = "playing";
+          lastTime = performance.now();
+          animationId = requestAnimationFrame(gameLoop);
+        }, 850);
+      } else {
+        endGame(resultStatus);
+      }
+    }
+
+    function endGame(status) {
+      gameState = "over";
+      finalScoreEl.textContent = score;
+      gameOverMessage.textContent = status === "squished"
+        ? "Oh no, the foot landed on your section."
+        : "Oh no, the hungry frog got your section.";
+      gameOverScreen.hidden = false;
+
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem(bestScoreKey, String(bestScore));
+        bestScoreEl.textContent = bestScore;
+      }
+    }
+
+    function setRoachTarget(snap) {
+      roachTargetX = sectionCenter(selectedSection);
+      if (snap) roachX = roachTargetX;
+    }
+
+    function moveSelection(direction) {
+      if (gameState !== "playing") return;
+      selectedSection = Math.max(0, Math.min(2, selectedSection + direction));
+      setRoachTarget(false);
+      playBeep(420, 0.035, "square");
+    }
+
+    function update(delta) {
+      if (gameState === "playing") {
+        if (!spokenThisRound) {
+          spokenThisRound = true;
+          sayTargetLetter();
+        }
+
+        timer = Math.max(0, timer - delta);
+        timerEl.textContent = timer.toFixed(1);
+        roachX += (roachTargetX - roachX) * Math.min(1, delta * 14);
+
+        if (timer <= 0) {
+          timerEl.textContent = "0.0";
+          showRoundResult(selectedSection === correctSection);
+        }
+      } else if (gameState === "result") {
+        resultTimer += delta;
+        roachX += (roachTargetX - roachX) * Math.min(1, delta * 10);
+        if (resultTimer >= 1.1) finishRoundResult();
+      }
+    }
+
+    function drawBackground() {
+      const w = width();
+      const h = height();
+      const groundTop = h * 0.34;
+      const sky = ctx.createLinearGradient(0, 0, 0, groundTop);
+      sky.addColorStop(0, "#8bd4ff");
+      sky.addColorStop(1, "#d2f5ff");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, groundTop);
+
+      ctx.fillStyle = "#fff7c6";
+      ctx.beginPath();
+      ctx.arc(w - 74, 62, 34, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#58b65b";
+      ctx.fillRect(0, groundTop, w, h - groundTop);
+      ctx.fillStyle = "#7a4d2b";
+      ctx.fillRect(0, h - 40, w, 40);
+
+      for (let i = 0; i < 26; i += 1) {
+        const x = (i * 73) % (w + 80) - 40;
+        const y = groundTop + 18 + ((i * 31) % Math.max(60, h - groundTop - 70));
+        ctx.fillStyle = i % 2 ? "#77ca61" : "#429c50";
+        ctx.beginPath();
+        ctx.ellipse(x, y, 8, 18, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawSections() {
+      const w = width();
+      const h = height();
+      const sw = sectionWidth();
+      const top = h * 0.26;
+      const bottom = h - 40;
+
+      for (let i = 0; i < 3; i += 1) {
+        const x = i * sw;
+        const isSelected = i === selectedSection;
+        const isCorrect = i === correctSection;
+        const isSquish = gameState === "result" && i === squishSection;
+        const isBite = gameState === "result" && i === biteSection;
+
+        ctx.fillStyle = isSelected ? "rgba(255, 212, 77, 0.34)" : "rgba(255, 255, 255, 0.16)";
+        if (gameState === "result" && isCorrect) ctx.fillStyle = "rgba(96, 216, 116, 0.42)";
+        if (isSquish) ctx.fillStyle = "rgba(240, 91, 79, 0.28)";
+        if (isBite) ctx.fillStyle = "rgba(48, 120, 199, 0.28)";
+        ctx.fillRect(x, top, sw, bottom - top);
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+        ctx.lineWidth = i === selectedSection ? 7 : 4;
+        ctx.strokeRect(x + 5, top + 5, sw - 10, bottom - top - 10);
+
+        ctx.fillStyle = "#fff9e8";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        roundedRect(x + sw * 0.24, top + 28, sw * 0.52, Math.min(116, h * 0.2), 8);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#173039";
+        ctx.font = "900 " + Math.min(86, sw * 0.32) + "px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(sectionLetters[i], x + sw / 2, top + 86);
+      }
+    }
+
+    function drawHud() {
+      const w = width();
+      ctx.fillStyle = "rgba(255, 249, 232, 0.94)";
+      ctx.beginPath();
+      roundedRect(18, 16, Math.min(360, w - 36), 86, 8);
+      ctx.fill();
+
+      ctx.fillStyle = "#173039";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 24px Arial";
+      ctx.fillText("Find the letter", 38, 44);
+
+      ctx.fillStyle = timer <= 1.5 ? "#f05b4f" : "#2f9b59";
+      ctx.fillRect(38, 76, Math.max(0, 300 * (timer / roundSeconds)), 12);
+      ctx.strokeStyle = "#173039";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(38, 76, 300, 12);
+    }
+
+    function drawRoach() {
+      const h = height();
+      const y = h - 116;
+      const bob = Math.sin(performance.now() / 110) * 2;
+      const x = roachX;
+
+      ctx.save();
+      ctx.translate(x, y + bob);
+      ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+      ctx.beginPath();
+      ctx.ellipse(0, 42, 56, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = "#2a170f";
+      ctx.lineWidth = 5;
+      for (let i = -1; i <= 1; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(-18, i * 12);
+        ctx.lineTo(-56, i * 18 + 24);
+        ctx.moveTo(18, i * 12);
+        ctx.lineTo(56, i * 18 + 24);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#5d321f";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 38, 56, Math.PI / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#7b452d";
+      ctx.beginPath();
+      ctx.ellipse(0, -5, 24, 44, Math.PI / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#2a170f";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-9, -34);
+      ctx.lineTo(-34, -58);
+      ctx.moveTo(9, -34);
+      ctx.lineTo(34, -58);
+      ctx.stroke();
+
+      ctx.fillStyle = "#101010";
+      ctx.beginPath();
+      ctx.arc(-12, -24, 4, 0, Math.PI * 2);
+      ctx.arc(12, -24, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawFoot() {
+      const progress = Math.min(1, resultTimer / 0.65);
+      const x = sectionCenter(squishSection);
+      const y = -130 + progress * (height() - 224);
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.08);
+      ctx.fillStyle = "#f2c6a5";
+      ctx.beginPath();
+      roundedRect(-60, -58, 120, 96, 38);
+      ctx.fill();
+      ctx.fillStyle = "#e7b593";
+      for (let i = 0; i < 5; i += 1) {
+        ctx.beginPath();
+        ctx.arc(-42 + i * 21, -58, 13 - i * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "rgba(90, 45, 20, 0.18)";
+      ctx.fillRect(-52, 30, 104, 10);
+      ctx.restore();
+    }
+
+    function drawFrog() {
+      const progress = Math.min(1, resultTimer / 0.75);
+      const x = sectionCenter(biteSection);
+      const y = height() - 152;
+      const leapY = Math.sin(progress * Math.PI) * -90;
+
+      ctx.save();
+      ctx.translate(x, y + leapY);
+      ctx.fillStyle = "#3aa95a";
+      ctx.beginPath();
+      ctx.ellipse(0, 12, 64, 42, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#48bf68";
+      ctx.beginPath();
+      ctx.ellipse(-28, -22, 23, 21, 0, 0, Math.PI * 2);
+      ctx.ellipse(28, -22, 23, 21, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#101010";
+      ctx.beginPath();
+      ctx.arc(-28, -26, 5, 0, Math.PI * 2);
+      ctx.arc(28, -26, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#173039";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 4, 32, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#ef6b7f";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(0, 20);
+      ctx.lineTo((roachX - x) * progress, (height() - 116 - y) * progress);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawResultEffects() {
+      if (gameState !== "result") return;
+      drawFoot();
+      drawFrog();
+
+      if (resultStatus === "safe") {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.font = "900 34px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Safe!", sectionCenter(correctSection), height() - 78);
+      }
+    }
+
+    function draw() {
+      drawBackground();
+      drawSections();
+      drawHud();
+      drawRoach();
+      drawResultEffects();
+    }
+
+    function gameLoop(time) {
+      const delta = Math.min((time - lastTime) / 1000, 0.033);
+      lastTime = time;
+
+      if (gameState === "playing" || gameState === "result") {
+        update(delta);
+        draw();
+        if (gameState === "playing" || gameState === "result") {
+          animationId = requestAnimationFrame(gameLoop);
+        }
+      }
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+        moveSelection(-1);
+        event.preventDefault();
+      }
+      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+        moveSelection(1);
+        event.preventDefault();
+      }
+      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing" && gameState !== "result") {
+        startGame();
+        event.preventDefault();
+      }
+    });
+
+    leftButton.addEventListener("click", () => moveSelection(-1));
+    rightButton.addEventListener("click", () => moveSelection(1));
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+    window.addEventListener("resize", resizeCanvas);
+
+    resizeCanvas();
+    pickRound();
+    draw();
+  </script>
+</body>
+</html>

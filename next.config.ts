@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         source: "/NicoGames",
         destination: "/NicoGames/index.html",
       },
+      {
+        source: "/DesmondGame",
+        destination: "/DesmondGame/index.html",
+      },
+      {
+        source: "/desmondgame",
+        destination: "/DesmondGame/index.html",
+      },
     ];
   },
 };
