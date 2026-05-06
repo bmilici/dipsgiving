@@ -17,7 +17,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
 
   function unlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const expected = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || "dipsgiving";
+    const expected = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || "Nattie11567";
 
     if (code === expected) {
       window.localStorage.setItem(STORAGE_KEY, "true");
