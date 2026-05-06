@@ -270,10 +270,10 @@
     let audioContext = null;
 
     const ship = {
-      x: 90,
+      x: 86,
       y: 180,
-      width: 74,
-      height: 44,
+      width: 116,
+      height: 66,
       velocityY: 0
     };
 
@@ -328,7 +328,7 @@
       obstacles.length = 0;
       stars.length = 0;
       clouds.length = 0;
-      ship.y = height() / 2 - ship.height / 2;
+      ship.y = height() - 24 - ship.height - 48;
       ship.velocityY = 0;
 
       for (let i = 0; i < 34; i += 1) {
@@ -383,21 +383,25 @@
     }
 
     function createObstacle(extraX) {
-      const groundTypes = ["tree", "house", "bridge", "rock"];
+      const groundTypes = ["tree", "house", "rock"];
       const airTypes = ["cloud", "balloon", "star"];
-      const useGroundObstacle = Math.random() < 0.58;
+      const obstacleRoll = Math.random();
+      const useBridge = obstacleRoll < 0.22;
+      const useGroundObstacle = obstacleRoll >= 0.22 && obstacleRoll < 0.68;
       const types = useGroundObstacle ? groundTypes : airTypes;
-      const type = types[Math.floor(Math.random() * types.length)];
-      const obstacleHeight = type === "bridge" ? 54 : 42 + Math.random() * 78;
-      const obstacleWidth = type === "bridge" ? 92 : 42 + Math.random() * 48;
+      const type = useBridge ? "bridge" : types[Math.floor(Math.random() * types.length)];
+      const obstacleHeight = getObstacleHeight(type);
+      const obstacleWidth = getObstacleWidth(type);
       const groundY = height() - 24 - obstacleHeight;
       let y = groundY;
 
-      // Trees, houses, bridges, and rocks stay on the ground.
+      // Trees, houses, and rocks stay on the ground. Bridges hang above the ground.
       // Clouds, balloons, and stars can appear in the air.
-      if (!useGroundObstacle) {
+      if (useBridge) {
+        y = 42 + Math.random() * 42;
+      } else if (!useGroundObstacle) {
         const topLimit = 22;
-        const bottomLimit = Math.max(topLimit + 60, height() - obstacleHeight - 92);
+        const bottomLimit = Math.max(topLimit + 60, height() - obstacleHeight - 116);
         y = topLimit + Math.random() * (bottomLimit - topLimit);
       }
 
@@ -409,6 +413,26 @@
         height: obstacleHeight,
         passed: false
       });
+    }
+
+    function getObstacleHeight(type) {
+      if (type === "tree") return 112 + Math.random() * 58;
+      if (type === "house") return 98 + Math.random() * 46;
+      if (type === "bridge") return 150 + Math.random() * 36;
+      if (type === "rock") return 72 + Math.random() * 38;
+      if (type === "balloon") return 86 + Math.random() * 44;
+      if (type === "star") return 68 + Math.random() * 34;
+      return 78 + Math.random() * 42;
+    }
+
+    function getObstacleWidth(type) {
+      if (type === "bridge") return 188 + Math.random() * 42;
+      if (type === "house") return 86 + Math.random() * 34;
+      if (type === "tree") return 74 + Math.random() * 24;
+      if (type === "rock") return 76 + Math.random() * 34;
+      if (type === "balloon") return 72 + Math.random() * 28;
+      if (type === "star") return 70 + Math.random() * 28;
+      return 96 + Math.random() * 38;
     }
 
     function spawnObstacle() {
@@ -487,25 +511,58 @@
     function hasCollision(obstacle) {
       // Slightly smaller hit boxes make the game feel fair for young players.
       const shipBox = {
-        x: ship.x + 10,
-        y: ship.y + 8,
-        width: ship.width - 18,
-        height: ship.height - 16
+        x: ship.x + 14,
+        y: ship.y + 12,
+        width: ship.width - 28,
+        height: ship.height - 24
       };
 
-      const obstacleBox = {
-        x: obstacle.x + 6,
-        y: obstacle.y + 6,
-        width: obstacle.width - 12,
-        height: obstacle.height - 12
-      };
+      return getObstacleHitBoxes(obstacle).some((obstacleBox) => boxesOverlap(shipBox, obstacleBox));
+    }
 
+    function boxesOverlap(a, b) {
       return (
-        shipBox.x < obstacleBox.x + obstacleBox.width &&
-        shipBox.x + shipBox.width > obstacleBox.x &&
-        shipBox.y < obstacleBox.y + obstacleBox.height &&
-        shipBox.y + shipBox.height > obstacleBox.y
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
       );
+    }
+
+    function getObstacleHitBoxes(obstacle) {
+      if (obstacle.type === "bridge") {
+        const beamHeight = 28;
+        const supportWidth = 22;
+        return [
+          {
+            x: obstacle.x + 8,
+            y: obstacle.y,
+            width: obstacle.width - 16,
+            height: beamHeight
+          },
+          {
+            x: obstacle.x + 16,
+            y: obstacle.y,
+            width: supportWidth,
+            height: obstacle.height
+          },
+          {
+            x: obstacle.x + obstacle.width - supportWidth - 16,
+            y: obstacle.y,
+            width: supportWidth,
+            height: obstacle.height
+          }
+        ];
+      }
+
+      return [
+        {
+          x: obstacle.x + 8,
+          y: obstacle.y + 8,
+          width: obstacle.width - 16,
+          height: obstacle.height - 16
+        }
+      ];
     }
 
     function drawBackground() {
@@ -547,33 +604,68 @@
     function drawShip() {
       const x = ship.x;
       const y = ship.y;
+      const w = ship.width;
+      const h = ship.height;
 
-      ctx.fillStyle = "#ff5b8a";
+      ctx.save();
+      ctx.shadowColor = "rgba(111, 228, 255, 0.5)";
+      ctx.shadowBlur = 12;
+
+      ctx.fillStyle = "#d7dde7";
       ctx.beginPath();
-      ctx.moveTo(x + ship.width, y + ship.height / 2);
-      ctx.lineTo(x + 18, y);
-      ctx.lineTo(x, y + ship.height / 2);
-      ctx.lineTo(x + 18, y + ship.height);
+      ctx.moveTo(x + w, y + h * 0.5);
+      ctx.lineTo(x + w * 0.38, y + h * 0.18);
+      ctx.lineTo(x + w * 0.05, y + h * 0.34);
+      ctx.lineTo(x + w * 0.2, y + h * 0.5);
+      ctx.lineTo(x + w * 0.05, y + h * 0.66);
+      ctx.lineTo(x + w * 0.38, y + h * 0.82);
       ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = "#ffd84d";
+      ctx.fillStyle = "#f3f6fb";
       ctx.beginPath();
-      ctx.moveTo(x + 8, y + ship.height / 2);
-      ctx.lineTo(x - 28 - Math.random() * 8, y + 10);
-      ctx.lineTo(x - 18, y + ship.height / 2);
-      ctx.lineTo(x - 28 - Math.random() * 8, y + ship.height - 10);
+      ctx.moveTo(x + w * 0.96, y + h * 0.5);
+      ctx.lineTo(x + w * 0.42, y + h * 0.34);
+      ctx.lineTo(x + w * 0.3, y + h * 0.5);
+      ctx.lineTo(x + w * 0.42, y + h * 0.66);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#8c99aa";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.38, y + h * 0.18);
+      ctx.lineTo(x + w * 0.12, y - h * 0.04);
+      ctx.lineTo(x + w * 0.18, y + h * 0.34);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.38, y + h * 0.82);
+      ctx.lineTo(x + w * 0.12, y + h * 1.04);
+      ctx.lineTo(x + w * 0.18, y + h * 0.66);
       ctx.closePath();
       ctx.fill();
 
       ctx.fillStyle = "#6fe4ff";
       ctx.beginPath();
-      ctx.arc(x + 45, y + 19, 10, 0, Math.PI * 2);
+      ctx.ellipse(x + w * 0.66, y + h * 0.5, w * 0.1, h * 0.16, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.78)";
       ctx.lineWidth = 3;
       ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#ffd84d";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.08, y + h * 0.5);
+      ctx.lineTo(x - 38 - Math.random() * 8, y + h * 0.34);
+      ctx.lineTo(x - 20, y + h * 0.5);
+      ctx.lineTo(x - 38 - Math.random() * 8, y + h * 0.66);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
     }
 
     function drawObstacle(obstacle) {
@@ -613,13 +705,18 @@
     }
 
     function drawBridge(o) {
-      ctx.strokeStyle = "#8c6f4f";
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.arc(o.x + o.width / 2, o.y + o.height, o.width / 2, Math.PI, 0);
-      ctx.stroke();
       ctx.fillStyle = "#b88b5c";
-      ctx.fillRect(o.x, o.y + o.height * 0.45, o.width, 12);
+      ctx.fillRect(o.x + 8, o.y, o.width - 16, 28);
+      ctx.fillStyle = "#8c6f4f";
+      ctx.fillRect(o.x + 16, o.y, 22, o.height);
+      ctx.fillRect(o.x + o.width - 38, o.y, 22, o.height);
+      ctx.strokeStyle = "#f7d28a";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(o.x + 44, o.y + 28);
+      ctx.lineTo(o.x + o.width / 2, o.y + o.height * 0.48);
+      ctx.lineTo(o.x + o.width - 44, o.y + 28);
+      ctx.stroke();
     }
 
     function drawObstacleCloud(o) {
