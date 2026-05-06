@@ -111,7 +111,7 @@ export default function InlineRegisterForm() {
           bringing_dip: true,  // they are registering a dip
           dip_name,
           notes: notes || null,
-          event: "4th Annual Dipsgiving",
+          event: "5th Annual Dipsgiving",
           created_at: serverTimestamp(),
         });
       } else {
@@ -124,7 +124,7 @@ export default function InlineRegisterForm() {
           bringing_dip: bringingDip,
           dip_name: bringingDip ? dip_name : null,
           notes: bringingDip ? notes || null : null,
-          event: "4th Annual Dipsgiving",
+          event: "5th Annual Dipsgiving",
           created_at: serverTimestamp(),
         });
       }

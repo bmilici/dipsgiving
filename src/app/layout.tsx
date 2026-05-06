@@ -18,7 +18,7 @@ const SITE = "https://dipsgiving.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: "Dipsgiving",
-  description: "Official Dipsgiving site — see you November 2025!",
+  description: "Official Dipsgiving site — date and time TBD.",
   icons: {
     icon: [
       { url: "/favicon-dipsgiving.ico" },
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Dipsgiving — 4th Annual Celebration of Dips",
+        alt: "Dipsgiving — 5th Annual Celebration of Dips",
       },
     ],
     locale: "en_US",

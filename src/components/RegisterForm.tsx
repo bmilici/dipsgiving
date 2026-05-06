@@ -69,7 +69,7 @@ const RegisterForm = forwardRef<RegisterFormHandle>((_props, ref) => {
         bringing_dip: bringingDip,
         dip_name: bringingDip ? dip_name : null,
         notes: bringingDip ? notes : null,
-        event: "4th Annual Dipsgiving",
+        event: "5th Annual Dipsgiving",
         created_at: serverTimestamp(),
       });
 

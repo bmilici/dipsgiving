@@ -26,7 +26,7 @@ type DipReg = {
   created_at?: unknown;
 };
 
-const EVENT_START = new Date("2025-11-22T16:00:00-05:00");
+const EVENT_START: Date | null = null;
 
 function readDipIds(value: unknown): string[] {
   if (!value || typeof value !== "object") return [];
@@ -134,7 +134,7 @@ export default function VotePage() {
   const [status, setStatus] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<string[]>([]);
 
-  const votingOpen = Date.now() >= EVENT_START.getTime();
+  const votingOpen = EVENT_START ? Date.now() >= EVENT_START.getTime() : false;
 
   // Load dips from registrations (only docs with dip_name)
   useEffect(() => {
@@ -281,8 +281,8 @@ export default function VotePage() {
 
         {!votingOpen && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
-            Voting opens after Dipsgiving starts at{" "}
-            <strong>4:00 PM on Nov 22, 2025</strong>.
+            Voting opens after Dipsgiving starts. Date and time are{" "}
+            <strong>TBD</strong>.
           </div>
         )}
 
