@@ -13,7 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
 
 type Invitee = {
@@ -81,12 +81,15 @@ function toInvitee(id: string, data: Record<string, unknown>): Invitee {
 export default function InvitationListPage() {
   const authReady = useEnsureAnonAuth();
   const db = getClientDB();
+  const router = useRouter();
   const [invitees, setInvitees] = useState<Invitee[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const [newInvitee, setNewInvitee] = useState<Draft>(emptyDraft);
   const [queryText, setQueryText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
 
   useEffect(() => {
     if (!db || !authReady) return;
@@ -110,7 +113,19 @@ export default function InvitationListPage() {
         });
 
         setInvitees(rows);
-        setDrafts(nextDrafts);
+        setDrafts((current) => {
+          const dirty = dirtyIds;
+          const merged: Record<string, Draft> = {};
+
+          for (const invitee of rows) {
+            merged[invitee.id] =
+              dirty.has(invitee.id) && current[invitee.id]
+                ? current[invitee.id]
+                : nextDrafts[invitee.id];
+          }
+
+          return merged;
+        });
       },
       (err) => {
         console.error("Invitation list subscribe error:", err);
@@ -119,7 +134,7 @@ export default function InvitationListPage() {
     );
 
     return () => unsub();
-  }, [authReady, db]);
+  }, [authReady, db, dirtyIds]);
 
   const filteredInvitees = useMemo(() => {
     const term = queryText.trim().toLowerCase();
@@ -134,6 +149,45 @@ export default function InvitationListPage() {
   }, [invitees, queryText]);
 
   const invitedCount = invitees.filter((invitee) => invitee.invite_next_year).length;
+  const dirtyCount = dirtyIds.size;
+
+  useEffect(() => {
+    if (!dirtyCount) return;
+
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [dirtyCount]);
+
+  useEffect(() => {
+    if (!dirtyCount) return;
+
+    const warnBeforeNavigation = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const link = target.closest("a[href]");
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (link.target || link.origin !== window.location.origin) return;
+
+      if (
+        !window.confirm(
+          "You have unsaved invitation changes. Leave without saving?"
+        )
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    document.addEventListener("click", warnBeforeNavigation, true);
+    return () =>
+      document.removeEventListener("click", warnBeforeNavigation, true);
+  }, [dirtyCount]);
 
   function updateDraft(id: string, patch: Partial<Draft>) {
     setDrafts((current) => ({
@@ -143,34 +197,46 @@ export default function InvitationListPage() {
         ...patch,
       },
     }));
+    setDirtyIds((current) => new Set(current).add(id));
   }
 
-  async function saveInvitee(id: string) {
+  async function saveAllInvitees() {
     if (!db) return;
 
-    const draft = drafts[id];
-    if (!draft?.name.trim()) {
+    const dirtyDrafts = [...dirtyIds].map((id) => [id, drafts[id]] as const);
+    const missingName = dirtyDrafts.some(([, draft]) => !draft?.name.trim());
+
+    if (missingName) {
       setStatus("Name is required.");
       return;
     }
 
-    setBusyId(id);
+    setSavingAll(true);
     setStatus(null);
 
     try {
-      await updateDoc(doc(db, "invitationList", id), {
-        name: draft.name.trim(),
-        phone: draft.phone.trim(),
-        notes: draft.notes.trim(),
-        invite_next_year: draft.invite_next_year,
-        updated_at: serverTimestamp(),
-      });
-      setStatus("Invitation saved.");
+      await Promise.all(
+        dirtyDrafts.map(([id, draft]) =>
+          updateDoc(doc(db, "invitationList", id), {
+            name: draft.name.trim(),
+            phone: draft.phone.trim(),
+            notes: draft.notes.trim(),
+            invite_next_year: draft.invite_next_year,
+            updated_at: serverTimestamp(),
+          })
+        )
+      );
+
+      const savedCount = dirtyDrafts.length;
+      setDirtyIds(new Set());
+      setStatus(
+        savedCount === 1 ? "1 change saved." : `${savedCount} changes saved.`
+      );
     } catch (err) {
       console.error(err);
-      setStatus("Could not save invitation.");
+      setStatus("Could not save changes.");
     } finally {
-      setBusyId(null);
+      setSavingAll(false);
     }
   }
 
@@ -182,6 +248,11 @@ export default function InvitationListPage() {
 
     try {
       await deleteDoc(doc(db, "invitationList", id));
+      setDirtyIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
       setStatus("Invitation removed.");
     } catch (err) {
       console.error(err);
@@ -189,6 +260,17 @@ export default function InvitationListPage() {
     } finally {
       setBusyId(null);
     }
+  }
+
+  function goBackToDashboard() {
+    if (
+      dirtyCount &&
+      !window.confirm("You have unsaved invitation changes. Leave without saving?")
+    ) {
+      return;
+    }
+
+    router.push("/admin");
   }
 
   async function addInvitee(event: FormEvent<HTMLFormElement>) {
@@ -234,9 +316,34 @@ export default function InvitationListPage() {
               {invitees.length} people saved, {invitedCount} marked for next year.
             </p>
           </div>
-          <Link href="/admin" className="text-sm text-orange-700 underline">
+          <button
+            type="button"
+            onClick={goBackToDashboard}
+            className="text-left text-sm text-orange-700 underline"
+          >
             Back to Dashboard
-          </Link>
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border border-orange-200 bg-white/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="font-semibold text-orange-900">
+              {dirtyCount
+                ? `${dirtyCount} unsaved change${dirtyCount === 1 ? "" : "s"}`
+                : "All changes saved"}
+            </div>
+            <div className="text-sm text-orange-700/80">
+              Edit multiple people, then save everything at once.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={saveAllInvitees}
+            disabled={!authReady || !dirtyCount || savingAll}
+            className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
+          >
+            {savingAll ? "Saving Changes" : "Save Changes"}
+          </button>
         </div>
 
         {status && (
@@ -306,8 +413,14 @@ export default function InvitationListPage() {
             <tbody>
               {filteredInvitees.map((invitee) => {
                 const draft = drafts[invitee.id] ?? emptyDraft;
+                const isDirty = dirtyIds.has(invitee.id);
                 return (
-                  <tr key={invitee.id} className="border-t border-orange-100">
+                  <tr
+                    key={invitee.id}
+                    className={`border-t border-orange-100 ${
+                      isDirty ? "bg-amber-50/60" : ""
+                    }`}
+                  >
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
@@ -355,18 +468,15 @@ export default function InvitationListPage() {
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => saveInvitee(invitee.id)}
-                          disabled={busyId === invitee.id}
-                          className="rounded-lg bg-orange-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
-                        >
-                          {busyId === invitee.id ? "Saving" : "Save"}
-                        </button>
+                        {isDirty && (
+                          <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+                            Unsaved
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={() => removeInvitee(invitee.id)}
-                          disabled={busyId === invitee.id}
+                          disabled={busyId === invitee.id || savingAll}
                           className="rounded-lg border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-800 hover:bg-orange-50"
                         >
                           Remove
