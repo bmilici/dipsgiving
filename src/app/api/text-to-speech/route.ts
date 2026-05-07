@@ -100,15 +100,17 @@ export async function GET(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        input: { text: `Find the letter ${letter}` },
+        input: {
+          prompt: "Say this in a cheerful, clear voice for a young child learning letters.",
+          text: `Find the letter ${letter}`,
+        },
         voice: {
           languageCode: process.env.GOOGLE_TTS_LANGUAGE_CODE || "en-US",
-          name: process.env.GOOGLE_TTS_VOICE_NAME || "en-US-Standard-C",
+          name: process.env.GOOGLE_TTS_VOICE_NAME || "Aoede",
+          modelName: process.env.GOOGLE_TTS_MODEL_NAME || "gemini-2.5-flash-tts",
         },
         audioConfig: {
           audioEncoding: "MP3",
-          speakingRate: 0.9,
-          pitch: 2,
         },
       }),
     });
