@@ -280,7 +280,7 @@
     let resultStatus = "safe";
     let squishSection = 0;
     let biteSection = 2;
-    let spokenThisRound = false;
+    let voiceRequestId = 0;
     let audioContext = null;
     const ttsAudioCache = new Map();
 
@@ -357,12 +357,17 @@
     }
 
     function speakWithBrowserVoice() {
-      if (!("speechSynthesis" in window)) return;
+      if (!("speechSynthesis" in window)) return Promise.resolve();
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance("Find the letter " + targetLetter);
-      utterance.rate = 0.82;
-      utterance.pitch = 1.08;
-      window.speechSynthesis.speak(utterance);
+      return new Promise((resolve) => {
+        const utterance = new SpeechSynthesisUtterance("Find the letter " + targetLetter);
+        utterance.rate = 0.82;
+        utterance.pitch = 1.08;
+        utterance.onstart = resolve;
+        utterance.onerror = resolve;
+        window.speechSynthesis.speak(utterance);
+        setTimeout(resolve, 350);
+      });
     }
 
     async function getTextToSpeechAudioUrl(letter) {
@@ -381,10 +386,32 @@
       try {
         const audioUrl = await getTextToSpeechAudioUrl(targetLetter);
         const audio = new Audio(audioUrl);
-        await audio.play();
+        await new Promise((resolve, reject) => {
+          const fallbackTimer = setTimeout(resolve, 700);
+          audio.onplaying = resolve;
+          audio.onended = resolve;
+          audio.onerror = reject;
+          audio.play().catch(reject);
+          audio.addEventListener("playing", () => clearTimeout(fallbackTimer), { once: true });
+          audio.addEventListener("ended", () => clearTimeout(fallbackTimer), { once: true });
+        });
       } catch (error) {
-        speakWithBrowserVoice();
+        await speakWithBrowserVoice();
       }
+    }
+
+    async function prepareRoundVoice() {
+      const requestId = voiceRequestId + 1;
+      voiceRequestId = requestId;
+      gameState = "readying";
+      timer = roundSeconds;
+      lastTime = performance.now();
+      draw();
+      await sayTargetLetter();
+      if (voiceRequestId !== requestId || gameState !== "readying") return;
+      gameState = "playing";
+      timer = roundSeconds;
+      lastTime = performance.now();
     }
 
     function pickRound() {
@@ -402,7 +429,6 @@
       timer = roundSeconds;
       resultTimer = 0;
       resultStatus = "safe";
-      spokenThisRound = false;
       setRoachTarget(true);
 
       const wrongSections = [0, 1, 2].filter((index) => index !== correctSection);
@@ -422,7 +448,6 @@
       foundLetters = [];
       scoreEl.textContent = "0";
       pickRound();
-      gameState = "playing";
       startScreen.hidden = true;
       roundScreen.hidden = true;
       gameOverScreen.hidden = true;
@@ -430,6 +455,7 @@
       cancelAnimationFrame(animationId);
       animationId = requestAnimationFrame(gameLoop);
       playBeep(660, 0.08, "triangle");
+      prepareRoundVoice();
     }
 
     function showRoundResult(isCorrect) {
@@ -459,9 +485,9 @@
           }
           roundScreen.hidden = true;
           pickRound();
-          gameState = "playing";
           lastTime = performance.now();
           animationId = requestAnimationFrame(gameLoop);
+          prepareRoundVoice();
         }, remainingLetters.length ? 850 : 1100);
       } else {
         endGame(resultStatus);
@@ -470,6 +496,7 @@
 
     function endGame(status) {
       gameState = "over";
+      voiceRequestId += 1;
       finalScoreEl.textContent = score;
       if (status === "won") {
         gameOverMessage.textContent = "You found every letter.";
@@ -493,7 +520,7 @@
     }
 
     function moveSelection(direction) {
-      if (gameState !== "playing") return;
+      if (gameState !== "playing" && gameState !== "readying") return;
       if (selectedSection < 0) {
         selectedSection = direction < 0 ? 0 : 2;
         setRoachTarget(false);
@@ -506,7 +533,7 @@
     }
 
     function setSelection(index) {
-      if (gameState !== "playing") return;
+      if (gameState !== "playing" && gameState !== "readying") return;
       const nextSection = Math.max(0, Math.min(2, index));
       if (nextSection === selectedSection) return;
       selectedSection = nextSection;
@@ -522,17 +549,14 @@
 
     function update(delta) {
       if (gameState === "playing") {
-        if (!spokenThisRound) {
-          spokenThisRound = true;
-          sayTargetLetter();
-        }
-
         timer = Math.max(0, timer - delta);
         roachX += (roachTargetX - roachX) * Math.min(1, delta * 14);
 
         if (timer <= 0) {
           showRoundResult(selectedSection === correctSection);
         }
+      } else if (gameState === "readying") {
+        roachX += (roachTargetX - roachX) * Math.min(1, delta * 14);
       } else if (gameState === "result") {
         resultTimer += delta;
         roachX += (roachTargetX - roachX) * Math.min(1, delta * 10);
@@ -789,10 +813,10 @@
       const delta = Math.min((time - lastTime) / 1000, 0.033);
       lastTime = time;
 
-      if (gameState === "playing" || gameState === "result") {
+      if (gameState === "playing" || gameState === "readying" || gameState === "result") {
         update(delta);
         draw();
-        if (gameState === "playing" || gameState === "result") {
+        if (gameState === "playing" || gameState === "readying" || gameState === "result") {
           animationId = requestAnimationFrame(gameLoop);
         }
       }
@@ -807,7 +831,7 @@
         moveSelection(1);
         event.preventDefault();
       }
-      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing" && gameState !== "result") {
+      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing" && gameState !== "readying" && gameState !== "result") {
         startGame();
         event.preventDefault();
       }
