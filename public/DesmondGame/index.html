@@ -396,11 +396,19 @@
       return audioContext;
     }
 
+    function waitFor(milliseconds) {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    }
+
+    async function timebox(promise, milliseconds) {
+      return Promise.race([promise, waitFor(milliseconds)]);
+    }
+
     async function unlockAudioContext() {
       try {
         const context = getAudioContext();
         if (context.state === "suspended") {
-          await context.resume();
+          await timebox(context.resume(), 500);
         }
         const buffer = context.createBuffer(1, 1, 22050);
         const source = context.createBufferSource();
@@ -429,7 +437,7 @@
         const audio = getVoiceAudio();
         audio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
         audio.volume = 0;
-        await audio.play();
+        await timebox(audio.play(), 500);
         audio.pause();
         audio.currentTime = 0;
         audio.volume = 1;
@@ -498,10 +506,10 @@
         }
       });
 
-      await Promise.all(preloadQueue);
+      await timebox(Promise.all(preloadQueue), 12000);
       voicesPreloaded = true;
       loadingMessage.textContent = "Ready!";
-      await new Promise((resolve) => setTimeout(resolve, 250));
+      await waitFor(250);
       loadingScreen.hidden = true;
     }
 
@@ -557,7 +565,7 @@
     async function playAudioBuffer(audioBuffer) {
       const context = getAudioContext();
       if (context.state === "suspended") {
-        await context.resume();
+        await timebox(context.resume(), 500);
       }
 
       const source = context.createBufferSource();
@@ -616,11 +624,13 @@
       scoreEl.textContent = "0";
       startScreen.hidden = true;
       roundScreen.hidden = true;
-      loadingScreen.hidden = true;
+      loadingScreen.hidden = false;
+      loadingMessage.textContent = "Starting audio...";
+      updateLoadingProgress(0);
       gameOverScreen.hidden = true;
       gameState = "loading";
-      await unlockAudioContext();
-      await unlockVoiceAudio();
+      await timebox(unlockAudioContext(), 700);
+      await timebox(unlockVoiceAudio(), 700);
       await preloadAllVoices();
       if (gameState !== "loading") return;
       pickRound();
