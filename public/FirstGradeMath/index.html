@@ -38,6 +38,28 @@
       padding: 14px;
     }
 
+    .page:fullscreen {
+      width: 100%;
+      height: 100vh;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255, 212, 77, 0.24), transparent 20%),
+        radial-gradient(circle at 78% 22%, rgba(76, 201, 255, 0.18), transparent 22%),
+        linear-gradient(180deg, #101834 0%, #233c73 58%, #39617c 100%);
+    }
+
+    .page:fullscreen .game-wrap {
+      flex: 1;
+      min-height: 0;
+    }
+
+    .page:fullscreen canvas {
+      height: 100%;
+      min-height: 0;
+    }
+
     .topbar {
       display: flex;
       align-items: center;
@@ -295,7 +317,7 @@
   </style>
 </head>
 <body>
-  <main class="page">
+  <main id="gamePage" class="page">
     <div class="topbar">
       <a class="home-link" href="/games">Home</a>
       <div class="scoreboard" aria-live="polite">
@@ -353,6 +375,7 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    const gamePage = document.getElementById("gamePage");
     const scoreEl = document.getElementById("score");
     const shieldEl = document.getElementById("shield");
     const bestScoreEl = document.getElementById("bestScore");
@@ -401,6 +424,16 @@
       canvas.width = Math.floor(rect.width * pixelRatio);
       canvas.height = Math.floor(rect.height * pixelRatio);
       ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
+
+    function enterFullscreen() {
+      if (document.fullscreenElement || !gamePage.requestFullscreen) return;
+      gamePage.requestFullscreen().then(() => {
+        resizeCanvas();
+        draw();
+      }).catch(() => {
+        // Some browsers, especially on phones, do not allow fullscreen.
+      });
     }
 
     function width() {
@@ -597,6 +630,7 @@
     }
 
     function startGame() {
+      enterFullscreen();
       resizeCanvas();
       const selectedMode = modeInputs.find((input) => input.checked);
       mathMode = selectedMode ? selectedMode.value : "both";
@@ -608,6 +642,10 @@
       lastTime = performance.now();
       cancelAnimationFrame(animationId);
       animationId = requestAnimationFrame(gameLoop);
+      window.setTimeout(() => {
+        resizeCanvas();
+        draw();
+      }, 250);
     }
 
     function endGame() {
@@ -770,10 +808,22 @@
     }
 
     function crashShip() {
-      feedback = { text: "Crash!", color: "#ffb3b3", timer: 1 };
+      shield -= 1;
+      feedback = { text: "Meteor hit! " + Math.max(0, shield) + " left", color: "#ffb3b3", timer: 1.15 };
       spawnParticles(ship.x + ship.width * 0.72, ship.y + ship.height * 0.5, "#ff6b6b");
       playBeep(110, 0.22, "sawtooth");
-      endGame();
+
+      if (shield <= 0) {
+        updateHud();
+        endGame();
+        return;
+      }
+
+      ship.y = height() * 0.5 - ship.height * 0.5;
+      ship.velocityY = 0;
+      lasers = [];
+      round = makeQuestion();
+      updateHud();
     }
 
     function hasShipCollision(choice) {
