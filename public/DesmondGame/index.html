@@ -133,6 +133,26 @@
       gap: 12px;
     }
 
+    .loading-bar {
+      width: min(430px, 88%);
+      height: 20px;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .loading-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--gold);
+      transition: width 160ms ease;
+    }
+
+    .loading-count {
+      font-weight: 900;
+    }
+
     .big-button,
     .touch-button {
       min-width: 150px;
@@ -230,6 +250,15 @@
         <p id="roundMessage">You found the right letter.</p>
       </div>
 
+      <div id="loadingScreen" class="screen" hidden>
+        <h1>Getting Ready</h1>
+        <p id="loadingMessage">Loading letter voices...</p>
+        <div class="loading-bar" aria-hidden="true">
+          <div id="loadingFill" class="loading-fill"></div>
+        </div>
+        <p class="loading-count"><span id="loadingCount">0</span> / 26</p>
+      </div>
+
       <div id="gameOverScreen" class="screen" hidden>
         <h1>Game Over</h1>
         <p id="gameOverMessage">The roach picked the wrong section.</p>
@@ -252,9 +281,13 @@
     const finalScoreEl = document.getElementById("finalScore");
     const startScreen = document.getElementById("startScreen");
     const roundScreen = document.getElementById("roundScreen");
+    const loadingScreen = document.getElementById("loadingScreen");
     const gameOverScreen = document.getElementById("gameOverScreen");
     const roundTitle = document.getElementById("roundTitle");
     const roundMessage = document.getElementById("roundMessage");
+    const loadingMessage = document.getElementById("loadingMessage");
+    const loadingFill = document.getElementById("loadingFill");
+    const loadingCount = document.getElementById("loadingCount");
     const gameOverMessage = document.getElementById("gameOverMessage");
     const startButton = document.getElementById("startButton");
     const restartButton = document.getElementById("restartButton");
@@ -282,6 +315,7 @@
     let biteSection = 2;
     let voiceRequestId = 0;
     let audioContext = null;
+    let voicesPreloaded = false;
     const ttsAudioCache = new Map();
 
     bestScoreEl.textContent = bestScore;
@@ -382,6 +416,37 @@
       return audioUrl;
     }
 
+    function updateLoadingProgress(loadedCount) {
+      loadingCount.textContent = String(loadedCount);
+      loadingFill.style.width = (loadedCount / letters.length) * 100 + "%";
+    }
+
+    async function preloadAllVoices() {
+      if (voicesPreloaded) return;
+
+      loadingScreen.hidden = false;
+      loadingMessage.textContent = "Loading letter voices...";
+      updateLoadingProgress(0);
+
+      let loadedCount = 0;
+      const preloadQueue = letters.map(async (letter) => {
+        try {
+          await getTextToSpeechAudioUrl(letter);
+        } catch (error) {
+          // Failed letters still work through the browser voice fallback.
+        } finally {
+          loadedCount += 1;
+          updateLoadingProgress(loadedCount);
+        }
+      });
+
+      await Promise.all(preloadQueue);
+      voicesPreloaded = true;
+      loadingMessage.textContent = "Ready!";
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      loadingScreen.hidden = true;
+    }
+
     async function sayTargetLetter() {
       try {
         const audioUrl = await getTextToSpeechAudioUrl(targetLetter);
@@ -441,16 +506,20 @@
       }
     }
 
-    function startGame() {
+    async function startGame() {
       resizeCanvas();
       score = 0;
       remainingLetters = letters.slice().sort(() => Math.random() - 0.5);
       foundLetters = [];
       scoreEl.textContent = "0";
-      pickRound();
       startScreen.hidden = true;
       roundScreen.hidden = true;
+      loadingScreen.hidden = true;
       gameOverScreen.hidden = true;
+      gameState = "loading";
+      await preloadAllVoices();
+      if (gameState !== "loading") return;
+      pickRound();
       lastTime = performance.now();
       cancelAnimationFrame(animationId);
       animationId = requestAnimationFrame(gameLoop);
@@ -831,7 +900,7 @@
         moveSelection(1);
         event.preventDefault();
       }
-      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing" && gameState !== "readying" && gameState !== "result") {
+      if ((event.key === "Enter" || event.key === " ") && gameState !== "loading" && gameState !== "playing" && gameState !== "readying" && gameState !== "result") {
         startGame();
         event.preventDefault();
       }
