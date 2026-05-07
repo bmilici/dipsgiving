@@ -521,7 +521,11 @@
     }
 
     async function preloadAllVoices() {
-      if (voicesPreloaded) return;
+      if (voicesPreloaded) {
+        updateLoadingProgress(letters.length);
+        loadingScreen.hidden = true;
+        return;
+      }
 
       loadingScreen.hidden = false;
       loadingMessage.textContent = "Loading letter voices...";
@@ -723,9 +727,9 @@
       if (status === "won") {
         gameOverMessage.textContent = "You found every letter.";
       } else if (status === "squished") {
-        gameOverMessage.textContent = "Oh no, the foot landed on your section.";
+        gameOverMessage.textContent = "Oh no, you were squished!";
       } else {
-        gameOverMessage.textContent = "Oh no, the hungry lizard got your section.";
+        gameOverMessage.textContent = "Oh no, the hungry lizard got you!";
       }
       gameOverScreen.hidden = false;
 
