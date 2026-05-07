@@ -239,7 +239,7 @@
 
       <div id="startScreen" class="screen">
         <h1>DesmondGame: Letter Roach</h1>
-        <p>Listen for the letter, then tap or click the matching section before the 5 second timer runs out. Finish all 26 letters to win.</p>
+        <p>Listen, then tap or click the matching section before the timer runs out. Finish all 26 letters to win.</p>
         <div class="button-row">
           <button id="lettersButton" class="big-button" type="button">Letters</button>
           <button id="wordsButton" class="big-button" type="button">Word Starts</button>
@@ -271,7 +271,7 @@
       </div>
     </section>
 
-    <p class="hint">Controls: click or tap a letter section. Arrow keys or A/D work too.</p>
+    <p class="hint">Controls: click or tap a letter section.</p>
   </main>
 
   <script>
@@ -296,7 +296,8 @@
     const restartButton = document.getElementById("restartButton");
 
     const bestScoreKey = "desmondLetterRoachBestScore";
-    const roundSeconds = 5;
+    const letterRoundSeconds = 5;
+    const wordRoundSeconds = 10;
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     const startingWords = {
       A: ["apple", "ant", "alligator"],
@@ -331,7 +332,7 @@
     let lastTime = 0;
     let gameState = "start";
     let score = 0;
-    let timer = roundSeconds;
+    let timer = letterRoundSeconds;
     let gameMode = "letters";
     let targetLetter = "A";
     let targetWord = "";
@@ -683,13 +684,13 @@
       const requestId = voiceRequestId + 1;
       voiceRequestId = requestId;
       gameState = "readying";
-      timer = roundSeconds;
+      timer = getRoundSeconds();
       lastTime = performance.now();
       draw();
       await sayTargetLetter();
       if (voiceRequestId !== requestId || gameState !== "readying") return;
       gameState = "playing";
-      timer = roundSeconds;
+      timer = getRoundSeconds();
       lastTime = performance.now();
     }
 
@@ -706,7 +707,7 @@
         sectionLetters[i] = i === correctSection ? targetLetter : distractors.pop();
       }
       selectedSection = -1;
-      timer = roundSeconds;
+      timer = getRoundSeconds();
       resultTimer = 0;
       resultStatus = "safe";
       setRoachTarget(true);
@@ -724,6 +725,10 @@
     function getRandomWordForLetter(letter) {
       const words = startingWords[letter] || [letter.toLowerCase()];
       return words[Math.floor(Math.random() * words.length)];
+    }
+
+    function getRoundSeconds() {
+      return gameMode === "word-starts" ? wordRoundSeconds : letterRoundSeconds;
     }
 
     async function startGame(mode) {
@@ -821,26 +826,14 @@
       if (snap) roachX = roachTargetX;
     }
 
-    function moveSelection(direction) {
-      if (gameState !== "playing" && gameState !== "readying") return;
-      if (selectedSection < 0) {
-        selectedSection = direction < 0 ? 0 : 2;
-        setRoachTarget(false);
-        playBeep(420, 0.035, "square");
-        return;
-      }
-      selectedSection = Math.max(0, Math.min(2, selectedSection + direction));
-      setRoachTarget(false);
-      playBeep(420, 0.035, "square");
-    }
-
     function setSelection(index) {
-      if (gameState !== "playing" && gameState !== "readying") return;
+      if (gameState !== "playing") return;
       const nextSection = Math.max(0, Math.min(2, index));
       if (nextSection === selectedSection) return;
       selectedSection = nextSection;
       setRoachTarget(false);
       playBeep(420, 0.035, "square");
+      showRoundResult(selectedSection === correctSection);
     }
 
     function setSelectionFromClientX(clientX) {
@@ -951,8 +944,9 @@
       const timerX = panelX + 18;
       const timerY = panelY + 16;
       const timerW = panelW - 36;
+      const roundLength = getRoundSeconds();
       ctx.fillStyle = timer <= 1.5 ? "#f05b4f" : "#2f9b59";
-      ctx.fillRect(timerX, timerY, Math.max(0, timerW * (timer / roundSeconds)), 12);
+      ctx.fillRect(timerX, timerY, Math.max(0, timerW * (timer / roundLength)), 12);
       ctx.strokeStyle = "#173039";
       ctx.lineWidth = 3;
       ctx.strokeRect(timerX, timerY, timerW, 12);
@@ -1171,14 +1165,6 @@
     }
 
     document.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
-        moveSelection(-1);
-        event.preventDefault();
-      }
-      if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
-        moveSelection(1);
-        event.preventDefault();
-      }
       if ((event.key === "Enter" || event.key === " ") && gameState !== "loading" && gameState !== "playing" && gameState !== "readying" && gameState !== "result") {
         startGame(gameMode);
         event.preventDefault();
