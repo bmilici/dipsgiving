@@ -315,6 +315,7 @@
     let biteSection = 2;
     let voiceRequestId = 0;
     let audioContext = null;
+    let voiceAudio = null;
     let voicesPreloaded = false;
     const ttsAudioCache = new Map();
 
@@ -414,6 +415,29 @@
       }
     }
 
+    function getVoiceAudio() {
+      if (!voiceAudio) {
+        voiceAudio = new Audio();
+        voiceAudio.preload = "auto";
+        voiceAudio.playsInline = true;
+      }
+      return voiceAudio;
+    }
+
+    async function unlockVoiceAudio() {
+      try {
+        const audio = getVoiceAudio();
+        audio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
+        audio.volume = 0;
+        await audio.play();
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+      } catch (error) {
+        if (voiceAudio) voiceAudio.volume = 1;
+      }
+    }
+
     function speakWithBrowserVoice() {
       if (!("speechSynthesis" in window)) return Promise.resolve();
       window.speechSynthesis.cancel();
@@ -484,24 +508,50 @@
     async function sayTargetLetter() {
       try {
         const audioAsset = await getTextToSpeechAudio(targetLetter);
+        await playReusableVoiceAudio(audioAsset.url);
+        return;
+      } catch (error) {
+        // Some mobile browsers are picky about media elements after async work.
+      }
+
+      try {
+        const audioAsset = await getTextToSpeechAudio(targetLetter);
         if (audioAsset.buffer) {
           await playAudioBuffer(audioAsset.buffer);
           return;
         }
-
-        const audio = new Audio(audioAsset.url);
-        await new Promise((resolve, reject) => {
-          const fallbackTimer = setTimeout(resolve, 700);
-          audio.onplaying = resolve;
-          audio.onended = resolve;
-          audio.onerror = reject;
-          audio.play().catch(reject);
-          audio.addEventListener("playing", () => clearTimeout(fallbackTimer), { once: true });
-          audio.addEventListener("ended", () => clearTimeout(fallbackTimer), { once: true });
-        });
       } catch (error) {
         await speakWithBrowserVoice();
       }
+    }
+
+    async function playReusableVoiceAudio(audioUrl) {
+      const audio = getVoiceAudio();
+      audio.pause();
+      audio.currentTime = 0;
+
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Voice audio did not start")), 1400);
+        const cleanup = () => {
+          clearTimeout(timeout);
+          audio.removeEventListener("playing", handlePlaying);
+          audio.removeEventListener("error", handleError);
+        };
+        const handlePlaying = () => {
+          cleanup();
+          resolve();
+        };
+        const handleError = () => {
+          cleanup();
+          reject(new Error("Voice audio failed"));
+        };
+
+        audio.addEventListener("playing", handlePlaying);
+        audio.addEventListener("error", handleError);
+        audio.src = audioUrl;
+        audio.load();
+        audio.play().then(handlePlaying).catch(handleError);
+      });
     }
 
     async function playAudioBuffer(audioBuffer) {
@@ -570,6 +620,7 @@
       gameOverScreen.hidden = true;
       gameState = "loading";
       await unlockAudioContext();
+      await unlockVoiceAudio();
       await preloadAllVoices();
       if (gameState !== "loading") return;
       pickRound();
