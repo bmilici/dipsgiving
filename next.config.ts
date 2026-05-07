@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
         destination: "/Games/index.html",
       },
       {
+        source: "/FirstGradeMath",
+        destination: "/FirstGradeMath/index.html",
+      },
+      {
+        source: "/firstgrademath",
+        destination: "/FirstGradeMath/index.html",
+      },
+      {
         source: "/DesmondGame",
         destination: "/DesmondGame/index.html",
       },

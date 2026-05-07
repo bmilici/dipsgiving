@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1st Grade: Math Rocket Rescue</title>
+  <style>
+    :root {
+      --space: #101834;
+      --ink: #14223d;
+      --panel: #fff9e8;
+      --gold: #ffd44d;
+      --blue: #4cc9ff;
+      --green: #66df80;
+      --red: #ff6b6b;
+      --purple: #8f7cff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255, 212, 77, 0.24), transparent 20%),
+        radial-gradient(circle at 78% 22%, rgba(76, 201, 255, 0.18), transparent 22%),
+        linear-gradient(180deg, #101834 0%, #233c73 58%, #39617c 100%);
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .home-link,
+    .small-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #10213d;
+      font-weight: 900;
+      text-decoration: none;
+      background: var(--gold);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .small-button {
+      background: white;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: white;
+      font-weight: 900;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .game-wrap {
+      position: relative;
+      border: 4px solid rgba(255, 255, 255, 0.74);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--space);
+      box-shadow: 0 18px 44px rgba(4, 13, 34, 0.35);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: min(68vh, 620px);
+      min-height: 430px;
+      touch-action: none;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      color: white;
+      text-align: center;
+      background: rgba(12, 23, 51, 0.78);
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      line-height: 1;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .screen p {
+      max-width: 680px;
+      margin: 0;
+      font-size: clamp(1rem, 2.4vw, 1.35rem);
+      line-height: 1.45;
+    }
+
+    .button-row,
+    .flight-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .big-button,
+    .control-button {
+      min-width: 150px;
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: #10213d;
+      background: var(--gold);
+      font-size: 1.05rem;
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .flight-controls {
+      margin-top: 12px;
+    }
+
+    .control-button {
+      min-width: 110px;
+      color: white;
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.34), 0 5px 0 rgba(0, 0, 0, 0.16);
+      font-size: 1.25rem;
+    }
+
+    .fire-button {
+      background: #ff6b6b;
+    }
+
+    .big-button:active,
+    .home-link:active,
+    .small-button:active,
+    .control-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .hint {
+      margin: 12px 0 0;
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: center;
+      opacity: 0.92;
+    }
+
+    @media (max-width: 650px) {
+      .page {
+        padding: 8px;
+      }
+
+      .topbar {
+        align-items: stretch;
+      }
+
+      .scoreboard {
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      canvas {
+        height: 60vh;
+        min-height: 390px;
+      }
+
+      .control-button {
+        flex: 1 1 88px;
+        min-width: 88px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="home-link" href="/games">Home</a>
+      <div class="scoreboard" aria-live="polite">
+        <span>Stars: <strong id="score">0</strong></span>
+        <span>Shield: <strong id="shield">3/3</strong></span>
+        <span>Best: <strong id="bestScore">0</strong></span>
+      </div>
+    </div>
+
+    <section class="game-wrap" aria-label="1st Grade Math Rocket Rescue game">
+      <canvas id="gameCanvas"></canvas>
+
+      <div id="startScreen" class="screen">
+        <h1>Math Rocket Rescue</h1>
+        <p>Move the rocket up and down, line up with the right answer, and fire. Three wrong hits break the shield.</p>
+        <div class="button-row">
+          <button id="startButton" class="big-button" type="button">Start Game</button>
+        </div>
+      </div>
+
+      <div id="gameOverScreen" class="screen" hidden>
+        <h1>Mission Complete</h1>
+        <p>You rescued <strong id="finalScore">0</strong> stars.</p>
+        <div class="button-row">
+          <button id="restartButton" class="big-button" type="button">Play Again</button>
+          <a class="big-button" href="/games">Home</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="flight-controls" aria-label="Flight controls">
+      <button id="upButton" class="control-button" type="button" aria-label="Move spaceship up">Up</button>
+      <button id="fireButton" class="control-button fire-button" type="button" aria-label="Fire laser">Fire</button>
+      <button id="downButton" class="control-button" type="button" aria-label="Move spaceship down">Down</button>
+    </div>
+
+    <p class="hint">Controls: Arrow keys or W/S to move. Space, Enter, or Fire to shoot.</p>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const shieldEl = document.getElementById("shield");
+    const bestScoreEl = document.getElementById("bestScore");
+    const finalScoreEl = document.getElementById("finalScore");
+    const startScreen = document.getElementById("startScreen");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const upButton = document.getElementById("upButton");
+    const fireButton = document.getElementById("fireButton");
+    const downButton = document.getElementById("downButton");
+
+    const keys = { up: false, down: false };
+    const bestScoreKey = "firstGradeMathRocketBestScore";
+    const maxShield = 3;
+    let bestScore = Number(localStorage.getItem(bestScoreKey) || 0);
+    let animationId;
+    let lastTime = 0;
+    let gameState = "start";
+    let score = 0;
+    let shield = 3;
+    let round = null;
+    let feedback = { text: "", color: "#ffffff", timer: 0 };
+    let stars = [];
+    let lasers = [];
+    let particles = [];
+    let fireCooldown = 0;
+    let audioContext = null;
+
+    const ship = {
+      x: 78,
+      y: 210,
+      width: 122,
+      height: 70,
+      velocityY: 0
+    };
+
+    bestScoreEl.textContent = bestScore;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * pixelRatio);
+      canvas.height = Math.floor(rect.height * pixelRatio);
+      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
+
+    function width() {
+      return canvas.getBoundingClientRect().width;
+    }
+
+    function height() {
+      return canvas.getBoundingClientRect().height;
+    }
+
+    function playBeep(frequency, duration, type) {
+      try {
+        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = type || "sine";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (error) {
+        // Sound is optional.
+      }
+    }
+
+    function randomInt(min, max) {
+      return min + Math.floor(Math.random() * (max - min + 1));
+    }
+
+    function shuffle(items) {
+      for (let i = items.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = items[i];
+        items[i] = items[j];
+        items[j] = temp;
+      }
+      return items;
+    }
+
+    function getDifficulty() {
+      if (score < 5) return 1;
+      if (score < 11) return 2;
+      if (score < 18) return 3;
+      return 4;
+    }
+
+    function makeQuestion() {
+      const difficulty = getDifficulty();
+      const typesByDifficulty = {
+        1: ["add-small", "subtract-small"],
+        2: ["add", "subtract", "compare"],
+        3: ["add", "subtract", "missing", "compare"],
+        4: ["add-two-digit", "subtract-two-digit", "missing", "compare-big"]
+      };
+      const types = typesByDifficulty[difficulty];
+      const type = types[randomInt(0, types.length - 1)];
+      let prompt = "";
+      let answer = 0;
+
+      if (type === "add-small") {
+        const a = randomInt(1, 8);
+        const b = randomInt(1, Math.min(8, 10 - a));
+        prompt = a + " + " + b + " = ?";
+        answer = a + b;
+      }
+
+      if (type === "subtract-small") {
+        const a = randomInt(4, 10);
+        const b = randomInt(1, a);
+        prompt = a + " - " + b + " = ?";
+        answer = a - b;
+      }
+
+      if (type === "add") {
+        const a = randomInt(1, 10);
+        const b = randomInt(1, Math.min(10, 20 - a));
+        prompt = a + " + " + b + " = ?";
+        answer = a + b;
+      }
+
+      if (type === "subtract") {
+        const a = randomInt(6, 20);
+        const b = randomInt(1, Math.min(10, a));
+        prompt = a + " - " + b + " = ?";
+        answer = a - b;
+      }
+
+      if (type === "missing") {
+        const a = randomInt(2, 12);
+        answer = randomInt(1, Math.min(8, 20 - a));
+        prompt = a + " + ? = " + (a + answer);
+      }
+
+      if (type === "compare") {
+        const a = randomInt(1, 20);
+        let b = randomInt(1, 20);
+        while (b === a) b = randomInt(1, 20);
+        prompt = "Bigger: " + a + " or " + b + "?";
+        answer = Math.max(a, b);
+      }
+
+      if (type === "add-two-digit") {
+        const a = randomInt(10, 49);
+        const b = randomInt(10, Math.min(49, 99 - a));
+        prompt = a + " + " + b + " = ?";
+        answer = a + b;
+      }
+
+      if (type === "subtract-two-digit") {
+        const a = randomInt(25, 99);
+        const b = randomInt(10, Math.min(50, a));
+        prompt = a + " - " + b + " = ?";
+        answer = a - b;
+      }
+
+      if (type === "compare-big") {
+        const a = randomInt(20, 99);
+        let b = randomInt(20, 99);
+        while (b === a) b = randomInt(20, 99);
+        prompt = "Bigger: " + a + " or " + b + "?";
+        answer = Math.max(a, b);
+      }
+
+      const answers = [answer];
+      while (answers.length < 3) {
+        const range = difficulty === 4 ? 12 : 5;
+        const maxAnswer = difficulty === 4 ? 120 : 20;
+        const offset = randomInt(-range, range) || 2;
+        const choice = Math.max(0, Math.min(maxAnswer, answer + offset));
+        if (!answers.includes(choice)) answers.push(choice);
+      }
+
+      const lanes = [0.28, 0.5, 0.72];
+
+      return {
+        prompt,
+        answer,
+        difficulty,
+        choices: shuffle(answers).map((value, index) => ({
+          value,
+          x: width() + 150,
+          y: height() * lanes[index],
+          radius: 48,
+          wobble: Math.random() * Math.PI * 2,
+          correct: value === answer
+        }))
+      };
+    }
+
+    function resetGame() {
+      score = 0;
+      shield = maxShield;
+      feedback = { text: "", color: "#ffffff", timer: 0 };
+      stars = [];
+      lasers = [];
+      particles = [];
+      ship.y = height() * 0.5 - ship.height * 0.5;
+      ship.velocityY = 0;
+      fireCooldown = 0;
+
+      for (let i = 0; i < 46; i += 1) {
+        stars.push({
+          x: Math.random() * width(),
+          y: Math.random() * height(),
+          size: 1 + Math.random() * 2.4,
+          speed: 18 + Math.random() * 46
+        });
+      }
+
+      round = makeQuestion();
+      updateHud();
+    }
+
+    function startGame() {
+      resizeCanvas();
+      resetGame();
+      gameState = "playing";
+      startScreen.hidden = true;
+      gameOverScreen.hidden = true;
+      playBeep(660, 0.08, "triangle");
+      lastTime = performance.now();
+      cancelAnimationFrame(animationId);
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameState = "over";
+      finalScoreEl.textContent = score;
+      gameOverScreen.hidden = false;
+      playBeep(150, 0.22, "sawtooth");
+
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem(bestScoreKey, String(bestScore));
+        bestScoreEl.textContent = bestScore;
+      }
+    }
+
+    function updateHud() {
+      scoreEl.textContent = score;
+      shieldEl.textContent = shield + "/" + maxShield;
+    }
+
+    function spawnParticles(x, y, color) {
+      for (let i = 0; i < 18; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 80 + Math.random() * 190;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 2 + Math.random() * 4,
+          color,
+          life: 0.55
+        });
+      }
+    }
+
+    function fireLaser() {
+      if (gameState !== "playing" || fireCooldown > 0) return;
+      lasers.push({
+        x: ship.x + ship.width - 4,
+        y: ship.y + ship.height * 0.5,
+        width: 26,
+        height: 6,
+        speed: 620
+      });
+      fireCooldown = 0.28;
+      playBeep(760, 0.04, "square");
+    }
+
+    function hitAnswer(index) {
+      if (gameState !== "playing" || !round) return;
+      const choice = round.choices[index];
+      if (!choice) return;
+
+      if (choice.correct) {
+        score += 1;
+        feedback = { text: "Correct!", color: "#66df80", timer: 0.85 };
+        spawnParticles(choice.x, choice.y, "#ffd44d");
+        playBeep(880, 0.06, "sine");
+        round = makeQuestion();
+      } else {
+        shield -= 1;
+        feedback = { text: "Shield hit! " + Math.max(0, shield) + " left", color: "#ffb3b3", timer: 1.15 };
+        spawnParticles(choice.x, choice.y, "#ff6b6b");
+        playBeep(190, 0.12, "square");
+
+        if (shield <= 0) {
+          updateHud();
+          endGame();
+          return;
+        }
+
+        round = makeQuestion();
+      }
+
+      updateHud();
+    }
+
+    function update(delta) {
+      const w = width();
+      const movePower = 1150;
+      const drag = 0.9;
+      fireCooldown = Math.max(0, fireCooldown - delta);
+
+      if (keys.up) ship.velocityY -= movePower * delta;
+      if (keys.down) ship.velocityY += movePower * delta;
+      ship.velocityY *= drag;
+      ship.y += ship.velocityY * delta;
+      ship.y = Math.max(112, Math.min(height() - ship.height - 28, ship.y));
+
+      stars.forEach((star) => {
+        star.x -= star.speed * delta;
+        if (star.x < -8) {
+          star.x = w + 8;
+          star.y = Math.random() * height();
+        }
+      });
+
+      if (round) {
+        const speed = 68 + Math.min(score * 5, 95);
+        round.choices.forEach((choice) => {
+          choice.x -= speed * delta;
+          choice.wobble += delta * 2.4;
+          choice.y += Math.sin(choice.wobble) * delta * 8;
+        });
+
+        if (round.choices.every((choice) => choice.x < -70)) {
+          shield -= 1;
+          feedback = { text: "Answer was " + round.answer, color: "#ffb3b3", timer: 1 };
+          playBeep(170, 0.12, "square");
+          if (shield <= 0) {
+            updateHud();
+            endGame();
+            return;
+          }
+          round = makeQuestion();
+          updateHud();
+        }
+      }
+
+      lasers.forEach((laser) => {
+        laser.x += laser.speed * delta;
+      });
+
+      if (round) {
+        lasers.forEach((laser) => {
+          if (laser.hit) return;
+          const index = round.choices.findIndex((choice) => {
+            const closestX = Math.max(laser.x, Math.min(choice.x, laser.x + laser.width));
+            const closestY = Math.max(laser.y, Math.min(choice.y, laser.y + laser.height));
+            const dx = choice.x - closestX;
+            const dy = choice.y - closestY;
+            return Math.sqrt(dx * dx + dy * dy) <= choice.radius;
+          });
+
+          if (index >= 0) {
+            laser.hit = true;
+            hitAnswer(index);
+          }
+        });
+      }
+
+      lasers = lasers.filter((laser) => !laser.hit && laser.x < w + 40);
+
+      particles.forEach((particle) => {
+        particle.x += particle.vx * delta;
+        particle.y += particle.vy * delta;
+        particle.vy += 60 * delta;
+        particle.life -= delta;
+      });
+
+      particles = particles.filter((particle) => particle.life > 0);
+      feedback.timer = Math.max(0, feedback.timer - delta);
+    }
+
+    function drawBackground() {
+      const w = width();
+      const h = height();
+      const sky = ctx.createLinearGradient(0, 0, 0, h);
+      sky.addColorStop(0, "#101834");
+      sky.addColorStop(0.56, "#233f7d");
+      sky.addColorStop(1, "#2e738e");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h);
+
+      stars.forEach((star) => {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "rgba(255, 212, 77, 0.9)";
+      ctx.beginPath();
+      ctx.arc(w - 80, 72, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#5a79d8";
+      ctx.beginPath();
+      ctx.arc(w - 112, h - 4, 116, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = "#66df80";
+      ctx.beginPath();
+      ctx.arc(w - 150, h - 30, 24, 0, Math.PI * 2);
+      ctx.arc(w - 72, h - 42, 20, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawQuestion() {
+      if (!round) return;
+      const w = width();
+      ctx.fillStyle = "rgba(255, 249, 232, 0.96)";
+      ctx.strokeStyle = "rgba(255, 212, 77, 0.85)";
+      ctx.lineWidth = 4;
+      roundRect(w * 0.5 - 190, 18, 380, 76, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#14223d";
+      ctx.font = "900 34px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(round.prompt, w * 0.5, 56);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.font = "900 15px Arial";
+      ctx.fillText("Level " + round.difficulty, w * 0.5, 86);
+
+      if (feedback.timer > 0) {
+        ctx.fillStyle = feedback.color;
+        ctx.font = "900 26px Arial";
+        ctx.fillText(feedback.text, w * 0.5, 120);
+      }
+    }
+
+    function drawShieldMeter() {
+      ctx.save();
+      ctx.fillStyle = "rgba(16, 24, 52, 0.58)";
+      roundRect(16, 18, 132, 48, 8);
+      ctx.fill();
+      ctx.fillStyle = "white";
+      ctx.font = "900 14px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText("SHIELD", 28, 31);
+
+      for (let i = 0; i < maxShield; i += 1) {
+        ctx.fillStyle = i < shield ? "#4cc9ff" : "rgba(255, 255, 255, 0.22)";
+        roundRect(28 + i * 34, 44, 24, 12, 4);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawShip() {
+      const x = ship.x;
+      const y = ship.y;
+      const w = ship.width;
+      const h = ship.height;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(76, 201, 255, 0.55)";
+      ctx.shadowBlur = 16;
+
+      ctx.fillStyle = "#dfe7f3";
+      ctx.beginPath();
+      ctx.moveTo(x + w, y + h * 0.5);
+      ctx.lineTo(x + w * 0.36, y + h * 0.16);
+      ctx.lineTo(x + w * 0.08, y + h * 0.34);
+      ctx.lineTo(x + w * 0.22, y + h * 0.5);
+      ctx.lineTo(x + w * 0.08, y + h * 0.66);
+      ctx.lineTo(x + w * 0.36, y + h * 0.84);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#f8fbff";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.95, y + h * 0.5);
+      ctx.lineTo(x + w * 0.42, y + h * 0.34);
+      ctx.lineTo(x + w * 0.3, y + h * 0.5);
+      ctx.lineTo(x + w * 0.42, y + h * 0.66);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#9aa8bd";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.35, y + h * 0.2);
+      ctx.lineTo(x + w * 0.12, y - h * 0.05);
+      ctx.lineTo(x + w * 0.18, y + h * 0.34);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.35, y + h * 0.8);
+      ctx.lineTo(x + w * 0.12, y + h * 1.05);
+      ctx.lineTo(x + w * 0.18, y + h * 0.66);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#4cc9ff";
+      ctx.beginPath();
+      ctx.ellipse(x + w * 0.66, y + h * 0.5, w * 0.1, h * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.86)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#ffd44d";
+      ctx.beginPath();
+      ctx.moveTo(x + w * 0.08, y + h * 0.5);
+      ctx.lineTo(x - 42 - Math.random() * 6, y + h * 0.32);
+      ctx.lineTo(x - 18, y + h * 0.5);
+      ctx.lineTo(x - 42 - Math.random() * 6, y + h * 0.68);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawAsteroids() {
+      if (!round) return;
+      round.choices.forEach((choice, index) => {
+        ctx.save();
+        ctx.translate(choice.x, choice.y);
+        ctx.rotate(Math.sin(choice.wobble) * 0.08);
+
+        ctx.fillStyle = ["#7f8aa1", "#8c7a68", "#6d8295"][index];
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.34)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i += 1) {
+          const angle = (i / 10) * Math.PI * 2;
+          const radius = choice.radius * (0.8 + (i % 3) * 0.08);
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(39, 45, 58, 0.3)";
+        ctx.beginPath();
+        ctx.arc(-18, -14, 9, 0, Math.PI * 2);
+        ctx.arc(18, 10, 12, 0, Math.PI * 2);
+        ctx.arc(4, -28, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "white";
+        ctx.font = "900 34px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(choice.value, 0, 0);
+        ctx.restore();
+      });
+    }
+
+    function drawLasers() {
+      lasers.forEach((laser) => {
+        ctx.fillStyle = "#ffef7a";
+        roundRect(laser.x, laser.y - laser.height * 0.5, laser.width, laser.height, 4);
+        ctx.fill();
+        ctx.fillStyle = "rgba(255, 107, 107, 0.85)";
+        roundRect(laser.x - 8, laser.y - 2, 10, 4, 3);
+        ctx.fill();
+      });
+    }
+
+    function drawParticles() {
+      particles.forEach((particle) => {
+        ctx.globalAlpha = Math.max(0, particle.life / 0.55);
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function draw() {
+      drawBackground();
+      drawQuestion();
+      drawShieldMeter();
+      drawAsteroids();
+      drawLasers();
+      drawShip();
+      drawParticles();
+    }
+
+    function gameLoop(time) {
+      const delta = Math.min((time - lastTime) / 1000, 0.033);
+      lastTime = time;
+
+      if (gameState === "playing") {
+        update(delta);
+        draw();
+        animationId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      if (gameState === "playing") fireLaser();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+        keys.up = true;
+        event.preventDefault();
+      }
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+        keys.down = true;
+        event.preventDefault();
+      }
+      if ((event.key === " " || event.key === "Enter") && gameState === "playing") {
+        fireLaser();
+        event.preventDefault();
+      }
+      if ((event.key === "Enter" || event.key === " ") && gameState !== "playing") {
+        startGame();
+      }
+    });
+
+    document.addEventListener("keyup", (event) => {
+      if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") keys.up = false;
+      if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
+    });
+
+    function attachMoveButton(button, direction) {
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        keys[direction] = true;
+      });
+
+      button.addEventListener("pointerup", () => {
+        keys[direction] = false;
+      });
+      button.addEventListener("pointercancel", () => {
+        keys[direction] = false;
+      });
+      button.addEventListener("pointerleave", () => {
+        keys[direction] = false;
+      });
+    }
+
+    attachMoveButton(upButton, "up");
+    attachMoveButton(downButton, "down");
+    fireButton.addEventListener("click", fireLaser);
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", startGame);
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      if (gameState === "playing") resetGame();
+      draw();
+    });
+
+    resizeCanvas();
+    resetGame();
+    draw();
+  </script>
+</body>
+</html>

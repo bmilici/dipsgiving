@@ -135,6 +135,7 @@
     }
 
     .roach-preview::before,
+    .math-preview::before,
     .space-preview::before {
       content: "";
       position: absolute;
@@ -207,6 +208,53 @@
         radial-gradient(circle at 83% 14%, rgba(255, 255, 255, 0.52) 0 2px, transparent 3px),
         linear-gradient(180deg, #13244d 0%, #244f83 76%, #286c6a 77%, #14372d 100%);
     }
+
+    .math-preview {
+      background:
+        radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.6) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.52) 0 2px, transparent 3px),
+        radial-gradient(circle at 86% 24%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 78%, #5a79d8 0 74px, transparent 75px),
+        linear-gradient(180deg, #101834 0%, #24447d 72%, #2e738e 100%);
+    }
+
+    .question-bubble {
+      position: absolute;
+      left: 50%;
+      top: 24px;
+      z-index: 1;
+      width: 190px;
+      height: 70px;
+      transform: translateX(-50%);
+      border: 4px solid rgba(255, 212, 77, 0.9);
+      border-radius: 8px;
+      background: rgba(255, 249, 232, 0.94);
+      color: var(--ink);
+      font-size: 2rem;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .answer-rock {
+      position: absolute;
+      z-index: 1;
+      width: 84px;
+      height: 74px;
+      border-radius: 45% 55% 48% 52%;
+      background: #7f8aa1;
+      box-shadow: inset -10px -8px 0 rgba(0, 0, 0, 0.16);
+      color: white;
+      font-size: 2rem;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+    }
+
+    .answer-rock.one { right: 12%; top: 32%; }
+    .answer-rock.two { right: 28%; top: 52%; background: #8c7a68; }
+    .answer-rock.three { right: 7%; top: 65%; background: #6d8295; }
 
     .cloud {
       position: absolute;
@@ -295,8 +343,8 @@
       <a class="home-link" href="/">Home</a>
     </div>
 
-    <section class="section" aria-labelledby="vpk-title">
-      <h2 id="vpk-title" class="section-title">VPK</h2>
+    <section class="section" aria-labelledby="kindergarten-title">
+      <h2 id="kindergarten-title" class="section-title">Kindergarten</h2>
       <div class="game-grid">
         <a class="game-tile roach-preview" href="/desmondgame" aria-label="Open Letter Roach">
           <span class="letter-card left" data-letter="A"></span>
@@ -304,6 +352,20 @@
           <span class="letter-card right" data-letter="T"></span>
           <span class="roach" aria-hidden="true"></span>
           <span class="game-title">Letter Roach</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="first-grade-title">
+      <h2 id="first-grade-title" class="section-title">1st Grade</h2>
+      <div class="game-grid">
+        <a class="game-tile math-preview" href="/FirstGradeMath" aria-label="Open Math Rocket Rescue">
+          <span class="question-bubble">7 + 5 = ?</span>
+          <span class="ship" aria-hidden="true"></span>
+          <span class="answer-rock one">10</span>
+          <span class="answer-rock two">12</span>
+          <span class="answer-rock three">14</span>
+          <span class="game-title">Math Rocket Rescue</span>
         </a>
       </div>
     </section>
