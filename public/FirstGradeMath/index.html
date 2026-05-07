@@ -134,6 +134,41 @@
       gap: 12px;
     }
 
+    .mode-picker {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      width: min(520px, 100%);
+    }
+
+    .mode-picker input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mode-option {
+      display: grid;
+      place-items: center;
+      min-height: 54px;
+      border: 3px solid rgba(255, 255, 255, 0.44);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: white;
+      background: rgba(255, 255, 255, 0.16);
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .mode-picker input:checked + .mode-option {
+      border-color: var(--gold);
+      color: #10213d;
+      background: var(--gold);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.22);
+    }
+
     .big-button,
     .control-button {
       min-width: 150px;
@@ -152,11 +187,54 @@
     }
 
     .flight-controls {
+      display: grid;
+      grid-template-columns: 150px minmax(120px, 180px);
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
       margin-top: 12px;
     }
 
+    .joystick {
+      position: relative;
+      width: 132px;
+      height: 132px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.32), 0 8px 0 rgba(0, 0, 0, 0.16);
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .joystick::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4px;
+      height: 82%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .joystick-knob {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 56px;
+      height: 56px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+    }
+
     .control-button {
-      min-width: 110px;
+      width: 100%;
+      min-width: 120px;
       color: white;
       background: rgba(255, 255, 255, 0.2);
       box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.34), 0 5px 0 rgba(0, 0, 0, 0.16);
@@ -205,9 +283,13 @@
         min-height: 390px;
       }
 
-      .control-button {
-        flex: 1 1 88px;
-        min-width: 88px;
+      .flight-controls {
+        grid-template-columns: 132px minmax(110px, 1fr);
+        justify-content: stretch;
+      }
+
+      .mode-picker {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -229,6 +311,20 @@
       <div id="startScreen" class="screen">
         <h1>Math Rocket Rescue</h1>
         <p>Move the rocket up and down, line up with the right answer, and fire. Three wrong hits break the shield.</p>
+        <div class="mode-picker" aria-label="Choose math mode">
+          <label>
+            <input type="radio" name="mathMode" value="addition" />
+            <span class="mode-option">Addition</span>
+          </label>
+          <label>
+            <input type="radio" name="mathMode" value="subtraction" />
+            <span class="mode-option">Subtraction</span>
+          </label>
+          <label>
+            <input type="radio" name="mathMode" value="both" checked />
+            <span class="mode-option">Both</span>
+          </label>
+        </div>
         <div class="button-row">
           <button id="startButton" class="big-button" type="button">Start Game</button>
         </div>
@@ -245,12 +341,13 @@
     </section>
 
     <div class="flight-controls" aria-label="Flight controls">
-      <button id="upButton" class="control-button" type="button" aria-label="Move spaceship up">Up</button>
+      <div id="joystick" class="joystick" role="application" aria-label="Move spaceship up and down">
+        <span id="joystickKnob" class="joystick-knob" aria-hidden="true"></span>
+      </div>
       <button id="fireButton" class="control-button fire-button" type="button" aria-label="Fire laser">Fire</button>
-      <button id="downButton" class="control-button" type="button" aria-label="Move spaceship down">Down</button>
     </div>
 
-    <p class="hint">Controls: Arrow keys or W/S to move. Space, Enter, or Fire to shoot.</p>
+    <p class="hint">Controls: drag the joystick or use Arrow keys/W/S to move. Space, Enter, or Fire to shoot.</p>
   </main>
 
   <script>
@@ -264,11 +361,13 @@
     const gameOverScreen = document.getElementById("gameOverScreen");
     const startButton = document.getElementById("startButton");
     const restartButton = document.getElementById("restartButton");
-    const upButton = document.getElementById("upButton");
+    const joystick = document.getElementById("joystick");
+    const joystickKnob = document.getElementById("joystickKnob");
     const fireButton = document.getElementById("fireButton");
-    const downButton = document.getElementById("downButton");
+    const modeInputs = Array.from(document.querySelectorAll("input[name='mathMode']"));
 
     const keys = { up: false, down: false };
+    const joystickState = { active: false, value: 0 };
     const bestScoreKey = "firstGradeMathRocketBestScore";
     const maxShield = 3;
     let bestScore = Number(localStorage.getItem(bestScoreKey) || 0);
@@ -283,6 +382,7 @@
     let lasers = [];
     let particles = [];
     let fireCooldown = 0;
+    let mathMode = "both";
     let audioContext = null;
 
     const ship = {
@@ -352,13 +452,27 @@
 
     function makeQuestion() {
       const difficulty = getDifficulty();
-      const typesByDifficulty = {
-        1: ["add-small", "subtract-small"],
-        2: ["add", "subtract", "compare"],
-        3: ["add", "subtract", "missing", "compare"],
-        4: ["add-two-digit", "subtract-two-digit", "missing", "compare-big"]
+      const typeSets = {
+        addition: {
+          1: ["add-small"],
+          2: ["add"],
+          3: ["add", "add-missing"],
+          4: ["add-two-digit", "add-missing-big"]
+        },
+        subtraction: {
+          1: ["subtract-small"],
+          2: ["subtract"],
+          3: ["subtract", "subtract-missing"],
+          4: ["subtract-two-digit", "subtract-missing-big"]
+        },
+        both: {
+          1: ["add-small", "subtract-small"],
+          2: ["add", "subtract"],
+          3: ["add", "subtract", "add-missing", "subtract-missing"],
+          4: ["add-two-digit", "subtract-two-digit", "add-missing-big", "subtract-missing-big"]
+        }
       };
-      const types = typesByDifficulty[difficulty];
+      const types = typeSets[mathMode][difficulty];
       const type = types[randomInt(0, types.length - 1)];
       let prompt = "";
       let answer = 0;
@@ -391,18 +505,17 @@
         answer = a - b;
       }
 
-      if (type === "missing") {
+      if (type === "add-missing") {
         const a = randomInt(2, 12);
         answer = randomInt(1, Math.min(8, 20 - a));
         prompt = a + " + ? = " + (a + answer);
       }
 
-      if (type === "compare") {
-        const a = randomInt(1, 20);
-        let b = randomInt(1, 20);
-        while (b === a) b = randomInt(1, 20);
-        prompt = "Bigger: " + a + " or " + b + "?";
-        answer = Math.max(a, b);
+      if (type === "subtract-missing") {
+        const answerValue = randomInt(1, 10);
+        const missing = randomInt(1, 10);
+        prompt = (answerValue + missing) + " - ? = " + answerValue;
+        answer = missing;
       }
 
       if (type === "add-two-digit") {
@@ -419,12 +532,17 @@
         answer = a - b;
       }
 
-      if (type === "compare-big") {
-        const a = randomInt(20, 99);
-        let b = randomInt(20, 99);
-        while (b === a) b = randomInt(20, 99);
-        prompt = "Bigger: " + a + " or " + b + "?";
-        answer = Math.max(a, b);
+      if (type === "add-missing-big") {
+        const a = randomInt(10, 40);
+        answer = randomInt(10, Math.min(40, 99 - a));
+        prompt = a + " + ? = " + (a + answer);
+      }
+
+      if (type === "subtract-missing-big") {
+        const answerValue = randomInt(10, 49);
+        const missing = randomInt(10, 40);
+        prompt = (answerValue + missing) + " - ? = " + answerValue;
+        answer = missing;
       }
 
       const answers = [answer];
@@ -442,6 +560,7 @@
         prompt,
         answer,
         difficulty,
+        mode: mathMode,
         choices: shuffle(answers).map((value, index) => ({
           value,
           x: width() + 150,
@@ -479,6 +598,8 @@
 
     function startGame() {
       resizeCanvas();
+      const selectedMode = modeInputs.find((input) => input.checked);
+      mathMode = selectedMode ? selectedMode.value : "both";
       resetGame();
       gameState = "playing";
       startScreen.hidden = true;
@@ -573,6 +694,7 @@
 
       if (keys.up) ship.velocityY -= movePower * delta;
       if (keys.down) ship.velocityY += movePower * delta;
+      if (joystickState.value) ship.velocityY += joystickState.value * movePower * delta;
       ship.velocityY *= drag;
       ship.y += ship.velocityY * delta;
       ship.y = Math.max(112, Math.min(height() - ship.height - 28, ship.y));
@@ -604,6 +726,11 @@
           }
           round = makeQuestion();
           updateHud();
+        }
+
+        if (round.choices.some(hasShipCollision)) {
+          crashShip();
+          return;
         }
       }
 
@@ -640,6 +767,27 @@
 
       particles = particles.filter((particle) => particle.life > 0);
       feedback.timer = Math.max(0, feedback.timer - delta);
+    }
+
+    function crashShip() {
+      feedback = { text: "Crash!", color: "#ffb3b3", timer: 1 };
+      spawnParticles(ship.x + ship.width * 0.72, ship.y + ship.height * 0.5, "#ff6b6b");
+      playBeep(110, 0.22, "sawtooth");
+      endGame();
+    }
+
+    function hasShipCollision(choice) {
+      const shipBox = {
+        x: ship.x + 18,
+        y: ship.y + 12,
+        width: ship.width - 34,
+        height: ship.height - 24
+      };
+      const closestX = Math.max(shipBox.x, Math.min(choice.x, shipBox.x + shipBox.width));
+      const closestY = Math.max(shipBox.y, Math.min(choice.y, shipBox.y + shipBox.height));
+      const dx = choice.x - closestX;
+      const dy = choice.y - closestY;
+      return Math.sqrt(dx * dx + dy * dy) <= choice.radius * 0.86;
     }
 
     function drawBackground() {
@@ -911,26 +1059,36 @@
       if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
     });
 
-    function attachMoveButton(button, direction) {
-      button.addEventListener("pointerdown", (event) => {
-        event.preventDefault();
-        button.setPointerCapture(event.pointerId);
-        keys[direction] = true;
-      });
-
-      button.addEventListener("pointerup", () => {
-        keys[direction] = false;
-      });
-      button.addEventListener("pointercancel", () => {
-        keys[direction] = false;
-      });
-      button.addEventListener("pointerleave", () => {
-        keys[direction] = false;
-      });
+    function updateJoystick(event) {
+      const rect = joystick.getBoundingClientRect();
+      const centerY = rect.top + rect.height / 2;
+      const maxOffset = rect.height * 0.32;
+      const offset = Math.max(-maxOffset, Math.min(maxOffset, event.clientY - centerY));
+      joystickState.value = offset / maxOffset;
+      joystickKnob.style.transform = "translate(-50%, calc(-50% + " + offset + "px))";
     }
 
-    attachMoveButton(upButton, "up");
-    attachMoveButton(downButton, "down");
+    function resetJoystick() {
+      joystickState.active = false;
+      joystickState.value = 0;
+      joystickKnob.style.transform = "translate(-50%, -50%)";
+    }
+
+    joystick.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      joystickState.active = true;
+      joystick.setPointerCapture(event.pointerId);
+      updateJoystick(event);
+    });
+
+    joystick.addEventListener("pointermove", (event) => {
+      if (joystickState.active) updateJoystick(event);
+    });
+
+    joystick.addEventListener("pointerup", resetJoystick);
+    joystick.addEventListener("pointercancel", resetJoystick);
+    joystick.addEventListener("lostpointercapture", resetJoystick);
+
     fireButton.addEventListener("click", fireLaser);
 
     startButton.addEventListener("click", startGame);
