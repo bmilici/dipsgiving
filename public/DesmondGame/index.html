@@ -241,7 +241,8 @@
         <h1>DesmondGame: Letter Roach</h1>
         <p>Listen for the letter, then tap or click the matching section before the 5 second timer runs out. Finish all 26 letters to win.</p>
         <div class="button-row">
-          <button id="startButton" class="big-button" type="button">Start Game</button>
+          <button id="lettersButton" class="big-button" type="button">Letters</button>
+          <button id="wordsButton" class="big-button" type="button">Word Starts</button>
         </div>
       </div>
 
@@ -256,7 +257,7 @@
         <div class="loading-bar" aria-hidden="true">
           <div id="loadingFill" class="loading-fill"></div>
         </div>
-        <p class="loading-count"><span id="loadingCount">0</span> / 26</p>
+        <p class="loading-count"><span id="loadingCount">0</span> / <span id="loadingTotal">26</span></p>
       </div>
 
       <div id="gameOverScreen" class="screen" hidden>
@@ -288,20 +289,52 @@
     const loadingMessage = document.getElementById("loadingMessage");
     const loadingFill = document.getElementById("loadingFill");
     const loadingCount = document.getElementById("loadingCount");
+    const loadingTotal = document.getElementById("loadingTotal");
     const gameOverMessage = document.getElementById("gameOverMessage");
-    const startButton = document.getElementById("startButton");
+    const lettersButton = document.getElementById("lettersButton");
+    const wordsButton = document.getElementById("wordsButton");
     const restartButton = document.getElementById("restartButton");
 
     const bestScoreKey = "desmondLetterRoachBestScore";
     const roundSeconds = 5;
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const startingWords = {
+      A: ["apple", "ant", "alligator"],
+      B: ["ball", "banana", "bear"],
+      C: ["cat", "car", "cup"],
+      D: ["dog", "duck", "door"],
+      E: ["egg", "elephant", "elbow"],
+      F: ["fish", "frog", "fan"],
+      G: ["goat", "grapes", "gift"],
+      H: ["hat", "horse", "house"],
+      I: ["igloo", "insect", "inch"],
+      J: ["jam", "jelly", "jet"],
+      K: ["kite", "key", "king"],
+      L: ["lion", "leaf", "lamp"],
+      M: ["moon", "mouse", "milk"],
+      N: ["nest", "nose", "net"],
+      O: ["octopus", "orange", "otter"],
+      P: ["pig", "pizza", "pencil"],
+      Q: ["queen", "quilt", "quarter"],
+      R: ["rainbow", "rabbit", "ring"],
+      S: ["sun", "sock", "star"],
+      T: ["turtle", "tiger", "table"],
+      U: ["umbrella", "unicorn", "up"],
+      V: ["van", "vase", "vest"],
+      W: ["wagon", "water", "window"],
+      X: ["x-ray", "xylophone", "xenops"],
+      Y: ["yo-yo", "yarn", "yak"],
+      Z: ["zebra", "zipper", "zoo"]
+    };
     let bestScore = Number(localStorage.getItem(bestScoreKey) || 0);
     let animationId;
     let lastTime = 0;
     let gameState = "start";
     let score = 0;
     let timer = roundSeconds;
+    let gameMode = "letters";
     let targetLetter = "A";
+    let targetWord = "";
     let sectionLetters = ["A", "B", "C"];
     let correctSection = 0;
     let selectedSection = -1;
@@ -316,7 +349,7 @@
     let voiceRequestId = 0;
     let audioContext = null;
     let voiceAudio = null;
-    let voicesPreloaded = false;
+    const voicesPreloadedByMode = { letters: false, "word-starts": false };
     const ttsAudioCache = new Map();
 
     bestScoreEl.textContent = bestScore;
@@ -483,7 +516,7 @@
       if (!("speechSynthesis" in window)) return Promise.resolve();
       window.speechSynthesis.cancel();
       return new Promise((resolve) => {
-        const utterance = new SpeechSynthesisUtterance("Find the letter " + targetLetter);
+        const utterance = new SpeechSynthesisUtterance(getPromptText());
         utterance.rate = 0.82;
         utterance.pitch = 1.08;
         utterance.onstart = resolve;
@@ -493,10 +526,23 @@
       });
     }
 
-    async function getTextToSpeechAudio(letter) {
-      if (ttsAudioCache.has(letter)) return ttsAudioCache.get(letter);
+    function getPromptText() {
+      return gameMode === "word-starts"
+        ? "What letter does " + targetWord + " start with?"
+        : "Find the letter " + targetLetter;
+    }
 
-      const response = await fetch("/api/text-to-speech?letter=" + encodeURIComponent(letter));
+    function getAudioCacheKey(letter, word) {
+      return word ? letter + ":" + word : letter;
+    }
+
+    async function getTextToSpeechAudio(letter, word) {
+      const cacheKey = getAudioCacheKey(letter, word);
+      if (ttsAudioCache.has(cacheKey)) return ttsAudioCache.get(cacheKey);
+
+      const query = new URLSearchParams({ letter });
+      if (word) query.set("word", word);
+      const response = await fetch("/api/text-to-speech?" + query.toString());
       if (!response.ok) throw new Error("Text-to-speech request failed");
 
       const audioData = await response.arrayBuffer();
@@ -511,40 +557,61 @@
       }
 
       const audioAsset = { url: audioUrl, buffer: audioBuffer };
-      ttsAudioCache.set(letter, audioAsset);
+      ttsAudioCache.set(cacheKey, audioAsset);
       return audioAsset;
     }
 
-    function updateLoadingProgress(loadedCount) {
+    function getPreloadItems() {
+      if (gameMode !== "word-starts") {
+        return letters.map((letter) => ({ letter, word: "" }));
+      }
+
+      return letters.flatMap((letter) => {
+        const words = startingWords[letter] || [letter.toLowerCase()];
+        return words.map((word) => ({ letter, word }));
+      });
+    }
+
+    function updateLoadingProgress(loadedCount, totalCount) {
       loadingCount.textContent = String(loadedCount);
-      loadingFill.style.width = (loadedCount / letters.length) * 100 + "%";
+      loadingTotal.textContent = String(totalCount);
+      loadingFill.style.width = (loadedCount / totalCount) * 100 + "%";
     }
 
     async function preloadAllVoices() {
-      if (voicesPreloaded) {
-        updateLoadingProgress(letters.length);
+      const preloadItems = getPreloadItems();
+      if (voicesPreloadedByMode[gameMode]) {
+        updateLoadingProgress(preloadItems.length, preloadItems.length);
         loadingScreen.hidden = true;
         return;
       }
 
       loadingScreen.hidden = false;
-      loadingMessage.textContent = "Loading letter voices...";
-      updateLoadingProgress(0);
+      loadingMessage.textContent = gameMode === "word-starts"
+        ? "Loading word voices..."
+        : "Loading letter voices...";
+      updateLoadingProgress(0, preloadItems.length);
 
       let loadedCount = 0;
-      const preloadQueue = letters.map(async (letter) => {
-        try {
-          await getTextToSpeechAudio(letter);
-        } catch (error) {
-          // Failed letters still work through the browser voice fallback.
-        } finally {
-          loadedCount += 1;
-          updateLoadingProgress(loadedCount);
+      let nextItem = 0;
+      const workerCount = Math.min(6, preloadItems.length);
+      const preloadQueue = Array.from({ length: workerCount }, async () => {
+        while (nextItem < preloadItems.length) {
+          const item = preloadItems[nextItem];
+          nextItem += 1;
+          try {
+            await getTextToSpeechAudio(item.letter, item.word);
+          } catch (error) {
+            // Failed prompts still work through the browser voice fallback.
+          } finally {
+            loadedCount += 1;
+            updateLoadingProgress(loadedCount, preloadItems.length);
+          }
         }
       });
 
-      await timebox(Promise.all(preloadQueue), 12000);
-      voicesPreloaded = true;
+      await timebox(Promise.all(preloadQueue), 45000);
+      voicesPreloadedByMode[gameMode] = true;
       loadingMessage.textContent = "Ready!";
       await waitFor(250);
       loadingScreen.hidden = true;
@@ -552,7 +619,7 @@
 
     async function sayTargetLetter() {
       try {
-        const audioAsset = await getTextToSpeechAudio(targetLetter);
+        const audioAsset = await getTextToSpeechAudio(targetLetter, targetWord);
         await playReusableVoiceAudio(audioAsset.url);
         return;
       } catch (error) {
@@ -560,7 +627,7 @@
       }
 
       try {
-        const audioAsset = await getTextToSpeechAudio(targetLetter);
+        const audioAsset = await getTextToSpeechAudio(targetLetter, targetWord);
         if (audioAsset.buffer) {
           await playAudioBuffer(audioAsset.buffer);
           return;
@@ -628,6 +695,7 @@
 
     function pickRound() {
       targetLetter = remainingLetters[0];
+      targetWord = gameMode === "word-starts" ? getRandomWordForLetter(targetLetter) : "";
       correctSection = Math.floor(Math.random() * 3);
       const distractors = letters
         .filter((letter) => letter !== targetLetter)
@@ -653,8 +721,14 @@
       }
     }
 
-    async function startGame() {
+    function getRandomWordForLetter(letter) {
+      const words = startingWords[letter] || [letter.toLowerCase()];
+      return words[Math.floor(Math.random() * words.length)];
+    }
+
+    async function startGame(mode) {
       resizeCanvas();
+      gameMode = mode || gameMode || "letters";
       score = 0;
       remainingLetters = letters.slice().sort(() => Math.random() - 0.5);
       foundLetters = [];
@@ -663,7 +737,7 @@
       roundScreen.hidden = true;
       loadingScreen.hidden = false;
       loadingMessage.textContent = "Starting audio...";
-      updateLoadingProgress(0);
+      updateLoadingProgress(0, getPreloadItems().length);
       gameOverScreen.hidden = true;
       gameState = "loading";
       await timebox(unlockAudioContext(), 700);
@@ -700,7 +774,9 @@
         scoreEl.textContent = score;
         roundTitle.textContent = remainingLetters.length ? "Nice!" : "You Win!";
         roundMessage.textContent = remainingLetters.length
-          ? "You found " + targetLetter + ". Next letter coming up."
+          ? (gameMode === "word-starts"
+              ? targetWord + " starts with " + targetLetter + ". Next one coming up."
+              : "You found " + targetLetter + ". Next letter coming up.")
           : "You found all 26 letters.";
         roundScreen.hidden = false;
         setTimeout(() => {
@@ -1078,6 +1154,9 @@
       drawResultEffects();
     }
 
+    lettersButton.addEventListener("click", () => startGame("letters"));
+    wordsButton.addEventListener("click", () => startGame("word-starts"));
+
     function gameLoop(time) {
       const delta = Math.min((time - lastTime) / 1000, 0.033);
       lastTime = time;
@@ -1110,7 +1189,6 @@
       event.preventDefault();
       setSelectionFromClientX(event.clientX);
     });
-    startButton.addEventListener("click", startGame);
     restartButton.addEventListener("click", startGame);
     window.addEventListener("resize", resizeCanvas);
 

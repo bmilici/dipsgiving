@@ -87,9 +87,15 @@ async function getAccessToken() {
 
 export async function GET(request: NextRequest) {
   const letter = (request.nextUrl.searchParams.get("letter") || "").trim().toUpperCase();
+  const word = (request.nextUrl.searchParams.get("word") || "").trim().toLowerCase();
   if (!/^[A-Z]$/.test(letter)) {
     return Response.json({ error: "A single A-Z letter is required." }, { status: 400 });
   }
+  if (word && !/^[a-z][a-z -]{0,24}$/.test(word)) {
+    return Response.json({ error: "Word must be a simple alphabetic word." }, { status: 400 });
+  }
+
+  const text = word ? `What letter does ${word} start with?` : `Find the letter ${letter}`;
 
   try {
     const accessToken = await getAccessToken();
@@ -102,7 +108,7 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         input: {
           prompt: "Say this in a cheerful, clear voice for a young child learning letters.",
-          text: `Find the letter ${letter}`,
+          text,
         },
         voice: {
           languageCode: process.env.GOOGLE_TTS_LANGUAGE_CODE || "en-US",
