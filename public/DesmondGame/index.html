@@ -247,7 +247,7 @@
       <button id="rightButton" class="touch-button" type="button" aria-label="Move cockroach right">Right</button>
     </div>
 
-    <p class="hint">Controls: Arrow keys, A/D, or the touch buttons.</p>
+    <p class="hint">Controls: click or tap a section, Arrow keys, A/D, or the touch buttons.</p>
   </main>
 
   <script>
@@ -448,6 +448,21 @@
       selectedSection = Math.max(0, Math.min(2, selectedSection + direction));
       setRoachTarget(false);
       playBeep(420, 0.035, "square");
+    }
+
+    function setSelection(index) {
+      if (gameState !== "playing") return;
+      const nextSection = Math.max(0, Math.min(2, index));
+      if (nextSection === selectedSection) return;
+      selectedSection = nextSection;
+      setRoachTarget(false);
+      playBeep(420, 0.035, "square");
+    }
+
+    function setSelectionFromClientX(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      setSelection(Math.floor(x / (rect.width / 3)));
     }
 
     function update(delta) {
@@ -727,6 +742,10 @@
 
     leftButton.addEventListener("click", () => moveSelection(-1));
     rightButton.addEventListener("click", () => moveSelection(1));
+    canvas.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      setSelectionFromClientX(event.clientX);
+    });
     startButton.addEventListener("click", startGame);
     restartButton.addEventListener("click", startGame);
     window.addEventListener("resize", resizeCanvas);
