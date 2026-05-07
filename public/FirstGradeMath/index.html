@@ -97,6 +97,7 @@
     .screen {
       position: absolute;
       inset: 0;
+      z-index: 5;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -126,8 +127,7 @@
       line-height: 1.45;
     }
 
-    .button-row,
-    .flight-controls {
+    .button-row {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -186,17 +186,11 @@
       touch-action: manipulation;
     }
 
-    .flight-controls {
-      display: grid;
-      grid-template-columns: 150px minmax(120px, 180px);
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-      margin-top: 12px;
-    }
-
     .joystick {
-      position: relative;
+      position: absolute;
+      left: 84px;
+      top: 50%;
+      z-index: 4;
       width: 132px;
       height: 132px;
       border: 0;
@@ -205,6 +199,15 @@
       box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.32), 0 8px 0 rgba(0, 0, 0, 0.16);
       cursor: pointer;
       touch-action: none;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 120ms ease;
+    }
+
+    .joystick.is-active {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .joystick::before {
@@ -233,7 +236,6 @@
     }
 
     .control-button {
-      width: 100%;
       min-width: 120px;
       color: white;
       background: rgba(255, 255, 255, 0.2);
@@ -242,6 +244,13 @@
     }
 
     .fire-button {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 4;
+      width: 108px;
+      min-width: 108px;
+      min-height: 68px;
       background: #ff6b6b;
     }
 
@@ -283,13 +292,15 @@
         min-height: 430px;
       }
 
-      .flight-controls {
-        grid-template-columns: 132px minmax(110px, 1fr);
-        justify-content: stretch;
-      }
-
       .mode-picker {
         grid-template-columns: 1fr;
+      }
+
+      .fire-button {
+        right: 12px;
+        bottom: 12px;
+        width: 96px;
+        min-width: 96px;
       }
     }
   </style>
@@ -307,6 +318,10 @@
 
     <section class="game-wrap" aria-label="1st Grade Math Rocket Rescue game">
       <canvas id="gameCanvas"></canvas>
+      <div id="joystick" class="joystick" role="application" aria-label="Move spaceship up and down">
+        <span id="joystickKnob" class="joystick-knob" aria-hidden="true"></span>
+      </div>
+      <button id="fireButton" class="control-button fire-button" type="button" aria-label="Fire laser">Fire</button>
 
       <div id="startScreen" class="screen">
         <h1>Math Rocket Rescue</h1>
@@ -339,13 +354,6 @@
         </div>
       </div>
     </section>
-
-    <div class="flight-controls" aria-label="Flight controls">
-      <div id="joystick" class="joystick" role="application" aria-label="Move spaceship up and down">
-        <span id="joystickKnob" class="joystick-knob" aria-hidden="true"></span>
-      </div>
-      <button id="fireButton" class="control-button fire-button" type="button" aria-label="Fire laser">Fire</button>
-    </div>
 
     <p class="hint">Controls: drag the joystick or use Arrow keys/W/S to move. Space, Enter, or Fire to shoot.</p>
   </main>
@@ -1052,10 +1060,6 @@
       }
     }
 
-    canvas.addEventListener("pointerdown", (event) => {
-      if (gameState === "playing") fireLaser();
-    });
-
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
         keys.up = true;
@@ -1079,6 +1083,15 @@
       if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
     });
 
+    function positionJoystick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const radius = joystick.offsetWidth / 2;
+      const x = Math.max(radius + 8, Math.min(rect.width * 0.45, event.clientX - rect.left));
+      const y = Math.max(radius + 8, Math.min(rect.height - radius - 8, event.clientY - rect.top));
+      joystick.style.left = x + "px";
+      joystick.style.top = y + "px";
+    }
+
     function updateJoystick(event) {
       const rect = joystick.getBoundingClientRect();
       const centerY = rect.top + rect.height / 2;
@@ -1088,26 +1101,36 @@
       joystickKnob.style.transform = "translate(-50%, calc(-50% + " + offset + "px))";
     }
 
+    function startJoystick(event) {
+      if (gameState !== "playing") return;
+      event.preventDefault();
+      joystickState.active = true;
+      joystick.classList.add("is-active");
+      positionJoystick(event);
+      updateJoystick(event);
+    }
+
     function resetJoystick() {
       joystickState.active = false;
       joystickState.value = 0;
+      joystick.classList.remove("is-active");
       joystickKnob.style.transform = "translate(-50%, -50%)";
     }
 
-    joystick.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      joystickState.active = true;
-      joystick.setPointerCapture(event.pointerId);
-      updateJoystick(event);
+    canvas.addEventListener("pointerdown", (event) => {
+      if (gameState !== "playing") return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      if (x < rect.width * 0.55) startJoystick(event);
+      else fireLaser();
     });
 
-    joystick.addEventListener("pointermove", (event) => {
+    document.addEventListener("pointermove", (event) => {
       if (joystickState.active) updateJoystick(event);
     });
 
-    joystick.addEventListener("pointerup", resetJoystick);
-    joystick.addEventListener("pointercancel", resetJoystick);
-    joystick.addEventListener("lostpointercapture", resetJoystick);
+    document.addEventListener("pointerup", resetJoystick);
+    document.addEventListener("pointercancel", resetJoystick);
 
     fireButton.addEventListener("click", fireLaser);
 
@@ -1116,7 +1139,12 @@
 
     window.addEventListener("resize", () => {
       resizeCanvas();
-      if (gameState === "playing") resetGame();
+      ship.y = Math.max(112, Math.min(height() - ship.height - 28, ship.y));
+      if (round) {
+        round.choices.forEach((choice) => {
+          choice.y = Math.max(112, Math.min(height() - 72, choice.y));
+        });
+      }
       draw();
     });
 
