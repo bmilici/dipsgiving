@@ -374,7 +374,7 @@
 
     function playBeep(frequency, duration, type) {
       try {
-        audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+        audioContext = getAudioContext();
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
         oscillator.type = type || "square";
@@ -387,6 +387,30 @@
         oscillator.stop(audioContext.currentTime + duration);
       } catch (error) {
         // Sound is optional; the game still plays if the browser blocks it.
+      }
+    }
+
+    function getAudioContext() {
+      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      return audioContext;
+    }
+
+    async function unlockAudioContext() {
+      try {
+        const context = getAudioContext();
+        if (context.state === "suspended") {
+          await context.resume();
+        }
+        const buffer = context.createBuffer(1, 1, 22050);
+        const source = context.createBufferSource();
+        const gain = context.createGain();
+        gain.gain.value = 0;
+        source.buffer = buffer;
+        source.connect(gain);
+        gain.connect(context.destination);
+        source.start(0);
+      } catch (error) {
+        // The browser voice fallback still works if Web Audio is unavailable.
       }
     }
 
@@ -404,16 +428,26 @@
       });
     }
 
-    async function getTextToSpeechAudioUrl(letter) {
+    async function getTextToSpeechAudio(letter) {
       if (ttsAudioCache.has(letter)) return ttsAudioCache.get(letter);
 
       const response = await fetch("/api/text-to-speech?letter=" + encodeURIComponent(letter));
       if (!response.ok) throw new Error("Text-to-speech request failed");
 
-      const audioBlob = await response.blob();
+      const audioData = await response.arrayBuffer();
+      const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
       const audioUrl = URL.createObjectURL(audioBlob);
-      ttsAudioCache.set(letter, audioUrl);
-      return audioUrl;
+      let audioBuffer = null;
+
+      try {
+        audioBuffer = await getAudioContext().decodeAudioData(audioData.slice(0));
+      } catch (error) {
+        // If decoding fails, the HTML audio fallback can still play the MP3 URL.
+      }
+
+      const audioAsset = { url: audioUrl, buffer: audioBuffer };
+      ttsAudioCache.set(letter, audioAsset);
+      return audioAsset;
     }
 
     function updateLoadingProgress(loadedCount) {
@@ -431,7 +465,7 @@
       let loadedCount = 0;
       const preloadQueue = letters.map(async (letter) => {
         try {
-          await getTextToSpeechAudioUrl(letter);
+          await getTextToSpeechAudio(letter);
         } catch (error) {
           // Failed letters still work through the browser voice fallback.
         } finally {
@@ -449,8 +483,13 @@
 
     async function sayTargetLetter() {
       try {
-        const audioUrl = await getTextToSpeechAudioUrl(targetLetter);
-        const audio = new Audio(audioUrl);
+        const audioAsset = await getTextToSpeechAudio(targetLetter);
+        if (audioAsset.buffer) {
+          await playAudioBuffer(audioAsset.buffer);
+          return;
+        }
+
+        const audio = new Audio(audioAsset.url);
         await new Promise((resolve, reject) => {
           const fallbackTimer = setTimeout(resolve, 700);
           audio.onplaying = resolve;
@@ -463,6 +502,19 @@
       } catch (error) {
         await speakWithBrowserVoice();
       }
+    }
+
+    async function playAudioBuffer(audioBuffer) {
+      const context = getAudioContext();
+      if (context.state === "suspended") {
+        await context.resume();
+      }
+
+      const source = context.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(context.destination);
+      source.start(0);
+      await new Promise((resolve) => setTimeout(resolve, 40));
     }
 
     async function prepareRoundVoice() {
@@ -517,6 +569,7 @@
       loadingScreen.hidden = true;
       gameOverScreen.hidden = true;
       gameState = "loading";
+      await unlockAudioContext();
       await preloadAllVoices();
       if (gameState !== "loading") return;
       pickRound();
