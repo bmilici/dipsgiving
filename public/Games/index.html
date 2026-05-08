@@ -136,7 +136,8 @@
 
     .roach-preview::before,
     .math-preview::before,
-    .space-preview::before {
+    .space-preview::before,
+    .titanic-preview::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -216,6 +217,12 @@
         radial-gradient(circle at 86% 24%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
         radial-gradient(circle at 80% 78%, #5a79d8 0 74px, transparent 75px),
         linear-gradient(180deg, #101834 0%, #24447d 72%, #2e738e 100%);
+    }
+
+    .titanic-preview {
+      background:
+        linear-gradient(180deg, rgba(8, 25, 31, 0.02) 0%, rgba(8, 25, 31, 0.22) 52%, rgba(8, 25, 31, 0.54) 100%),
+        url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
     }
 
     .question-bubble {
@@ -352,6 +359,9 @@
           <span class="letter-card right" data-letter="T"></span>
           <span class="roach" aria-hidden="true"></span>
           <span class="game-title">Letter Roach</span>
+        </a>
+        <a class="game-tile titanic-preview" href="/TitanicAdventureAcademy" aria-label="Open Titanic Adventure">
+          <span class="game-title">Titanic Adventure</span>
         </a>
       </div>
     </section>

@@ -296,7 +296,7 @@
     const restartButton = document.getElementById("restartButton");
 
     const bestScoreKey = "desmondLetterRoachBestScore";
-    const letterRoundSeconds = 5;
+    const letterRoundSeconds = 10;
     const wordRoundSeconds = 10;
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     const startingWords = {
@@ -352,6 +352,7 @@
     let voiceAudio = null;
     const voicesPreloadedByMode = { letters: false, "word-starts": false };
     const ttsAudioCache = new Map();
+    const ttsAudioPromises = new Map();
 
     bestScoreEl.textContent = bestScore;
 
@@ -540,30 +541,42 @@
     async function getTextToSpeechAudio(letter, word) {
       const cacheKey = getAudioCacheKey(letter, word);
       if (ttsAudioCache.has(cacheKey)) return ttsAudioCache.get(cacheKey);
+      if (ttsAudioPromises.has(cacheKey)) return ttsAudioPromises.get(cacheKey);
 
-      const query = new URLSearchParams({ letter });
-      if (word) query.set("word", word);
-      const response = await fetch("/api/text-to-speech?" + query.toString());
-      if (!response.ok) throw new Error("Text-to-speech request failed");
+      const audioPromise = (async () => {
+        const query = new URLSearchParams({ letter });
+        if (word) query.set("word", word);
+        const response = await fetch("/api/text-to-speech?" + query.toString());
+        if (!response.ok) throw new Error("Text-to-speech request failed");
 
-      const audioData = await response.arrayBuffer();
-      const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      let audioBuffer = null;
+        const audioData = await response.arrayBuffer();
+        const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        let audioBuffer = null;
 
+        try {
+          audioBuffer = await getAudioContext().decodeAudioData(audioData.slice(0));
+        } catch (error) {
+          // If decoding fails, the HTML audio fallback can still play the MP3 URL.
+        }
+
+        const audioAsset = { url: audioUrl, buffer: audioBuffer };
+        ttsAudioCache.set(cacheKey, audioAsset);
+        return audioAsset;
+      })();
+
+      ttsAudioPromises.set(cacheKey, audioPromise);
       try {
-        audioBuffer = await getAudioContext().decodeAudioData(audioData.slice(0));
+        return await audioPromise;
       } catch (error) {
-        // If decoding fails, the HTML audio fallback can still play the MP3 URL.
+        ttsAudioPromises.delete(cacheKey);
+        throw error;
       }
-
-      const audioAsset = { url: audioUrl, buffer: audioBuffer };
-      ttsAudioCache.set(cacheKey, audioAsset);
-      return audioAsset;
     }
 
-    function getPreloadItems() {
-      if (gameMode !== "word-starts") {
+    function getPreloadItems(mode) {
+      const selectedMode = mode || gameMode;
+      if (selectedMode !== "word-starts") {
         return letters.map((letter) => ({ letter, word: "" }));
       }
 
@@ -616,6 +629,29 @@
       loadingMessage.textContent = "Ready!";
       await waitFor(250);
       loadingScreen.hidden = true;
+    }
+
+    async function preloadVoicesInBackground(mode) {
+      const selectedMode = mode || gameMode;
+      if (voicesPreloadedByMode[selectedMode]) return;
+
+      const preloadItems = getPreloadItems(selectedMode);
+      let nextItem = 0;
+      const workerCount = Math.min(3, preloadItems.length);
+      const preloadQueue = Array.from({ length: workerCount }, async () => {
+        while (nextItem < preloadItems.length) {
+          const item = preloadItems[nextItem];
+          nextItem += 1;
+          try {
+            await getTextToSpeechAudio(item.letter, item.word);
+          } catch (error) {
+            // Failed prompts still work through the browser voice fallback.
+          }
+        }
+      });
+
+      await Promise.all(preloadQueue);
+      voicesPreloadedByMode[selectedMode] = true;
     }
 
     async function sayTargetLetter() {
@@ -747,7 +783,13 @@
       gameState = "loading";
       await timebox(unlockAudioContext(), 700);
       await timebox(unlockVoiceAudio(), 700);
-      await preloadAllVoices();
+      if (gameMode === "word-starts") {
+        loadingMessage.textContent = "Preparing first word...";
+        updateLoadingProgress(1, 1);
+        loadingScreen.hidden = true;
+      } else {
+        await preloadAllVoices();
+      }
       if (gameState !== "loading") return;
       pickRound();
       lastTime = performance.now();
@@ -755,6 +797,9 @@
       animationId = requestAnimationFrame(gameLoop);
       playBeep(660, 0.08, "triangle");
       prepareRoundVoice();
+      if (gameMode === "word-starts") {
+        preloadVoicesInBackground(gameMode);
+      }
     }
 
     function showRoundResult(isCorrect) {

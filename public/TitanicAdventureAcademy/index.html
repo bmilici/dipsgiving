@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Captain's Cabin Match</title>
+  <style>
+    :root {
+      --ink: #12243d;
+      --panel: #fff9e8;
+      --gold: #ffd44d;
+      --red: #f06b5f;
+      --green: #3dbb6d;
+      --blue: #2f78bf;
+      --wood: #8a5a35;
+      --line: rgba(18, 36, 61, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 30%),
+        linear-gradient(180deg, #9fddff 0%, #d6f5ff 34%, #356f93 35%, #254766 100%);
+      overflow-x: hidden;
+    }
+
+    button,
+    a {
+      touch-action: manipulation;
+    }
+
+    .page {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .home-link,
+    .small-button,
+    .big-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #10213d;
+      background: var(--gold);
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+
+    .small-button {
+      background: #ffffff;
+    }
+
+    .big-button {
+      min-width: 170px;
+      min-height: 58px;
+      padding: 14px 20px;
+      font-size: 1.1rem;
+    }
+
+    .repeat-button {
+      width: 100%;
+      min-width: 0;
+      font-size: clamp(1.15rem, 3vw, 1.45rem);
+    }
+
+    .home-link:active,
+    .small-button:active,
+    .big-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: white;
+      font-weight: 900;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+    }
+
+    .game-wrap {
+      position: relative;
+      min-height: min(74vh, 680px);
+      overflow: hidden;
+      border: 4px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.78) 0 36px, transparent 37px),
+        linear-gradient(180deg, #82cff5 0 24%, #eef9ff 24% 25%, #15365d 25% 100%);
+      box-shadow: 0 18px 44px rgba(6, 23, 45, 0.32);
+    }
+
+    .ship-top {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 28%;
+      background:
+        linear-gradient(90deg, transparent 0 11%, #d84631 11% 16%, transparent 16% 25%, #d84631 25% 30%, transparent 30%),
+        linear-gradient(180deg, transparent 0 53%, #fff7df 54% 70%, #12243d 71% 82%, #b23b2f 83% 100%);
+    }
+
+    .hall {
+      position: absolute;
+      inset: 26% 0 0;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.16), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.16)),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 78px),
+        linear-gradient(180deg, #f6deb6 0%, #d0a676 58%, #8a5a35 59%, #6d4225 100%);
+    }
+
+    .game-content {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 14px;
+      min-height: min(74vh, 680px);
+      padding: 20px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .title-row h1 {
+      max-width: min(620px, 78%);
+      border: 3px solid rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: rgba(13, 35, 58, 0.72);
+      font-size: clamp(1.8rem, 4.3vw, 3.35rem);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      color: white;
+      font-size: clamp(1.85rem, 5vw, 4rem);
+      line-height: 0.98;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .stars {
+      min-width: 118px;
+      color: var(--gold);
+      font-size: clamp(1.3rem, 3.6vw, 2rem);
+      font-weight: 900;
+      text-align: right;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .prompt-row {
+      display: block;
+    }
+
+    .passenger-area {
+      display: grid;
+      grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+    }
+
+    .passenger {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      min-height: 210px;
+      padding-top: 12px;
+    }
+
+    .animal {
+      font-size: clamp(5rem, 15vw, 8.5rem);
+      line-height: 1;
+      filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.18));
+    }
+
+    .ticket {
+      display: block;
+      min-width: min(250px, 100%);
+      border: 4px dashed #b9792d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--ink);
+      background: var(--panel);
+      text-align: center;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.14);
+    }
+
+    .ticket-repeat-button {
+      display: block;
+      min-width: min(250px, 100%);
+      border: 4px dashed #b9792d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--ink);
+      background: var(--panel);
+      text-align: center;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.14);
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .ticket-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .ticket-code {
+      display: block;
+      font-size: clamp(1.8rem, 6vw, 3.5rem);
+      font-weight: 900;
+      line-height: 0.96;
+    }
+
+    .ticket-code::before {
+      content: "🔊";
+      display: block;
+      font-size: clamp(2.8rem, 9vw, 4.8rem);
+      line-height: 1;
+    }
+
+    .ticket-repeat-button:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.14);
+    }
+
+    .speech {
+      min-height: 74px;
+      border: 3px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: white;
+      background: rgba(18, 36, 61, 0.62);
+      font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+      font-weight: 900;
+      line-height: 1.25;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+
+    .doors {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+
+    .door-button {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: clamp(150px, 26vh, 240px);
+      border: 0;
+      border-radius: 8px 8px 3px 3px;
+      color: #fff9e8;
+      background:
+        radial-gradient(circle at 78% 50%, #ffd44d 0 8px, transparent 9px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.11), transparent 44%),
+        linear-gradient(180deg, #2f78bf, #173f77);
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.22), 0 8px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+    }
+
+    .door-button::before {
+      content: "";
+      position: absolute;
+      inset: 12px 16px auto;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .door-code {
+      position: relative;
+      z-index: 1;
+      width: min(122px, 78%);
+      border: 3px solid rgba(18, 36, 61, 0.22);
+      border-radius: 8px;
+      padding: 10px 8px;
+      color: var(--ink);
+      background: #fff9e8;
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    .door-button.is-correct {
+      background:
+        radial-gradient(circle at 78% 50%, #ffd44d 0 8px, transparent 9px),
+        linear-gradient(180deg, #3dbb6d, #18784a);
+    }
+
+    .door-button.is-wrong {
+      animation: shake 260ms ease;
+      background:
+        radial-gradient(circle at 78% 50%, #ffd44d 0 8px, transparent 9px),
+        linear-gradient(180deg, #f08f68, #c94d42);
+    }
+
+    .feedback {
+      display: grid;
+      place-items: center;
+      min-height: 46px;
+      color: white;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      color: white;
+      text-align: center;
+      background: rgba(13, 35, 58, 0.82);
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    .screen p {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(1rem, 2.4vw, 1.35rem);
+      line-height: 1.45;
+    }
+
+    .start-screen {
+      justify-content: flex-end;
+      min-height: 100%;
+      padding: clamp(18px, 4vw, 36px);
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.1) 0%, rgba(13, 35, 58, 0.38) 45%, rgba(13, 35, 58, 0.86) 100%),
+        url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+    }
+
+    .start-screen h1,
+    .start-screen p,
+    .start-screen .button-row {
+      position: relative;
+      z-index: 1;
+    }
+
+    .end-screen {
+      justify-content: flex-end;
+      padding: clamp(18px, 4vw, 36px);
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.04) 0%, rgba(13, 35, 58, 0.34) 45%, rgba(13, 35, 58, 0.86) 100%),
+        url("/TitanicAdventureAcademy/animals-onboard-ending.webp") center / cover;
+    }
+
+    .end-screen h1,
+    .end-screen p,
+    .end-screen .button-row {
+      position: relative;
+      z-index: 1;
+    }
+
+    .loading-screen {
+      justify-content: space-between;
+      padding: clamp(14px, 3vw, 28px);
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.28), rgba(13, 35, 58, 0.78)),
+        #13385e;
+    }
+
+    .loading-art {
+      width: min(860px, 100%);
+      max-height: min(46vh, 360px);
+      object-fit: cover;
+      border: 4px solid rgba(255, 255, 255, 0.82);
+      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
+    }
+
+    .loading-copy {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .loading-copy h1 {
+      font-size: clamp(2.2rem, 7vw, 5rem);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .confetti {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .spark {
+      position: absolute;
+      top: -30px;
+      color: var(--gold);
+      font-size: 2rem;
+      animation: fall 900ms ease-out forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(280px) rotate(180deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes shake {
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @media (max-width: 820px) {
+      .game-content {
+        padding: 14px;
+      }
+
+      .title-row,
+      .prompt-row,
+      .passenger-area {
+        grid-template-columns: 1fr;
+      }
+
+      .title-row {
+        display: grid;
+      }
+
+      .title-row h1 {
+        max-width: 100%;
+      }
+
+      .stars {
+        min-width: 0;
+        text-align: left;
+      }
+
+      .passenger {
+        min-height: 0;
+      }
+
+      .doors {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        padding: 8px;
+      }
+
+      .topbar {
+        align-items: stretch;
+      }
+
+      .scoreboard {
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .game-wrap,
+      .game-content {
+        min-height: 780px;
+      }
+
+      .doors {
+        gap: 10px;
+      }
+
+      .door-button {
+        min-height: 142px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="home-link" href="/games">Home</a>
+      <div class="scoreboard" aria-live="polite">
+        <span>Passenger: <strong id="roundCount">1</strong>/<strong id="roundTotal">10</strong></span>
+        <span>Stars: <strong id="score">0</strong></span>
+      </div>
+    </div>
+
+    <section class="game-wrap" aria-label="Captain's Cabin Match game">
+      <div class="ship-top" aria-hidden="true"></div>
+      <div class="hall" aria-hidden="true"></div>
+
+      <div class="game-content">
+        <div class="title-row">
+          <h1>Captain's Cabin Match</h1>
+          <div id="starDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆</div>
+        </div>
+
+        <div class="prompt-row">
+          <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
+        </div>
+
+        <div class="passenger-area">
+          <div class="passenger" aria-live="polite">
+            <div id="animal" class="animal" aria-hidden="true">🐻</div>
+            <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
+              <span class="ticket-label">Cabin Ticket</span>
+              <span id="ticketCode" class="ticket-code">Repeat</span>
+            </button>
+          </div>
+
+          <div id="doors" class="doors" aria-label="Cabin choices"></div>
+        </div>
+
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </div>
+
+      <div id="loadingScreen" class="screen loading-screen" hidden>
+        <img class="loading-art" src="/TitanicAdventureAcademy/all-aboard-loading.webp" alt="A cheerful Titanic at a sunny dock with animal passengers." />
+        <div class="loading-copy">
+          <h1>Getting Ready</h1>
+          <p id="loadingMessage">Getting the next ticket ready...</p>
+        </div>
+      </div>
+
+      <div id="startScreen" class="screen start-screen">
+        <h1>Captain's Cabin Match</h1>
+        <p>Help each animal passenger board by listening to the ticket and matching the cabin door.</p>
+        <div class="button-row">
+          <button id="startButton" class="big-button" type="button">Start Boarding</button>
+        </div>
+      </div>
+
+      <div id="endScreen" class="screen end-screen" hidden>
+        <h1>Great job, Captain!</h1>
+        <p>You earned <strong id="finalStars">0</strong> stars helping passengers find their cabins.</p>
+        <div class="button-row">
+          <button id="playAgainButton" class="big-button" type="button">Play Again</button>
+          <a class="big-button" href="/games">Home</a>
+        </div>
+      </div>
+
+      <div id="confetti" class="confetti" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <script>
+    const animals = ["🐻", "🐰", "🐱", "🐶", "🦊", "🐼", "🐨", "🐵", "🐯", "🦁"];
+    const roundsPerGame = 10;
+    const earlyRounds = 5;
+    const easyLetters = ["A", "B", "C"];
+    const hardLetters = ["A", "B", "C", "D", "E", "F"];
+
+    const roundCountEl = document.getElementById("roundCount");
+    const roundTotalEl = document.getElementById("roundTotal");
+    const scoreEl = document.getElementById("score");
+    const starDisplay = document.getElementById("starDisplay");
+    const speechEl = document.getElementById("speech");
+    const repeatButton = document.getElementById("repeatButton");
+    const animalEl = document.getElementById("animal");
+    const ticketCodeEl = document.getElementById("ticketCode");
+    const doorsEl = document.getElementById("doors");
+    const feedbackEl = document.getElementById("feedback");
+    const loadingScreen = document.getElementById("loadingScreen");
+    const loadingMessage = document.getElementById("loadingMessage");
+    const startScreen = document.getElementById("startScreen");
+    const endScreen = document.getElementById("endScreen");
+    const startButton = document.getElementById("startButton");
+    const playAgainButton = document.getElementById("playAgainButton");
+    const finalStars = document.getElementById("finalStars");
+    const confetti = document.getElementById("confetti");
+
+    let currentRound = 0;
+    let stars = 0;
+    let currentTicket = null;
+    let currentChoices = [];
+    let gameRounds = [];
+    let acceptingAnswers = false;
+    let backgroundPreloadStarted = false;
+    let voiceAudio = null;
+    let audioContext = null;
+    const ttsAudioCache = new Map();
+    const ttsAudioPromises = new Map();
+
+    roundTotalEl.textContent = String(roundsPerGame);
+
+    function buildTicket(roundIndex) {
+      const isEasy = roundIndex < earlyRounds;
+      const letters = isEasy ? easyLetters : hardLetters;
+      const maxNumber = isEasy ? 10 : 20;
+      return {
+        letter: letters[Math.floor(Math.random() * letters.length)],
+        number: Math.floor(Math.random() * maxNumber) + 1,
+        choiceCount: isEasy ? 3 : 4,
+      };
+    }
+
+    function ticketCode(ticket) {
+      return ticket.letter + ticket.number;
+    }
+
+    function getPromptText(ticket) {
+      return "Find cabin " + ticket.letter + " " + ticket.number + "!";
+    }
+
+    function buildChoices(ticket) {
+      const correct = ticketCode(ticket);
+      const choices = new Set([correct]);
+      const letters = ticket.choiceCount === 3 ? easyLetters : hardLetters;
+      const maxNumber = ticket.choiceCount === 3 ? 10 : 20;
+
+      while (choices.size < ticket.choiceCount) {
+        const letter = Math.random() < 0.55 ? ticket.letter : letters[Math.floor(Math.random() * letters.length)];
+        const number = Math.floor(Math.random() * maxNumber) + 1;
+        choices.add(letter + number);
+      }
+
+      return Array.from(choices).sort(() => Math.random() - 0.5);
+    }
+
+    function buildGameRounds() {
+      return Array.from({ length: roundsPerGame }, (_, index) => {
+        const ticket = buildTicket(index);
+        return {
+          ticket,
+          choices: buildChoices(ticket),
+        };
+      });
+    }
+
+    function prepareNewGame() {
+      currentRound = 0;
+      stars = 0;
+      currentTicket = null;
+      currentChoices = [];
+      acceptingAnswers = false;
+      backgroundPreloadStarted = false;
+      gameRounds = buildGameRounds();
+      feedbackEl.textContent = "";
+      speechEl.textContent = "Tap Start Boarding to begin captain training.";
+      ticketCodeEl.textContent = "Repeat";
+      updateHud();
+      renderDoors();
+      preloadFirstRoundInBackground();
+    }
+
+    function getVoiceAudio() {
+      if (!voiceAudio) {
+        voiceAudio = new Audio();
+        voiceAudio.preload = "auto";
+        voiceAudio.playsInline = true;
+      }
+      return voiceAudio;
+    }
+
+    function getAudioContext() {
+      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      return audioContext;
+    }
+
+    function waitFor(milliseconds) {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    }
+
+    async function timebox(promise, milliseconds) {
+      return Promise.race([promise, waitFor(milliseconds)]);
+    }
+
+    async function unlockVoiceAudio() {
+      try {
+        const audio = getVoiceAudio();
+        audio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
+        audio.volume = 0;
+        await timebox(audio.play(), 500);
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+      } catch (error) {
+        if (voiceAudio) voiceAudio.volume = 1;
+      }
+    }
+
+    async function unlockAudioContext() {
+      try {
+        const context = getAudioContext();
+        if (context.state === "suspended") {
+          await timebox(context.resume(), 500);
+        }
+      } catch (error) {
+        // The reusable HTML audio element still handles the main voice prompt.
+      }
+    }
+
+    async function getTextToSpeechAudio(ticket) {
+      const cacheKey = ticketCode(ticket);
+      if (ttsAudioCache.has(cacheKey)) return ttsAudioCache.get(cacheKey);
+      if (ttsAudioPromises.has(cacheKey)) return ttsAudioPromises.get(cacheKey);
+
+      const audioPromise = (async () => {
+        const query = new URLSearchParams({ ticket: cacheKey });
+        const response = await fetch("/api/text-to-speech?" + query.toString());
+        if (!response.ok) throw new Error("Text-to-speech request failed");
+        const audioData = await response.arrayBuffer();
+        const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audioAsset = { url: audioUrl, buffer: null };
+        ttsAudioCache.set(cacheKey, audioAsset);
+        return audioAsset;
+      })();
+
+      ttsAudioPromises.set(cacheKey, audioPromise);
+      try {
+        return await audioPromise;
+      } catch (error) {
+        ttsAudioPromises.delete(cacheKey);
+        throw error;
+      }
+    }
+
+    function updateLoadingMessage(isReady) {
+      loadingMessage.textContent = isReady ? "Ready to board!" : "Getting the next ticket ready...";
+    }
+
+    async function preloadRoundVoice(round, showLoading) {
+      if (showLoading) {
+        loadingScreen.hidden = false;
+        updateLoadingMessage(false);
+      }
+      try {
+        await getTextToSpeechAudio(round.ticket);
+      } catch (error) {
+        // The ticket can still try again when the prompt plays.
+      }
+      if (showLoading) {
+        updateLoadingMessage(true);
+        await waitFor(150);
+        loadingScreen.hidden = true;
+      }
+    }
+
+    function preloadFirstRoundInBackground() {
+      if (!gameRounds.length) return;
+      preloadRoundVoice(gameRounds[0], false);
+    }
+
+    async function preloadRemainingRoundVoices(rounds, startIndex) {
+      let nextItem = startIndex;
+      const workerCount = Math.min(3, Math.max(0, rounds.length - startIndex));
+      if (!workerCount) return;
+
+      const preloadQueue = Array.from({ length: workerCount }, async () => {
+        while (nextItem < rounds.length) {
+          const round = rounds[nextItem];
+          nextItem += 1;
+          try {
+            await getTextToSpeechAudio(round.ticket);
+          } catch (error) {
+            // A missed background preload still falls back when that ticket appears.
+          }
+        }
+      });
+
+      await Promise.all(preloadQueue);
+    }
+
+    async function playReusableVoiceAudio(audioUrl) {
+      const audio = getVoiceAudio();
+      audio.pause();
+      audio.currentTime = 0;
+
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Voice audio did not start")), 1400);
+        const cleanup = () => {
+          clearTimeout(timeout);
+          audio.removeEventListener("playing", handlePlaying);
+          audio.removeEventListener("error", handleError);
+        };
+        const handlePlaying = () => {
+          cleanup();
+          resolve();
+        };
+        const handleError = () => {
+          cleanup();
+          reject(new Error("Voice audio failed"));
+        };
+
+        audio.addEventListener("playing", handlePlaying);
+        audio.addEventListener("error", handleError);
+        audio.src = audioUrl;
+        audio.load();
+        audio.play().then(handlePlaying).catch(handleError);
+      });
+    }
+
+    async function playAudioBuffer(audioBuffer) {
+      const context = getAudioContext();
+      if (context.state === "suspended") {
+        await timebox(context.resume(), 500);
+      }
+      const source = context.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(context.destination);
+      source.start(0);
+      await waitFor(40);
+    }
+
+    async function speakWithBrowserVoice() {
+      if (!("speechSynthesis" in window) || !currentTicket) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(getPromptText(currentTicket));
+      utterance.rate = 0.85;
+      utterance.pitch = 1.08;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    async function sayCurrentTicket() {
+      if (!currentTicket) return;
+      speechEl.textContent = "Listen for the cabin, then tap the matching door.";
+
+      try {
+        const audioAsset = await getTextToSpeechAudio(currentTicket);
+        await playReusableVoiceAudio(audioAsset.url);
+        return;
+      } catch (error) {
+        // Some mobile browsers are picky about media elements after async work.
+      }
+
+      try {
+        const audioAsset = await getTextToSpeechAudio(currentTicket);
+        if (audioAsset.buffer) {
+          await playAudioBuffer(audioAsset.buffer);
+          return;
+        }
+      } catch (error) {
+        await speakWithBrowserVoice();
+      }
+    }
+
+    function playTone(frequency, duration, type) {
+      try {
+        const context = getAudioContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = type || "triangle";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.05, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + duration);
+      } catch (error) {
+        // Feedback sounds are optional.
+      }
+    }
+
+    function updateHud() {
+      roundCountEl.textContent = String(Math.min(currentRound + 1, roundsPerGame));
+      scoreEl.textContent = String(stars);
+      starDisplay.textContent = Array.from({ length: roundsPerGame }, (_, index) => index < stars ? "★" : "☆").join("");
+    }
+
+    function renderDoors() {
+      doorsEl.innerHTML = "";
+      currentChoices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.className = "door-button";
+        button.type = "button";
+        button.setAttribute("aria-label", "Cabin " + choice);
+        button.dataset.choice = choice;
+        button.innerHTML = '<span class="door-code">' + choice + '</span>';
+        button.addEventListener("click", () => chooseDoor(choice, button));
+        doorsEl.appendChild(button);
+      });
+    }
+
+    function showStars() {
+      const rect = confetti.getBoundingClientRect();
+      confetti.innerHTML = "";
+      for (let i = 0; i < 16; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "spark";
+        spark.textContent = "★";
+        spark.style.left = Math.floor(Math.random() * Math.max(1, rect.width - 24)) + "px";
+        spark.style.animationDelay = Math.floor(Math.random() * 180) + "ms";
+        confetti.appendChild(spark);
+      }
+      setTimeout(() => {
+        confetti.innerHTML = "";
+      }, 1200);
+    }
+
+    async function nextRound() {
+      if (currentRound >= roundsPerGame) {
+        endGame();
+        return;
+      }
+
+      const round = gameRounds[currentRound];
+      currentTicket = round.ticket;
+      currentChoices = round.choices;
+      acceptingAnswers = false;
+      if (!ttsAudioCache.has(ticketCode(currentTicket))) {
+        await preloadRoundVoice(round, true);
+      }
+      acceptingAnswers = true;
+      feedbackEl.textContent = "";
+      animalEl.textContent = animals[currentRound % animals.length];
+      ticketCodeEl.textContent = "Repeat";
+      updateHud();
+      renderDoors();
+      sayCurrentTicket();
+    }
+
+    function chooseDoor(choice, button) {
+      if (!acceptingAnswers || !currentTicket) return;
+      const isCorrect = choice === ticketCode(currentTicket);
+
+      if (!isCorrect) {
+        button.classList.remove("is-wrong");
+        void button.offsetWidth;
+        button.classList.add("is-wrong");
+        feedbackEl.textContent = "Try again!";
+        playTone(180, 0.12, "sine");
+        setTimeout(() => button.classList.remove("is-wrong"), 350);
+        return;
+      }
+
+      acceptingAnswers = false;
+      button.classList.add("is-correct");
+      stars += 1;
+      feedbackEl.textContent = "Correct! Welcome aboard!";
+      updateHud();
+      showStars();
+      playTone(720, 0.08, "triangle");
+      setTimeout(() => playTone(940, 0.1, "triangle"), 90);
+      currentRound += 1;
+      setTimeout(nextRound, 1050);
+    }
+
+    async function startGame() {
+      if (!gameRounds.length) prepareNewGame();
+      startScreen.hidden = true;
+      loadingScreen.hidden = true;
+      endScreen.hidden = true;
+      feedbackEl.textContent = "";
+      speechEl.textContent = "Getting the next ticket ready.";
+      await timebox(unlockAudioContext(), 700);
+      await timebox(unlockVoiceAudio(), 700);
+      if (!ttsAudioCache.has(ticketCode(gameRounds[0].ticket))) {
+        await preloadRoundVoice(gameRounds[0], true);
+      }
+      if (!backgroundPreloadStarted) {
+        backgroundPreloadStarted = true;
+        preloadRemainingRoundVoices(gameRounds, 1);
+      }
+      nextRound();
+    }
+
+    function endGame() {
+      acceptingAnswers = false;
+      finalStars.textContent = String(stars);
+      endScreen.hidden = false;
+    }
+
+    startButton.addEventListener("click", startGame);
+    playAgainButton.addEventListener("click", () => {
+      prepareNewGame();
+      startGame();
+    });
+    repeatButton.addEventListener("click", sayCurrentTicket);
+    prepareNewGame();
+  </script>
+</body>
+</html>

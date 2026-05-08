@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
         destination: "/FirstGradeMath/index.html",
       },
       {
+        source: "/TitanicAdventureAcademy",
+        destination: "/TitanicAdventureAcademy/index.html",
+      },
+      {
+        source: "/titanicadventureacademy",
+        destination: "/TitanicAdventureAcademy/index.html",
+      },
+      {
         source: "/DesmondGame",
         destination: "/DesmondGame/index.html",
       },

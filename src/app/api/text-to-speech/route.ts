@@ -88,14 +88,27 @@ async function getAccessToken() {
 export async function GET(request: NextRequest) {
   const letter = (request.nextUrl.searchParams.get("letter") || "").trim().toUpperCase();
   const word = (request.nextUrl.searchParams.get("word") || "").trim().toLowerCase();
-  if (!/^[A-Z]$/.test(letter)) {
+  const ticket = (request.nextUrl.searchParams.get("ticket") || "").trim().toUpperCase();
+  const phrase = (request.nextUrl.searchParams.get("text") || "").trim();
+
+  if (phrase) {
+    if (phrase.length > 140 || !/^[A-Za-z0-9 .,?!'’+-]+$/.test(phrase)) {
+      return Response.json({ error: "Text must be a short learning game phrase." }, { status: 400 });
+    }
+  } else if (ticket) {
+    if (!/^[A-F](?:[1-9]|1[0-9]|20)$/.test(ticket)) {
+      return Response.json({ error: "Ticket must be a cabin from A1 through F20." }, { status: 400 });
+    }
+  } else if (!/^[A-Z]$/.test(letter)) {
     return Response.json({ error: "A single A-Z letter is required." }, { status: 400 });
   }
   if (word && !/^[a-z][a-z -]{0,24}$/.test(word)) {
     return Response.json({ error: "Word must be a simple alphabetic word." }, { status: 400 });
   }
 
-  const text = word ? `What letter does ${word} start with?` : `Find the letter ${letter}`;
+  const text = phrase || (ticket
+    ? `Find cabin ${ticket.replace(/^([A-F])(\d+)$/, "$1 $2")}!`
+    : word ? `What letter does ${word} start with?` : `Find the letter ${letter}`);
 
   try {
     const accessToken = await getAccessToken();
@@ -131,7 +144,9 @@ export async function GET(request: NextRequest) {
     return new Response(audio, {
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",
+        "CDN-Cache-Control": "public, max-age=31536000, immutable",
         "Content-Type": "audio/mpeg",
+        "Vercel-CDN-Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
