@@ -136,7 +136,8 @@
       line-height: 1.45;
     }
 
-    .hero-actions,
+    .header-controls,
+    .account-controls,
     .toolbar,
     .button-row,
     .filters {
@@ -146,19 +147,108 @@
       align-items: center;
     }
 
+    .header-controls {
+      justify-content: flex-start;
+    }
+
+    .account-controls {
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 8px;
+      background: rgba(36,31,26,0.28);
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: #5b3a08;
+      background: #fff4cf;
+      font-size: 0.82rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .mode-badge.editor {
+      color: #17482c;
+      background: #eaf7ee;
+    }
+
+    .settings-menu {
+      position: relative;
+    }
+
+    .settings-menu summary {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.26);
+      border-radius: 8px;
+      color: white;
+      background: rgba(255,255,255,0.12);
+      font-size: 0.9rem;
+      font-weight: 900;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .settings-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .settings-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 30;
+      width: min(280px, calc(100vw - 28px));
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .settings-panel label {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      color: var(--ink);
+      font-size: 0.9rem;
+      text-transform: none;
+    }
+
+    .settings-panel input {
+      width: 22px;
+      height: 22px;
+      min-height: 0;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin: 0 0 16px;
+      gap: 12px;
+      margin: 0 0 18px;
     }
 
     .stat {
-      padding: 14px;
-      border: 1px solid var(--line);
+      min-height: 128px;
+      display: grid;
+      gap: 10px;
+      align-content: center;
+      padding: 18px;
+      border: 1px solid rgba(36,31,26,0.1);
       border-radius: 8px;
       background: var(--panel);
-      box-shadow: 0 8px 22px rgba(36,31,26,0.08);
+      box-shadow: 0 6px 18px rgba(36,31,26,0.06);
     }
 
     .stat b {
@@ -220,6 +310,13 @@
     .view { display: none; }
     .view.active { display: block; }
 
+    .toolbar {
+      margin: 12px 0;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255,250,241,0.62);
+    }
+
     .safety-strip {
       display: grid;
       gap: 8px;
@@ -234,36 +331,15 @@
       color: var(--red-dark);
     }
 
-    .access-banner {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      margin: 14px 0;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff8eb;
-      font-weight: 800;
-    }
-
-    .access-banner.editor {
-      border-color: rgba(40,116,74,0.45);
-      background: #eaf7ee;
-      color: #17482c;
-    }
-
-    .access-banner.readonly {
-      border-color: rgba(185,109,16,0.46);
-      background: #fff4cf;
-      color: #65440a;
-    }
-
     body.readonly .editor-only {
       display: none !important;
     }
 
+    body.editor #loginButton {
+      display: none;
+    }
+
+    body.large-touch-controls,
     body.garage-mode {
       --ink: #130f0b;
       --muted: #3f372f;
@@ -271,6 +347,10 @@
       background: #f4eadb;
     }
 
+    body.large-touch-controls button,
+    body.large-touch-controls input,
+    body.large-touch-controls select,
+    body.large-touch-controls textarea,
     body.garage-mode button,
     body.garage-mode input,
     body.garage-mode select,
@@ -279,67 +359,11 @@
       font-size: 1rem;
     }
 
+    body.large-touch-controls .section-box,
+    body.large-touch-controls .step-body,
     body.garage-mode .section-box,
     body.garage-mode .step-body {
       gap: 8px;
-    }
-
-    .current-task-bar {
-      position: sticky;
-      bottom: 0;
-      z-index: 20;
-      display: grid;
-      gap: 8px;
-      margin: 16px -14px 0;
-      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-      border-top: 2px solid var(--red-dark);
-      background: rgba(255, 250, 241, 0.98);
-      box-shadow: 0 -10px 28px rgba(36,31,26,0.18);
-    }
-
-    .current-task-info {
-      display: grid;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .current-task-info strong,
-    .current-task-info span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .current-task-info span {
-      color: var(--muted);
-      font-size: 0.84rem;
-      font-weight: 800;
-    }
-
-    .current-task-actions {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    .current-task-actions button {
-      min-height: 46px;
-      padding: 8px 6px;
-      font-size: 0.78rem;
-    }
-
-    @media (min-width: 760px) {
-      .current-task-bar {
-        position: static;
-        margin: 16px 0 0;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: 0 8px 22px rgba(36,31,26,0.08);
-      }
-      .current-task-actions {
-        grid-template-columns: repeat(4, auto);
-        justify-content: start;
-      }
     }
 
     .phase-list {
@@ -735,6 +759,31 @@
       color: #17482c;
     }
 
+    .safety-compact {
+      gap: 6px;
+      border-width: 1px;
+    }
+
+    .safety-compact ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .safety-compact li {
+      margin: 3px 0;
+      font-weight: 800;
+    }
+
+    .step-edit-status {
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff8eb;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
     .field-grid {
       display: grid;
       gap: 10px;
@@ -907,9 +956,10 @@
       .app { padding: 24px; }
       .hero {
         grid-template-columns: 1fr auto;
-        align-items: end;
+        align-items: start;
         padding: 28px;
       }
+      .header-controls { justify-content: flex-end; }
       .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -921,7 +971,7 @@
 
     @media print {
       body { background: white; }
-      .hero-actions,
+      .header-controls,
       .tabs,
       .toolbar,
       .phase-list,
@@ -954,9 +1004,20 @@
         <h1>Chevelle Revival Tracker</h1>
         <p>1969 Chevrolet Chevelle Malibu convertible restoration log. Local-first, phone-friendly, and ready for the garage.</p>
       </div>
-      <div class="hero-actions">
-        <button class="editor-only" id="addStepTop">Add Step</button>
-        <button class="secondary" id="printTop">Print / PDF</button>
+      <div class="header-controls">
+        <div class="account-controls">
+          <span class="mode-badge" id="accessModeText">Read-Only View</span>
+          <button id="loginButton">Login</button>
+          <button class="secondary editor-only" id="logoutButton">Logout</button>
+        </div>
+        <details class="settings-menu" id="settingsMenu">
+          <summary>Settings</summary>
+          <div class="settings-panel">
+            <label><input type="checkbox" data-preference="largeTouchControls" id="prefLargeTouchControls"> Large touch controls</label>
+            <label><input type="checkbox" data-preference="autoCollapseCompleted" id="prefAutoCollapseCompleted"> Auto-collapse completed</label>
+            <label><input type="checkbox" data-preference="compactSections" id="prefCompactSections"> Compact sections</label>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -967,17 +1028,8 @@
         <div class="progress-shell" aria-hidden="true"><div class="progress-bar" id="overallBar"></div></div>
       </div>
       <div class="stat"><b id="doneCount">0</b><span>Steps Done</span></div>
-      <div class="stat"><b id="totalCost">$0</b><span>Total Project Cost</span></div>
+      <div class="stat"><b id="totalCost">$0</b><span>Total Cost</span></div>
       <div class="stat"><b id="purchasedCost">$0</b><span>Purchased Total</span></div>
-      <div class="stat"><b id="plannedCost">$0</b><span>Planned Remaining</span></div>
-      <div class="stat"><b id="transportStatus">Not Ready</b><span>Transport Readiness</span></div>
-      <div class="stat"><b id="engineStatus">Unknown</b><span>Engine Status</span></div>
-      <div class="stat"><b id="fuelStatus">Unknown</b><span>Fuel System Status</span></div>
-      <div class="stat"><b id="electricalStatus">Unknown</b><span>Electrical Status</span></div>
-      <div class="stat"><b id="coolingStatus">Unknown</b><span>Cooling Status</span></div>
-      <div class="stat"><b id="brakeStatus">Unsafe</b><span>Brake Safety Status</span></div>
-      <div class="stat"><b id="roadworthyStatus">Not Yet</b><span>Roadworthy Status</span></div>
-      <div class="stat"><b id="helpCount">0</b><span>Need Help</span></div>
     </section>
 
     <nav class="tabs" aria-label="Tracker sections">
@@ -991,14 +1043,6 @@
       <button data-view="summaryView">Summary</button>
     </nav>
 
-    <section class="access-banner readonly" id="accessBanner">
-      <span id="accessModeText">Read-only view.</span>
-      <div class="button-row">
-        <button id="loginButton">Editor login</button>
-        <button class="secondary editor-only" id="logoutButton">Logout</button>
-      </div>
-    </section>
-
     <section class="safety-strip">
       <strong>Garage safety reminders</strong>
       <span>Do not crank before checking cylinders. Do not use old fuel. Do not drive on old tires or before brakes are inspected. Keep a fire extinguisher nearby. Use jack stands, never just a jack.</span>
@@ -1006,13 +1050,8 @@
 
     <section id="phasesView" class="view active">
       <div class="toolbar">
-        <button id="generateShopping">Open tools checklist</button>
         <button class="secondary editor-only" id="addPhaseToolbar">Add phase</button>
         <button class="secondary editor-only" id="addStepToolbar">Add step</button>
-        <button class="ghost" id="compactModeToggle">Compact mode</button>
-        <button class="ghost" id="garageModeToggle">Garage mode</button>
-        <button class="ghost" id="expandAll">Expand all</button>
-        <button class="ghost" id="collapseAll">Collapse all</button>
       </div>
       <div class="phase-list" id="phaseList"></div>
     </section>
@@ -1059,9 +1098,6 @@
     <section id="summaryView" class="view">
       <div class="print-summary" id="printSummary"></div>
     </section>
-
-    <section class="current-task-bar" id="currentTaskBar" aria-label="Current task quick actions"></section>
-    <input class="hidden-file" id="quickCameraInput" type="file" accept="image/*" capture="environment" multiple />
   </main>
 
   <div class="modal-backdrop" id="stepModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -1137,7 +1173,6 @@
     const AFTER_TRANSPORT_DOC_STEP_TITLE = "After Transport Photo Documentation";
     const STATUS_OPTIONS = ["Not Started", "In Progress", "Done", "Needs Help"];
     const COST_CATEGORIES = ["Tool", "Part", "Supply", "Service", "Transport", "Other"];
-    const PHOTO_CATEGORIES = ["Exterior", "Interior", "Engine Bay", "Trunk", "Undercarriage", "Damage", "Documentation", "Parts", "Progress", "Before Transport", "After Transport"];
     const DIFFICULTY_OPTIONS = ["Beginner", "Moderate", "Advanced", "Professional Recommended"];
     const CONFIDENCE_OPTIONS = ["Confident", "Unsure", "Need help"];
     const GATE_OPTIONS = ["Yes", "Yes, with caution", "No, professional help recommended"];
@@ -2198,6 +2233,11 @@
         photoSchemaVersion: PHOTO_SCHEMA_VERSION,
         compactMode: false,
         garageMode: false,
+        displayPreferences: {
+          largeTouchControls: false,
+          autoCollapseCompleted: false,
+          compactSections: false
+        },
         history: [],
         vehicleInfo: {
           yearMakeModel: "1969 Chevrolet Chevelle Malibu",
@@ -2236,6 +2276,7 @@
     }
 
     let state = loadState();
+    const editingStepIds = new Set();
 
     function loadState() {
       try {
@@ -2252,6 +2293,7 @@
       data.suppliesOwned = data.suppliesOwned || {};
       data.compactMode = Boolean(data.compactMode);
       data.garageMode = Boolean(data.garageMode);
+      data.displayPreferences = normalizeDisplayPreferences(data);
       data.history = Array.isArray(data.history) ? data.history : [];
       data.vehicleInfo = data.vehicleInfo || {};
       data.milestones = data.milestones || {};
@@ -2306,10 +2348,11 @@
           step.completedDate = step.completedDate || "";
           step.toolsOwned = step.toolsOwned || {};
           step.photoChecks = step.photoChecks || {};
+          step.transportDamage = step.transportDamage || {};
           step.damagePhotos = step.damagePhotos || [];
           step.photos = step.photos || [];
           step.photos.forEach((photo) => {
-            photo.category = photo.category || photoCategory(photo.need || step.title);
+            photo.category = photo.category || uploadPhotoCategory(phase, step, photo.need || step.title);
             photo.caption = photo.caption || photo.need || "";
             photo.addedAt = photo.addedAt || "";
           });
@@ -2324,6 +2367,15 @@
         });
       });
       return data;
+    }
+
+    function normalizeDisplayPreferences(data) {
+      const saved = data.displayPreferences || {};
+      return {
+        largeTouchControls: saved.largeTouchControls === undefined ? Boolean(data.garageMode) : Boolean(saved.largeTouchControls),
+        autoCollapseCompleted: Boolean(saved.autoCollapseCompleted),
+        compactSections: saved.compactSections === undefined ? Boolean(data.compactMode) : Boolean(saved.compactSections)
+      };
     }
 
     function migrateSeedPhases(data) {
@@ -2553,17 +2605,24 @@
       return false;
     }
 
+    function displayPrefs() {
+      state.displayPreferences = normalizeDisplayPreferences(state);
+      return state.displayPreferences;
+    }
+
     function renderAccessMode() {
       const editor = isEditorMode();
+      const prefs = displayPrefs();
       document.body.classList.toggle("readonly", !editor);
       document.body.classList.toggle("editor", editor);
-      document.body.classList.toggle("garage-mode", Boolean(state.garageMode));
-      const banner = document.getElementById("accessBanner");
-      banner.classList.toggle("editor", editor);
-      banner.classList.toggle("readonly", !editor);
-      document.getElementById("accessModeText").textContent = editor ? "Editor mode." : "Read-only view.";
-      document.getElementById("compactModeToggle").textContent = state.compactMode ? "Comfort mode" : "Compact mode";
-      document.getElementById("garageModeToggle").textContent = state.garageMode ? "Standard mode" : "Garage mode";
+      document.body.classList.toggle("large-touch-controls", Boolean(prefs.largeTouchControls));
+      document.body.classList.remove("garage-mode");
+      const modeText = document.getElementById("accessModeText");
+      modeText.textContent = editor ? "Editor Mode" : "Read-Only View";
+      modeText.classList.toggle("editor", editor);
+      document.querySelectorAll("[data-preference]").forEach((input) => {
+        input.checked = Boolean(prefs[input.dataset.preference]);
+      });
     }
 
     function escapeHtml(value) {
@@ -2752,6 +2811,39 @@
       return step.title === DAMAGE_STEP_TITLE;
     }
 
+    function isBeforeTransportStep(phase, step) {
+      const phaseTitle = String(phase && phase.title || "").toLowerCase();
+      const stepTitle = String(step && step.title || "").toLowerCase();
+      return phaseTitle.startsWith("phase 0") || stepTitle.includes("before-transport") || stepTitle.includes("before transport");
+    }
+
+    function isAfterTransportStep(phase, step) {
+      const phaseTitle = String(phase && phase.title || "").toLowerCase();
+      const stepTitle = String(step && step.title || "").toLowerCase();
+      return stepTitle.includes("after transport")
+        || stepTitle.includes("arrival condition")
+        || stepTitle === AFTER_TRANSPORT_DOC_STEP_TITLE.toLowerCase()
+        || phaseTitle.includes("arrival & documentation");
+    }
+
+    function uploadPhotoCategory(phase, step, need) {
+      if (isBeforeTransportStep(phase, step)) return "Before Transport";
+      if (isAfterTransportStep(phase, step)) return "After Transport";
+      return photoCategory(need || (step && step.title));
+    }
+
+    function transportDamageEntry(step, need) {
+      step.transportDamage = step.transportDamage || {};
+      const key = photoNeedKey(need);
+      step.transportDamage[key] = step.transportDamage[key] || { found: false, notes: "" };
+      return step.transportDamage[key];
+    }
+
+    function photoCaptionText(photo, fallback) {
+      const base = photo.caption || photo.location || photo.category || fallback || "Photo";
+      return photo.damageFound ? `${base} - Damage found${photo.damageNotes ? `: ${photo.damageNotes}` : ""}` : base;
+    }
+
     function photoCategory(need) {
       const text = String(need || "").toLowerCase();
       if (text.includes("before")) return "Before Transport";
@@ -2765,25 +2857,33 @@
       return "Progress";
     }
 
-    function photoNeedTemplate(step, need) {
+    function photoNeedTemplate(phase, step, need) {
+      const afterTransport = isAfterTransportStep(phase, step);
+      const damageEntry = afterTransport ? transportDamageEntry(step, need) : null;
       return `
         <div class="photo-need-row">
           <div class="photo-need-head">
             <label class="check-row">
-              <input type="checkbox" data-action="photoCheck" data-photo-need="${escapeHtml(need)}" ${isPhotoNeedDone(step, need) ? "checked" : ""} />
-              <span>${escapeHtml(need)} <span class="pill">${escapeHtml(photoCategory(need))}</span></span>
+              <input type="checkbox" data-action="photoCheck" data-photo-need="${escapeHtml(need)}" ${isPhotoNeedDone(step, need) ? "checked" : ""} ${editDisabled()} />
+              <span>${escapeHtml(need)}</span>
             </label>
-            ${isEditorMode() ? itemEditorButtons("photosNeeded", step.photosNeeded.indexOf(need)) : ""}
+            ${isStepEditing(step) ? itemEditorButtons("photosNeeded", step.photosNeeded.indexOf(need)) : ""}
             <div class="grid-two">
-              <label>Category
-                <select data-action="pendingPhotoCategory" data-photo-need="${escapeHtml(need)}">
-                  ${PHOTO_CATEGORIES.map((category) => `<option value="${category}" ${photoCategory(need) === category ? "selected" : ""}>${category}</option>`).join("")}
-                </select>
-              </label>
               <label>Caption
                 <input data-action="pendingPhotoCaption" data-photo-need="${escapeHtml(need)}" placeholder="Optional caption" />
               </label>
             </div>
+            ${afterTransport ? `
+              <label class="tool-row">
+                <input type="checkbox" data-action="photoDamageFound" data-photo-need="${escapeHtml(need)}" ${damageEntry.found ? "checked" : ""} ${editDisabled()} />
+                <span>Damage found</span>
+              </label>
+              ${damageEntry.found ? `
+                <label>Damage notes
+                  <input data-action="photoDamageNotes" data-photo-need="${escapeHtml(need)}" value="${escapeHtml(damageEntry.notes || "")}" placeholder="Optional shipping damage notes" ${editDisabled()} />
+                </label>
+              ` : ""}
+            ` : ""}
             <div class="photo-actions">
               <label>
                 Take Photo
@@ -2799,8 +2899,8 @@
             ${photosForNeed(step, need).map(({ photo, index }) => `
               <figure class="photo-tile">
                 <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || need)}" />
-                <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || need)}</figcaption>
-                <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
+                <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, need))}</figcaption>
+                ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
               </figure>
             `).join("")}
           </div>
@@ -2811,7 +2911,7 @@
     function damagePhotoTemplate(step) {
       return `
         <div class="warning">Add one entry per scratch, dent, rust spot, broken trim item, wheel issue, glass issue, or interior flaw. Name the location before taking/uploading the photo.</div>
-        <button type="button" class="secondary" data-action="showDamageForm">Add damage photo</button>
+        ${isEditorMode() ? `<button type="button" class="secondary" data-action="showDamageForm">Add damage photo</button>` : ""}
         <div class="damage-form">
           <label>Location / damage description
             <input data-action="damageLocation" placeholder="Example: Driver door scratch, rear passenger quarter dent" />
@@ -2832,14 +2932,14 @@
             <figure class="photo-tile">
               <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
               <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-              <button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>
+              ${isStepEditing(step) ? `<button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : ""}
             </figure>
           `).join("")}
         </div>
       `;
     }
 
-    function photoContentTemplate(step) {
+    function photoContentTemplate(phase, step) {
       if (!isEditorMode()) {
         const photos = stepPublicPhotos(step);
         return photos.length ? `
@@ -2847,7 +2947,7 @@
             ${photos.map(({ photo }) => `
               <figure class="photo-tile">
                 <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
-                <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || photo.category || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
+                <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               </figure>
             `).join("")}
           </div>
@@ -2857,13 +2957,13 @@
         return step.photoSections.map((section) => `
           <div class="photo-section">
             <h5 class="photo-section-title">${escapeHtml(section.title)}</h5>
-            ${section.damage ? damagePhotoTemplate(step) : section.items.map((need) => photoNeedTemplate(step, need)).join("")}
+            ${section.damage ? damagePhotoTemplate(step) : section.items.map((need) => photoNeedTemplate(phase, step, need)).join("")}
           </div>
         `).join("");
       }
       if (isDamageStep(step)) return damagePhotoTemplate(step);
       return `
-        ${step.photosNeeded.length ? step.photosNeeded.map((need) => photoNeedTemplate(step, need)).join("") : '<div class="empty">No required photos listed for this step.</div>'}
+        ${step.photosNeeded.length ? step.photosNeeded.map((need) => photoNeedTemplate(phase, step, need)).join("") : '<div class="empty">No required photos listed for this step.</div>'}
         ${step.photos.some((photo) => !photo.need) ? `
           <div class="photo-need-row">
             <strong>Other uploaded photos</strong>
@@ -2871,8 +2971,8 @@
               ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => `
                 <figure class="photo-tile">
                   <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" />
-                  <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || step.title)}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-                  <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
+                  <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, step.title))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
+                  ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
                 </figure>
               `).join("")}
             </div>
@@ -2892,21 +2992,11 @@
       const done = steps.filter((step) => step.status === "Done").length;
       const percent = Math.round(steps.reduce((sum, step) => sum + stepCompletion(step), 0) / total);
       const costs = projectCostTotals(!isEditorMode());
-      const needsHelp = steps.filter((step) => step.needsHelp || step.status === "Needs Help").length;
       document.getElementById("overallPercent").textContent = `${percent}%`;
       document.getElementById("overallBar").style.width = `${percent}%`;
       document.getElementById("doneCount").textContent = `${done}/${steps.length}`;
       document.getElementById("totalCost").textContent = currency(costs.subtotal);
       document.getElementById("purchasedCost").textContent = currency(costs.purchased);
-      document.getElementById("plannedCost").textContent = currency(costs.planned);
-      document.getElementById("helpCount").textContent = needsHelp;
-      document.getElementById("transportStatus").textContent = phaseProgressByNumber(0) === 100 ? "Ready" : phaseProgressByNumber(0) >= 50 ? "Close" : "Not Ready";
-      document.getElementById("engineStatus").textContent = phaseProgressByNumber(3) === 100 ? "Turns" : phaseProgressByNumber(3) > 0 ? "Checking" : "Unknown";
-      document.getElementById("fuelStatus").textContent = phaseProgressByNumber(5) === 100 ? "Fresh source ready" : phaseProgressByNumber(5) > 0 ? "Inspecting" : "Unknown";
-      document.getElementById("electricalStatus").textContent = phaseProgressByNumber(6) === 100 ? "Spark checked" : phaseProgressByNumber(6) > 0 ? "Inspecting" : "Unknown";
-      document.getElementById("coolingStatus").textContent = phaseProgressByNumber(9) === 100 ? "Verified" : phaseProgressByNumber(9) > 0 ? "Testing" : "Unknown";
-      document.getElementById("brakeStatus").textContent = phaseProgressByNumber(10) === 100 ? "Verified" : phaseProgressByNumber(10) > 0 ? "Inspecting" : "Unsafe";
-      document.getElementById("roadworthyStatus").textContent = phaseProgressByNumber(13) === 100 ? "Roadworthy" : phaseProgressByNumber(10) === 100 && phaseProgressByNumber(11) === 100 ? "Cautious tests" : "Not Yet";
     }
 
     function phaseProgressByNumber(number) {
@@ -2951,13 +3041,17 @@
     }
 
     function sectionOpen() {
-      return state.compactMode ? "" : "open";
+      return displayPrefs().compactSections ? "" : "open";
     }
 
     function stepCompletion(step) {
       const checklist = normalizeChecklist(step.checklist || []);
       if (!checklist.length) return step.status === "Done" ? 100 : 0;
       return Math.round((checklist.filter((item) => item.done).length / checklist.length) * 100);
+    }
+
+    function isStepEditing(step) {
+      return isEditorMode() && editingStepIds.has(step.id);
     }
 
     function itemEditorButtons(listName, index) {
@@ -2974,6 +3068,7 @@
 
     function editableTextListTemplate(step, listName, items, emptyText) {
       const normalized = listName === "checklist" ? normalizeChecklist(items) : items;
+      const editing = isStepEditing(step);
       return `
         <div class="section-content">
           ${normalized.length ? normalized.map((item, index) => {
@@ -2987,12 +3082,31 @@
                       <span>${escapeHtml(text)}</span>
                     </label>
                   ` : `<span>${escapeHtml(text)}</span>`}
-                  ${itemEditorButtons(listName, index)}
+                  ${editing ? itemEditorButtons(listName, index) : ""}
                 </div>
               </div>
             `;
           }).join("") : `<div class="empty">${escapeHtml(emptyText)}</div>`}
-          ${isEditorMode() ? `<button type="button" class="secondary" data-action="addListItem" data-list="${listName}">Add item</button>` : ""}
+          ${editing ? `<button type="button" class="secondary" data-action="addListItem" data-list="${listName}">Add item</button>` : ""}
+        </div>
+      `;
+    }
+
+    function safetyTemplate(step) {
+      const warnings = (step.warnings || []).slice(0, 3);
+      if (isStepEditing(step)) {
+        return `
+          <details class="section-box" ${sectionOpen()}>
+            <summary><h4>Safety warnings</h4><span>${step.warnings.length}</span></summary>
+            ${editableTextListTemplate(step, "warnings", step.warnings, "No safety warnings listed.")}
+          </details>
+        `;
+      }
+      if (!warnings.length) return "";
+      return `
+        <div class="callout caution safety-compact">
+          <strong>⚠ Safety</strong>
+          <ul>${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join("")}</ul>
         </div>
       `;
     }
@@ -3034,7 +3148,7 @@
                 <textarea data-action="costNotes" data-index="${index}" placeholder="Receipt, vendor, part number, fitment notes" ${disabled}>${escapeHtml(item.notes)}</textarea>
               </label>
               <strong>Total: ${currency(costItemTotal(item))}</strong>
-              ${editor ? `<button type="button" class="ghost" data-action="removeCostItem" data-index="${index}">Remove item</button>` : ""}
+              ${isStepEditing(step) ? `<button type="button" class="ghost" data-action="removeCostItem" data-index="${index}">Remove item</button>` : ""}
             </div>
           `).join("") || '<div class="empty">No cost items yet.</div>'}
         </div>
@@ -3046,10 +3160,12 @@
       const isHelp = step.needsHelp || step.status === "Needs Help";
       const checked = step.checklist.filter((item) => item.done).length;
       const editor = isEditorMode();
+      const editing = isStepEditing(step);
       const disabled = editDisabled();
       const openSteps = new Set([...document.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
+      const shouldOpen = openSteps.has(step.id) && !(displayPrefs().autoCollapseCompleted && step.status === "Done");
       return `
-        <details class="step-card ${isHelp ? "needs-help" : ""}" ${openSteps.has(step.id) ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
+        <details class="step-card ${isHelp ? "needs-help" : ""}" ${shouldOpen ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
           <summary>
             <div class="step-title">
               <h3>${escapeHtml(step.title)}</h3>
@@ -3066,7 +3182,11 @@
           </summary>
           <div class="step-body">
             <div class="progress-shell"><div class="progress-bar" style="width:${stepCompletion(step)}%"></div></div>
-            <div class="button-row editor-only">
+            <div class="button-row step-edit-status">
+              ${editor ? `<span>${editing ? "Editing this step" : "Garage view"}</span>` : "<span>Read-only step view</span>"}
+              ${editor ? `<button type="button" class="${editing ? "secondary" : "ghost"}" data-action="${editing ? "doneEditingStep" : "startEditingStep"}">${editing ? "Done Editing" : "Edit Step"}</button>` : ""}
+            </div>
+            <div class="button-row">
               <button type="button" class="ghost" data-action="expandStepSections">Expand step</button>
               <button type="button" class="ghost" data-action="collapseStepSections">Collapse step</button>
             </div>
@@ -3097,11 +3217,11 @@
                           <input type="checkbox" data-action="toolOwned" data-tool="${escapeHtml(tool)}" ${isToolOwned(tool) ? "checked" : ""} ${disabled} />
                           <span>${escapeHtml(tool)}</span>
                         </label>
-                        ${itemEditorButtons("tools", index)}
+                        ${editing ? itemEditorButtons("tools", index) : ""}
                       </div>
                     </div>
                   `).join("") : '<div class="empty">No tools listed.</div>'}
-                  ${editor ? '<button type="button" class="secondary" data-action="addListItem" data-list="tools">Add item</button>' : ""}
+                  ${editing ? '<button type="button" class="secondary" data-action="addListItem" data-list="tools">Add item</button>' : ""}
                 </div>
               </details>
               <details class="section-box" ${sectionOpen()}>
@@ -3114,19 +3234,16 @@
                           <input type="checkbox" data-action="supplyOwned" data-supply="${escapeHtml(part)}" ${isSupplyOwned(part) ? "checked" : ""} ${disabled} />
                           <span>${escapeHtml(part)}</span>
                         </label>
-                        ${itemEditorButtons("parts", index)}
+                        ${editing ? itemEditorButtons("parts", index) : ""}
                       </div>
                     </div>
                   `).join("") : '<div class="empty">No parts or supplies listed.</div>'}
-                  ${editor ? '<button type="button" class="secondary" data-action="addListItem" data-list="parts">Add item</button>' : ""}
+                  ${editing ? '<button type="button" class="secondary" data-action="addListItem" data-list="parts">Add item</button>' : ""}
                 </div>
               </details>
             </div>
 
-            <details class="section-box" ${sectionOpen()}>
-              <summary><h4>Safety warnings</h4><span>${step.warnings.length}</span></summary>
-              ${editableTextListTemplate(step, "warnings", step.warnings, "No safety warnings listed.")}
-            </details>
+            ${safetyTemplate(step)}
 
             <details class="section-box" ${sectionOpen()}>
               <summary><h4>Photos</h4><span>${step.photosNeeded.length + (step.damagePhotos || []).length + step.photos.length}</span></summary>
@@ -3136,8 +3253,8 @@
                   <span>Show uploaded photos publicly</span>
                 </label>
               ` : ""}
-              ${editor && !(step.photoSections && step.photoSections.length) ? `<button type="button" class="secondary" data-action="addListItem" data-list="photosNeeded">Add photo requirement</button>` : ""}
-              ${photoContentTemplate(step)}
+              ${editing && !(step.photoSections && step.photoSections.length) ? `<button type="button" class="secondary" data-action="addListItem" data-list="photosNeeded">Add photo requirement</button>` : ""}
+              ${photoContentTemplate(phase, step)}
             </details>
 
             <details class="section-box" ${sectionOpen()}>
@@ -3175,11 +3292,11 @@
                 ${(step.additionalHelp || []).map((link, index) => `
                   <div class="list-card">
                     <a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>
-                    ${editor ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
+                    ${editing ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
               </div>
-              ${editor ? `
+              ${editing ? `
                 <div class="grid-two">
                   <label>Label
                     <input data-action="newHelpLabel" placeholder="Example: Chevelle brake rebuild guide" />
@@ -3194,7 +3311,7 @@
 
             <div class="button-row editor-only">
               <button type="button" class="secondary" data-action="markDone">Mark done today</button>
-              <button type="button" class="ghost" data-action="editStep">Edit step</button>
+              ${editing ? '<button type="button" class="ghost" data-action="editStepDetails">Step details</button>' : ""}
             </div>
           </div>
         </details>
@@ -3221,13 +3338,13 @@
             <div class="comparison-column">
               <h3>Before Transport</h3>
               <div class="photo-grid">
-                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.need || "Before")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
+                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Before"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
               </div>
             </div>
             <div class="comparison-column">
               <h3>After Transport</h3>
               <div class="photo-grid">
-                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.need || "After")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
+                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "After"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
               </div>
             </div>
           </div>
@@ -3237,7 +3354,7 @@
         <article class="list-card">
           <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
           <div class="photo-grid">
-            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || photo.need || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
             ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
           </div>
         </article>
@@ -3388,43 +3505,6 @@
       `;
     }
 
-    function currentTask() {
-      const candidates = allSteps();
-      return candidates.find(({ step }) => step.status === "In Progress" && stepCompletion(step) < 100)
-        || candidates.find(({ step }) => step.status !== "Done" && stepCompletion(step) < 100)
-        || candidates[0];
-    }
-
-    function nextIncompleteChecklist(step) {
-      const item = normalizeChecklist(step.checklist || []).find((check) => !check.done);
-      return item ? item.text : "No open checklist items.";
-    }
-
-    function renderCurrentTaskBar() {
-      const target = currentTask();
-      const bar = document.getElementById("currentTaskBar");
-      if (!target) {
-        bar.innerHTML = '<div class="empty">No current task.</div>';
-        return;
-      }
-      const { phase, step } = target;
-      bar.dataset.phaseId = phase.id;
-      bar.dataset.stepId = step.id;
-      bar.innerHTML = `
-        <div class="current-task-info">
-          <span>${escapeHtml(phase.title)}</span>
-          <strong>${escapeHtml(step.title)}</strong>
-          <span>Next: ${escapeHtml(nextIncompleteChecklist(step))}</span>
-        </div>
-        <div class="current-task-actions">
-          <button type="button" data-action="quickTakePhoto">Take Photo</button>
-          <button type="button" class="secondary" data-action="quickAddNote">Add Note</button>
-          <button type="button" class="secondary" data-action="quickAddCost">Add Cost</button>
-          <button type="button" class="ghost" data-action="quickCompleteStep">Complete</button>
-        </div>
-      `;
-    }
-
     function render() {
       renderAccessMode();
       updateDashboard();
@@ -3435,7 +3515,6 @@
       renderTimeline();
       renderMilestones();
       renderSummary();
-      renderCurrentTaskBar();
     }
 
     function findStep(phaseId, stepId) {
@@ -3481,15 +3560,24 @@
     }
 
     async function handlePhotos(card, files, need) {
-      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
-      if (!step) return;
-      const categoryInput = [...card.querySelectorAll('[data-action="pendingPhotoCategory"]')].find((item) => item.dataset.photoNeed === need);
+      const { phase, step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!phase || !step) return;
       const captionInput = [...card.querySelectorAll('[data-action="pendingPhotoCaption"]')].find((item) => item.dataset.photoNeed === need);
-      const category = categoryInput ? categoryInput.value : photoCategory(need);
+      const category = uploadPhotoCategory(phase, step, need);
       const caption = captionInput && captionInput.value.trim() ? captionInput.value.trim() : need;
+      const damageEntry = isAfterTransportStep(phase, step) ? transportDamageEntry(step, need) : null;
       const readers = [...files].map((file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve({ name: file.name, need: photoNeedKey(need), category, caption, dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onload = () => resolve({
+          name: file.name,
+          need: photoNeedKey(need),
+          category,
+          caption,
+          damageFound: damageEntry ? Boolean(damageEntry.found) : false,
+          damageNotes: damageEntry ? damageEntry.notes || "" : "",
+          dataUrl: reader.result,
+          addedAt: new Date().toISOString()
+        });
         reader.onerror = reject;
         reader.readAsDataURL(file);
       }));
@@ -3519,32 +3607,6 @@
       step.damagePhotos = step.damagePhotos || [];
       step.damagePhotos.push(...photos);
       recordHistory(`Added damage photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${trimmedLocation}`);
-      saveState();
-    }
-
-    async function handleQuickPhotos(files) {
-      const target = currentTask();
-      if (!target || !files || !files.length) return;
-      const { step } = target;
-      const timestamp = new Date().toISOString();
-      const category = step.title.toLowerCase().includes("transport") ? "After Transport" : "Progress";
-      const readers = [...files].map((file) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-          name: file.name,
-          need: "Quick garage photo",
-          category,
-          caption: `Quick photo - ${new Date(timestamp).toLocaleString()}`,
-          dataUrl: reader.result,
-          addedAt: timestamp
-        });
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      }));
-      const photos = await Promise.all(readers);
-      step.photos = step.photos || [];
-      step.photos.push(...photos);
-      recordHistory(`Added ${photos.length} quick photo${photos.length === 1 ? "" : "s"}`, step.title);
       saveState();
     }
 
@@ -3643,6 +3705,12 @@
 
     document.addEventListener("change", (event) => {
       const input = event.target;
+      if (input.dataset.preference) {
+        state.displayPreferences = displayPrefs();
+        state.displayPreferences[input.dataset.preference] = input.checked;
+        saveState();
+        return;
+      }
       if (!isEditorMode()) {
         event.preventDefault();
         input.checked = !input.checked;
@@ -3665,7 +3733,6 @@
         saveState();
         return;
       }
-      if (input.dataset.action === "pendingPhotoCategory") return;
       const card = input.closest(".step-card");
       if (!card || !input.dataset.action) return;
       const action = input.dataset.action;
@@ -3690,6 +3757,10 @@
         }
         step.photoChecks = step.photoChecks || {};
         step.photoChecks[photoNeedKey(input.dataset.photoNeed)] = input.checked;
+        saveState();
+      } else if (action === "photoDamageFound") {
+        const damageEntry = transportDamageEntry(step, input.dataset.photoNeed);
+        damageEntry.found = input.checked;
         saveState();
       } else if (action === "toolOwned") {
         setToolOwned(input.dataset.tool, input.checked);
@@ -3750,7 +3821,7 @@
         renderSummary();
         return;
       }
-      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes"].includes(input.dataset.action)) return;
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
       if (input.dataset.action && input.dataset.action.startsWith("cost")) {
@@ -3767,6 +3838,9 @@
         if (input.dataset.action === "helpWebsite") step.professionalHelp.website = input.value;
         if (input.dataset.action === "helpPhone") step.professionalHelp.phone = input.value;
         if (input.dataset.action === "helpNotes") step.professionalHelp.notes = input.value;
+      } else if (input.dataset.action === "photoDamageNotes") {
+        const damageEntry = transportDamageEntry(step, input.dataset.photoNeed);
+        damageEntry.notes = input.value;
       } else {
         if (input.dataset.action === "notes" && !step.notes && input.value.trim()) recordHistory("Added notes", step.title);
         step[input.dataset.action] = input.value;
@@ -3785,7 +3859,16 @@
         document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
         return;
       }
-      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "compactModeToggle" || button.id === "garageModeToggle" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+        return;
+      }
+      const card = button.closest(".step-card");
+      if (card && button.dataset.action === "expandStepSections") {
+        card.querySelectorAll(".section-box").forEach((section) => section.open = true);
+        return;
+      }
+      if (card && button.dataset.action === "collapseStepSections") {
+        card.querySelectorAll(".section-box").forEach((section) => section.open = false);
         return;
       }
       if (!isEditorMode()) {
@@ -3793,7 +3876,6 @@
         requireEditor();
         return;
       }
-      const card = button.closest(".step-card");
       if (card && button.dataset.action) {
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
@@ -3810,6 +3892,14 @@
           });
           recordHistory("Added cost item", step.title);
           saveState();
+        }
+        if (button.dataset.action === "startEditingStep") {
+          editingStepIds.add(step.id);
+          render();
+        }
+        if (button.dataset.action === "doneEditingStep") {
+          editingStepIds.delete(step.id);
+          render();
         }
         if (button.dataset.action === "removeCostItem") {
           step.costItems = normalizeCostItems(step);
@@ -3864,12 +3954,6 @@
           if (nextIndex < 0 || nextIndex >= list.length) return;
           [list[index], list[nextIndex]] = [list[nextIndex], list[index]];
           saveState();
-        }
-        if (button.dataset.action === "expandStepSections") {
-          card.querySelectorAll(".section-box").forEach((section) => section.open = true);
-        }
-        if (button.dataset.action === "collapseStepSections") {
-          card.querySelectorAll(".section-box").forEach((section) => section.open = false);
         }
         if (button.dataset.action === "removePhoto") {
           const removed = step.photos[Number(button.dataset.index)];
@@ -3937,53 +4021,10 @@
           recordHistory("Marked step done", step.title);
           saveState();
         }
-        if (button.dataset.action === "editStep") openStepModal(card.dataset.phaseId, card.dataset.stepId);
-      }
-      const taskBar = button.closest("#currentTaskBar");
-      if (taskBar && button.dataset.action) {
-        const target = currentTask();
-        if (!target) return;
-        const { step } = target;
-        if (button.dataset.action === "quickTakePhoto") {
-          document.getElementById("quickCameraInput").click();
-        }
-        if (button.dataset.action === "quickAddNote") {
-          const note = prompt("Add note to current step", "");
-          if (!note) return;
-          step.notes = [step.notes, note.trim()].filter(Boolean).join("\n");
-          recordHistory("Added quick note", step.title);
-          saveState();
-        }
-        if (button.dataset.action === "quickAddCost") {
-          const name = prompt("Cost item name", "");
-          if (!name) return;
-          const amount = prompt("Cost per item", "0") || "0";
-          step.costItems = normalizeCostItems(step);
-          step.costItems.push({
-            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
-            name: name.trim(),
-            category: "Other",
-            amount,
-            quantity: "1",
-            purchased: false,
-            notes: "Added from current task bar."
-          });
-          recordHistory("Added quick cost", `${step.title}: ${name.trim()}`);
-          saveState();
-        }
-        if (button.dataset.action === "quickCompleteStep") {
-          step.status = "Done";
-          step.completedDate = new Date().toISOString().slice(0, 10);
-          step.checklist = normalizeChecklist(step.checklist || []).map((item) => ({ ...item, done: true }));
-          recordHistory("Completed current step", step.title);
-          saveState();
-        }
+        if (button.dataset.action === "editStepDetails") openStepModal(card.dataset.phaseId, card.dataset.stepId);
       }
     });
 
-    document.getElementById("addStepTop").addEventListener("click", () => {
-      if (requireEditor()) openStepModal(state.phases[0].id, "");
-    });
     document.getElementById("addStepToolbar").addEventListener("click", () => {
       if (requireEditor()) openStepModal(state.phases[0].id, "");
     });
@@ -4001,6 +4042,9 @@
       document.querySelector('[data-view="phasesView"]').click();
       render();
     });
+    document.getElementById("settingsMenu").addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
     document.getElementById("addPhaseToolbar").addEventListener("click", () => {
       if (!requireEditor()) return;
       const title = prompt("Phase title", "New Custom Phase");
@@ -4017,23 +4061,6 @@
       });
       saveState();
     });
-    document.getElementById("printTop").addEventListener("click", () => window.print());
-    document.getElementById("generateShopping").addEventListener("click", () => document.querySelector('[data-view="shoppingView"]').click());
-    document.getElementById("compactModeToggle").addEventListener("click", () => {
-      state.compactMode = !state.compactMode;
-      saveState();
-    });
-    document.getElementById("garageModeToggle").addEventListener("click", () => {
-      state.garageMode = !state.garageMode;
-      saveState();
-    });
-    document.getElementById("quickCameraInput").addEventListener("change", (event) => {
-      if (!requireEditor()) return;
-      handleQuickPhotos(event.target.files);
-      event.target.value = "";
-    });
-    document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = true));
-    document.getElementById("collapseAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = false));
     document.getElementById("cancelEdit").addEventListener("click", closeStepModal);
     document.getElementById("stepModal").addEventListener("click", (event) => {
       if (event.target.id === "stepModal") closeStepModal();
