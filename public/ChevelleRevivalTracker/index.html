@@ -264,63 +264,23 @@
       display: none !important;
     }
 
-    .display-preferences {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff8eb;
-    }
-
-    .display-preferences > summary {
-      cursor: pointer;
-      font-weight: 900;
-      color: var(--red-dark);
-      list-style: none;
-    }
-
-    .display-preferences > summary::-webkit-details-marker { display: none; }
-
-    .preference-grid {
-      display: grid;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .preference-grid label {
-      display: grid;
-      grid-template-columns: 28px 1fr;
-      align-items: center;
-      gap: 8px;
-      color: var(--ink);
-      font-size: 0.94rem;
-      text-transform: none;
-    }
-
-    .preference-grid input {
-      width: 22px;
-      height: 22px;
-      min-height: 22px;
-      accent-color: var(--green);
-    }
-
-    body.large-touch-controls {
+    body.garage-mode {
       --ink: #130f0b;
       --muted: #3f372f;
       --line: #9a8b78;
       background: #f4eadb;
     }
 
-    body.large-touch-controls button,
-    body.large-touch-controls input,
-    body.large-touch-controls select,
-    body.large-touch-controls textarea {
+    body.garage-mode button,
+    body.garage-mode input,
+    body.garage-mode select,
+    body.garage-mode textarea {
       min-height: 54px;
       font-size: 1rem;
     }
 
-    body.large-touch-controls .section-box,
-    body.large-touch-controls .step-body {
+    body.garage-mode .section-box,
+    body.garage-mode .step-body {
       gap: 8px;
     }
 
@@ -1049,15 +1009,8 @@
         <button id="generateShopping">Open tools checklist</button>
         <button class="secondary editor-only" id="addPhaseToolbar">Add phase</button>
         <button class="secondary editor-only" id="addStepToolbar">Add step</button>
-        <details class="display-preferences" id="displayPreferencesPanel">
-          <summary>Display preferences</summary>
-          <div class="preference-grid">
-            <label><input type="checkbox" id="prefLargeControls" /> Large touch controls</label>
-            <label><input type="checkbox" id="prefAutoCollapseCompleted" /> Auto-collapse completed steps</label>
-            <label><input type="checkbox" id="prefStickyTask" /> Sticky current task bar</label>
-            <label><input type="checkbox" id="prefCompactSections" /> Show compact sections</label>
-          </div>
-        </details>
+        <button class="ghost" id="compactModeToggle">Compact mode</button>
+        <button class="ghost" id="garageModeToggle">Garage mode</button>
         <button class="ghost" id="expandAll">Expand all</button>
         <button class="ghost" id="collapseAll">Collapse all</button>
       </div>
@@ -2243,12 +2196,8 @@
         phaseSchemaVersion: PHASE_SCHEMA_VERSION,
         toolResourceSchemaVersion: TOOL_RESOURCE_SCHEMA_VERSION,
         photoSchemaVersion: PHOTO_SCHEMA_VERSION,
-        displayPreferences: {
-          largeTouchControls: false,
-          autoCollapseCompleted: true,
-          stickyCurrentTask: true,
-          compactSections: false
-        },
+        compactMode: false,
+        garageMode: false,
         history: [],
         vehicleInfo: {
           yearMakeModel: "1969 Chevrolet Chevelle Malibu",
@@ -2301,7 +2250,8 @@
     function normalizeState(data) {
       data.toolsOwned = data.toolsOwned || {};
       data.suppliesOwned = data.suppliesOwned || {};
-      data.displayPreferences = normalizeDisplayPreferences(data);
+      data.compactMode = Boolean(data.compactMode);
+      data.garageMode = Boolean(data.garageMode);
       data.history = Array.isArray(data.history) ? data.history : [];
       data.vehicleInfo = data.vehicleInfo || {};
       data.milestones = data.milestones || {};
@@ -2568,21 +2518,6 @@
       });
     }
 
-    function normalizeDisplayPreferences(data) {
-      const existing = data.displayPreferences || {};
-      return {
-        largeTouchControls: Boolean(existing.largeTouchControls || data.garageMode),
-        autoCollapseCompleted: existing.autoCollapseCompleted !== undefined ? Boolean(existing.autoCollapseCompleted) : true,
-        stickyCurrentTask: existing.stickyCurrentTask !== undefined ? Boolean(existing.stickyCurrentTask) : true,
-        compactSections: Boolean(existing.compactSections || data.compactMode)
-      };
-    }
-
-    function displayPrefs() {
-      state.displayPreferences = normalizeDisplayPreferences(state);
-      return state.displayPreferences;
-    }
-
     function saveState() {
       state.updatedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -2620,22 +2555,15 @@
 
     function renderAccessMode() {
       const editor = isEditorMode();
-      const prefs = displayPrefs();
       document.body.classList.toggle("readonly", !editor);
       document.body.classList.toggle("editor", editor);
-      document.body.classList.toggle("large-touch-controls", Boolean(prefs.largeTouchControls));
+      document.body.classList.toggle("garage-mode", Boolean(state.garageMode));
       const banner = document.getElementById("accessBanner");
       banner.classList.toggle("editor", editor);
       banner.classList.toggle("readonly", !editor);
-      document.getElementById("accessModeText").textContent = editor ? "Editor mode: you can update the project." : "Public read-only view: family and friends can follow progress.";
-      const prefLarge = document.getElementById("prefLargeControls");
-      const prefAuto = document.getElementById("prefAutoCollapseCompleted");
-      const prefSticky = document.getElementById("prefStickyTask");
-      const prefCompact = document.getElementById("prefCompactSections");
-      if (prefLarge) prefLarge.checked = Boolean(prefs.largeTouchControls);
-      if (prefAuto) prefAuto.checked = Boolean(prefs.autoCollapseCompleted);
-      if (prefSticky) prefSticky.checked = Boolean(prefs.stickyCurrentTask);
-      if (prefCompact) prefCompact.checked = Boolean(prefs.compactSections);
+      document.getElementById("accessModeText").textContent = editor ? "Editor mode." : "Read-only view.";
+      document.getElementById("compactModeToggle").textContent = state.compactMode ? "Comfort mode" : "Compact mode";
+      document.getElementById("garageModeToggle").textContent = state.garageMode ? "Standard mode" : "Garage mode";
     }
 
     function escapeHtml(value) {
@@ -3023,7 +2951,7 @@
     }
 
     function sectionOpen() {
-      return displayPrefs().compactSections ? "" : "open";
+      return state.compactMode ? "" : "open";
     }
 
     function stepCompletion(step) {
@@ -3120,10 +3048,8 @@
       const editor = isEditorMode();
       const disabled = editDisabled();
       const openSteps = new Set([...document.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
-      const prefs = displayPrefs();
-      const shouldOpen = openSteps.has(step.id) || (!prefs.autoCollapseCompleted && step.status !== "Done");
       return `
-        <details class="step-card ${isHelp ? "needs-help" : ""}" ${shouldOpen ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
+        <details class="step-card ${isHelp ? "needs-help" : ""}" ${openSteps.has(step.id) ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
           <summary>
             <div class="step-title">
               <h3>${escapeHtml(step.title)}</h3>
@@ -3475,14 +3401,8 @@
     }
 
     function renderCurrentTaskBar() {
-      const bar = document.getElementById("currentTaskBar");
-      if (!displayPrefs().stickyCurrentTask) {
-        bar.style.display = "none";
-        bar.innerHTML = "";
-        return;
-      }
-      bar.style.display = "grid";
       const target = currentTask();
+      const bar = document.getElementById("currentTaskBar");
       if (!target) {
         bar.innerHTML = '<div class="empty">No current task.</div>';
         return;
@@ -3496,12 +3416,12 @@
           <strong>${escapeHtml(step.title)}</strong>
           <span>Next: ${escapeHtml(nextIncompleteChecklist(step))}</span>
         </div>
-        ${isEditorMode() ? `<div class="current-task-actions">
+        <div class="current-task-actions">
           <button type="button" data-action="quickTakePhoto">Take Photo</button>
           <button type="button" class="secondary" data-action="quickAddNote">Add Note</button>
           <button type="button" class="secondary" data-action="quickAddCost">Add Cost</button>
           <button type="button" class="ghost" data-action="quickCompleteStep">Complete</button>
-        </div>` : `<div class="empty">Log in as editor to update this task.</div>`}
+        </div>
       `;
     }
 
@@ -3865,7 +3785,7 @@
         document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
         return;
       }
-      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "prefLargeControls" || button.id === "prefAutoCollapseCompleted" || button.id === "prefStickyTask" || button.id === "prefCompactSections" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "compactModeToggle" || button.id === "garageModeToggle" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
         return;
       }
       if (!isEditorMode()) {
@@ -4099,19 +4019,14 @@
     });
     document.getElementById("printTop").addEventListener("click", () => window.print());
     document.getElementById("generateShopping").addEventListener("click", () => document.querySelector('[data-view="shoppingView"]').click());
-    function wireDisplayPreference(id, key) {
-      const input = document.getElementById(id);
-      if (!input) return;
-      input.addEventListener("change", () => {
-        state.displayPreferences = displayPrefs();
-        state.displayPreferences[key] = Boolean(input.checked);
-        saveState();
-      });
-    }
-    wireDisplayPreference("prefLargeControls", "largeTouchControls");
-    wireDisplayPreference("prefAutoCollapseCompleted", "autoCollapseCompleted");
-    wireDisplayPreference("prefStickyTask", "stickyCurrentTask");
-    wireDisplayPreference("prefCompactSections", "compactSections");
+    document.getElementById("compactModeToggle").addEventListener("click", () => {
+      state.compactMode = !state.compactMode;
+      saveState();
+    });
+    document.getElementById("garageModeToggle").addEventListener("click", () => {
+      state.garageMode = !state.garageMode;
+      saveState();
+    });
     document.getElementById("quickCameraInput").addEventListener("change", (event) => {
       if (!requireEditor()) return;
       handleQuickPhotos(event.target.files);
