@@ -264,6 +264,84 @@
       display: none !important;
     }
 
+    body.garage-mode {
+      --ink: #130f0b;
+      --muted: #3f372f;
+      --line: #9a8b78;
+      background: #f4eadb;
+    }
+
+    body.garage-mode button,
+    body.garage-mode input,
+    body.garage-mode select,
+    body.garage-mode textarea {
+      min-height: 54px;
+      font-size: 1rem;
+    }
+
+    body.garage-mode .section-box,
+    body.garage-mode .step-body {
+      gap: 8px;
+    }
+
+    .current-task-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      display: grid;
+      gap: 8px;
+      margin: 16px -14px 0;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      border-top: 2px solid var(--red-dark);
+      background: rgba(255, 250, 241, 0.98);
+      box-shadow: 0 -10px 28px rgba(36,31,26,0.18);
+    }
+
+    .current-task-info {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .current-task-info strong,
+    .current-task-info span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .current-task-info span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .current-task-actions {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .current-task-actions button {
+      min-height: 46px;
+      padding: 8px 6px;
+      font-size: 0.78rem;
+    }
+
+    @media (min-width: 760px) {
+      .current-task-bar {
+        position: static;
+        margin: 16px 0 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 8px 22px rgba(36,31,26,0.08);
+      }
+      .current-task-actions {
+        grid-template-columns: repeat(4, auto);
+        justify-content: start;
+      }
+    }
+
     .phase-list {
       display: grid;
       gap: 12px;
@@ -932,6 +1010,7 @@
         <button class="secondary editor-only" id="addPhaseToolbar">Add phase</button>
         <button class="secondary editor-only" id="addStepToolbar">Add step</button>
         <button class="ghost" id="compactModeToggle">Compact mode</button>
+        <button class="ghost" id="garageModeToggle">Garage mode</button>
         <button class="ghost" id="expandAll">Expand all</button>
         <button class="ghost" id="collapseAll">Collapse all</button>
       </div>
@@ -980,6 +1059,9 @@
     <section id="summaryView" class="view">
       <div class="print-summary" id="printSummary"></div>
     </section>
+
+    <section class="current-task-bar" id="currentTaskBar" aria-label="Current task quick actions"></section>
+    <input class="hidden-file" id="quickCameraInput" type="file" accept="image/*" capture="environment" multiple />
   </main>
 
   <div class="modal-backdrop" id="stepModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -1046,7 +1128,7 @@
     */
     const TOOL_RESOURCE_SCHEMA_VERSION = 3;
     const PHOTO_SCHEMA_VERSION = 8;
-    const PHASE_SCHEMA_VERSION = 10;
+    const PHASE_SCHEMA_VERSION = 11;
     const PHOTO_DOC_STEP_TITLE = "Complete before-transport photo documentation.";
     const DAMAGE_STEP_TITLE = "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.";
     const TRANSPORT_ADMIN_STEP_TITLE = "Arrange transport paperwork, keys, and requirements.";
@@ -2115,6 +2197,7 @@
         toolResourceSchemaVersion: TOOL_RESOURCE_SCHEMA_VERSION,
         photoSchemaVersion: PHOTO_SCHEMA_VERSION,
         compactMode: false,
+        garageMode: false,
         history: [],
         vehicleInfo: {
           yearMakeModel: "1969 Chevrolet Chevelle Malibu",
@@ -2168,9 +2251,14 @@
       data.toolsOwned = data.toolsOwned || {};
       data.suppliesOwned = data.suppliesOwned || {};
       data.compactMode = Boolean(data.compactMode);
+      data.garageMode = Boolean(data.garageMode);
       data.history = Array.isArray(data.history) ? data.history : [];
       data.vehicleInfo = data.vehicleInfo || {};
       data.milestones = data.milestones || {};
+      data.phases = (data.phases || []).filter((phase) => {
+        const title = String(phase.title || "");
+        return !(title.includes("PHASE 15") && title.toLowerCase().includes("custom phase"));
+      });
       migrateSeedPhases(data);
       migratePhaseStructure(data);
       migrateGroupedPhases(data);
@@ -2469,11 +2557,13 @@
       const editor = isEditorMode();
       document.body.classList.toggle("readonly", !editor);
       document.body.classList.toggle("editor", editor);
+      document.body.classList.toggle("garage-mode", Boolean(state.garageMode));
       const banner = document.getElementById("accessBanner");
       banner.classList.toggle("editor", editor);
       banner.classList.toggle("readonly", !editor);
       document.getElementById("accessModeText").textContent = editor ? "Editor mode." : "Read-only view.";
       document.getElementById("compactModeToggle").textContent = state.compactMode ? "Comfort mode" : "Compact mode";
+      document.getElementById("garageModeToggle").textContent = state.garageMode ? "Standard mode" : "Garage mode";
     }
 
     function escapeHtml(value) {
@@ -3298,6 +3388,43 @@
       `;
     }
 
+    function currentTask() {
+      const candidates = allSteps();
+      return candidates.find(({ step }) => step.status === "In Progress" && stepCompletion(step) < 100)
+        || candidates.find(({ step }) => step.status !== "Done" && stepCompletion(step) < 100)
+        || candidates[0];
+    }
+
+    function nextIncompleteChecklist(step) {
+      const item = normalizeChecklist(step.checklist || []).find((check) => !check.done);
+      return item ? item.text : "No open checklist items.";
+    }
+
+    function renderCurrentTaskBar() {
+      const target = currentTask();
+      const bar = document.getElementById("currentTaskBar");
+      if (!target) {
+        bar.innerHTML = '<div class="empty">No current task.</div>';
+        return;
+      }
+      const { phase, step } = target;
+      bar.dataset.phaseId = phase.id;
+      bar.dataset.stepId = step.id;
+      bar.innerHTML = `
+        <div class="current-task-info">
+          <span>${escapeHtml(phase.title)}</span>
+          <strong>${escapeHtml(step.title)}</strong>
+          <span>Next: ${escapeHtml(nextIncompleteChecklist(step))}</span>
+        </div>
+        <div class="current-task-actions">
+          <button type="button" data-action="quickTakePhoto">Take Photo</button>
+          <button type="button" class="secondary" data-action="quickAddNote">Add Note</button>
+          <button type="button" class="secondary" data-action="quickAddCost">Add Cost</button>
+          <button type="button" class="ghost" data-action="quickCompleteStep">Complete</button>
+        </div>
+      `;
+    }
+
     function render() {
       renderAccessMode();
       updateDashboard();
@@ -3308,6 +3435,7 @@
       renderTimeline();
       renderMilestones();
       renderSummary();
+      renderCurrentTaskBar();
     }
 
     function findStep(phaseId, stepId) {
@@ -3391,6 +3519,32 @@
       step.damagePhotos = step.damagePhotos || [];
       step.damagePhotos.push(...photos);
       recordHistory(`Added damage photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${trimmedLocation}`);
+      saveState();
+    }
+
+    async function handleQuickPhotos(files) {
+      const target = currentTask();
+      if (!target || !files || !files.length) return;
+      const { step } = target;
+      const timestamp = new Date().toISOString();
+      const category = step.title.toLowerCase().includes("transport") ? "After Transport" : "Progress";
+      const readers = [...files].map((file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          name: file.name,
+          need: "Quick garage photo",
+          category,
+          caption: `Quick photo - ${new Date(timestamp).toLocaleString()}`,
+          dataUrl: reader.result,
+          addedAt: timestamp
+        });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }));
+      const photos = await Promise.all(readers);
+      step.photos = step.photos || [];
+      step.photos.push(...photos);
+      recordHistory(`Added ${photos.length} quick photo${photos.length === 1 ? "" : "s"}`, step.title);
       saveState();
     }
 
@@ -3631,7 +3785,7 @@
         document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
         return;
       }
-      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "compactModeToggle" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "compactModeToggle" || button.id === "garageModeToggle" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
         return;
       }
       if (!isEditorMode()) {
@@ -3785,6 +3939,46 @@
         }
         if (button.dataset.action === "editStep") openStepModal(card.dataset.phaseId, card.dataset.stepId);
       }
+      const taskBar = button.closest("#currentTaskBar");
+      if (taskBar && button.dataset.action) {
+        const target = currentTask();
+        if (!target) return;
+        const { step } = target;
+        if (button.dataset.action === "quickTakePhoto") {
+          document.getElementById("quickCameraInput").click();
+        }
+        if (button.dataset.action === "quickAddNote") {
+          const note = prompt("Add note to current step", "");
+          if (!note) return;
+          step.notes = [step.notes, note.trim()].filter(Boolean).join("\n");
+          recordHistory("Added quick note", step.title);
+          saveState();
+        }
+        if (button.dataset.action === "quickAddCost") {
+          const name = prompt("Cost item name", "");
+          if (!name) return;
+          const amount = prompt("Cost per item", "0") || "0";
+          step.costItems = normalizeCostItems(step);
+          step.costItems.push({
+            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+            name: name.trim(),
+            category: "Other",
+            amount,
+            quantity: "1",
+            purchased: false,
+            notes: "Added from current task bar."
+          });
+          recordHistory("Added quick cost", `${step.title}: ${name.trim()}`);
+          saveState();
+        }
+        if (button.dataset.action === "quickCompleteStep") {
+          step.status = "Done";
+          step.completedDate = new Date().toISOString().slice(0, 10);
+          step.checklist = normalizeChecklist(step.checklist || []).map((item) => ({ ...item, done: true }));
+          recordHistory("Completed current step", step.title);
+          saveState();
+        }
+      }
     });
 
     document.getElementById("addStepTop").addEventListener("click", () => {
@@ -3809,7 +4003,7 @@
     });
     document.getElementById("addPhaseToolbar").addEventListener("click", () => {
       if (!requireEditor()) return;
-      const title = prompt("Phase title", "PHASE 15 - Custom Phase");
+      const title = prompt("Phase title", "New Custom Phase");
       if (!title) return;
       const goal = prompt("Phase goal", "Describe the goal for this phase.") || "";
       state.phases.push({
@@ -3828,6 +4022,15 @@
     document.getElementById("compactModeToggle").addEventListener("click", () => {
       state.compactMode = !state.compactMode;
       saveState();
+    });
+    document.getElementById("garageModeToggle").addEventListener("click", () => {
+      state.garageMode = !state.garageMode;
+      saveState();
+    });
+    document.getElementById("quickCameraInput").addEventListener("change", (event) => {
+      if (!requireEditor()) return;
+      handleQuickPhotos(event.target.files);
+      event.target.value = "";
     });
     document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = true));
     document.getElementById("collapseAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = false));
