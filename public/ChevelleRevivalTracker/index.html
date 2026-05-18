@@ -410,12 +410,70 @@
       background: white;
     }
 
+    details.section-box > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    details.section-box > summary::-webkit-details-marker {
+      display: none;
+    }
+
     .section-box h4 {
       margin: 0;
       color: var(--red-dark);
       font-size: 0.86rem;
       text-transform: uppercase;
       letter-spacing: 0;
+    }
+
+    .section-content {
+      display: grid;
+      gap: 8px;
+    }
+
+    .editable-row {
+      display: grid;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+    }
+
+    .editable-row-main {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .mini-actions button {
+      min-height: 34px;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .comparison-column {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
     }
 
     .check-row {
@@ -873,6 +931,7 @@
         <button id="generateShopping">Open tools checklist</button>
         <button class="secondary editor-only" id="addPhaseToolbar">Add phase</button>
         <button class="secondary editor-only" id="addStepToolbar">Add step</button>
+        <button class="ghost" id="compactModeToggle">Compact mode</button>
         <button class="ghost" id="expandAll">Expand all</button>
         <button class="ghost" id="collapseAll">Collapse all</button>
       </div>
@@ -896,6 +955,7 @@
 
     <section id="timelineView" class="view">
       <div class="list-view" id="timelineList"></div>
+      <div class="list-view" id="historyList"></div>
     </section>
 
     <section id="milestonesView" class="view">
@@ -985,8 +1045,8 @@
       Change ADMIN_PASSWORD before publishing if you use this lightweight mode.
     */
     const TOOL_RESOURCE_SCHEMA_VERSION = 3;
-    const PHOTO_SCHEMA_VERSION = 7;
-    const PHASE_SCHEMA_VERSION = 9;
+    const PHOTO_SCHEMA_VERSION = 8;
+    const PHASE_SCHEMA_VERSION = 10;
     const PHOTO_DOC_STEP_TITLE = "Complete before-transport photo documentation.";
     const DAMAGE_STEP_TITLE = "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.";
     const TRANSPORT_ADMIN_STEP_TITLE = "Arrange transport paperwork, keys, and requirements.";
@@ -995,6 +1055,7 @@
     const AFTER_TRANSPORT_DOC_STEP_TITLE = "After Transport Photo Documentation";
     const STATUS_OPTIONS = ["Not Started", "In Progress", "Done", "Needs Help"];
     const COST_CATEGORIES = ["Tool", "Part", "Supply", "Service", "Transport", "Other"];
+    const PHOTO_CATEGORIES = ["Exterior", "Interior", "Engine Bay", "Trunk", "Undercarriage", "Damage", "Documentation", "Parts", "Progress", "Before Transport", "After Transport"];
     const DIFFICULTY_OPTIONS = ["Beginner", "Moderate", "Advanced", "Professional Recommended"];
     const CONFIDENCE_OPTIONS = ["Confident", "Unsure", "Need help"];
     const GATE_OPTIONS = ["Yes", "Yes, with caution", "No, professional help recommended"];
@@ -1339,45 +1400,30 @@
 
     const phase0ChecklistByStep = {
       [TRANSPORT_ADMIN_STEP_TITLE]: [
-        "Verify title is secure and transported separately from the car.",
-        "Remove or secure valuable paperwork/items.",
+        "Secure title and important paperwork separately from vehicle.",
         "Make spare key if possible.",
-        "Confirm insurance coverage with transporter.",
-        "Confirm pickup and delivery addresses/contact info.",
-        "Confirm transporter can winch-load non-running vehicle.",
-        "Inform transporter car is NON-RUNNING.",
-        "Inform transporter car is a CLASSIC CONVERTIBLE.",
+        "Confirm transporter insurance coverage.",
+        "Confirm pickup/delivery details.",
+        "Confirm transporter can load non-running vehicle.",
         "Confirm transporter has winch capability.",
-        "Confirm low-clearance loading capability if needed.",
-        "Confirm any non-running vehicle loading fee.",
-        "Keep title/paperwork separate from the car.",
-        "Save transporter photos and inspection forms."
+        "Confirm non-running vehicle fees.",
+        "Inform transporter vehicle is a classic convertible."
       ],
       [PHOTO_DOC_STEP_TITLE]: phase0PhotoSections.map((section) => section.title),
       [VEHICLE_LOAD_PREP_STEP_TITLE]: [
-        "Remove all loose items from interior and trunk.",
-        "Check if tires hold air.",
-        "Inflate tires enough for loading/unloading.",
-        "Verify wheels rotate freely.",
-        "Verify steering wheel turns.",
+        "Remove loose valuables/items.",
+        "Disconnect or secure battery.",
         "Release parking brake.",
-        "Verify car can roll in neutral.",
-        "Verify battery is disconnected or secured.",
-        "Check for active fluid leaks.",
-        "Place absorbent pad/cardboard under car if leaking.",
-        "Place wheel chocks while parked before pickup.",
+        "Confirm vehicle rolls.",
+        "Inflate tires if needed.",
         "Secure or latch hood, doors, trunk, and convertible top.",
-        "Ensure windows are fully up if possible.",
-        "Label any unusual switches or quirks for transporter."
+        "Verify no major active leaks."
       ],
       [PICKUP_HANDOFF_STEP_TITLE]: [
-        "Walk around car with driver during pickup inspection.",
-        "Record mileage before shipping.",
-        "Take photos before signing pickup paperwork.",
-        "Take photos after delivery before signing final paperwork.",
-        "Take before-loading video.",
-        "Take video during loading if possible.",
-        "Upload all photos/videos to cloud storage immediately."
+        "Photograph vehicle before shipment.",
+        "Record odometer.",
+        "Save inspection forms.",
+        "Take loading video if possible."
       ]
     };
 
@@ -2068,6 +2114,8 @@
         phaseSchemaVersion: PHASE_SCHEMA_VERSION,
         toolResourceSchemaVersion: TOOL_RESOURCE_SCHEMA_VERSION,
         photoSchemaVersion: PHOTO_SCHEMA_VERSION,
+        compactMode: false,
+        history: [],
         vehicleInfo: {
           yearMakeModel: "1969 Chevrolet Chevelle Malibu",
           bodyStyle: "Convertible"
@@ -2119,6 +2167,8 @@
     function normalizeState(data) {
       data.toolsOwned = data.toolsOwned || {};
       data.suppliesOwned = data.suppliesOwned || {};
+      data.compactMode = Boolean(data.compactMode);
+      data.history = Array.isArray(data.history) ? data.history : [];
       data.vehicleInfo = data.vehicleInfo || {};
       data.milestones = data.milestones || {};
       migrateSeedPhases(data);
@@ -2170,6 +2220,16 @@
           step.photoChecks = step.photoChecks || {};
           step.damagePhotos = step.damagePhotos || [];
           step.photos = step.photos || [];
+          step.photos.forEach((photo) => {
+            photo.category = photo.category || photoCategory(photo.need || step.title);
+            photo.caption = photo.caption || photo.need || "";
+            photo.addedAt = photo.addedAt || "";
+          });
+          step.damagePhotos.forEach((photo) => {
+            photo.category = photo.category || "Damage";
+            photo.caption = photo.caption || photo.location || "";
+            photo.addedAt = photo.addedAt || "";
+          });
           step.photos.forEach((photo) => {
             if (photo.need) step.photoChecks[photoNeedKey(photo.need)] = true;
           });
@@ -2376,6 +2436,17 @@
       render();
     }
 
+    function recordHistory(message, detail = "") {
+      state.history = state.history || [];
+      state.history.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        date: new Date().toISOString(),
+        message,
+        detail
+      });
+      state.history = state.history.slice(0, 300);
+    }
+
     function allSteps() {
       return state.phases.flatMap((phase) => phase.steps.map((step) => ({ phase, step })));
     }
@@ -2402,6 +2473,7 @@
       banner.classList.toggle("editor", editor);
       banner.classList.toggle("readonly", !editor);
       document.getElementById("accessModeText").textContent = editor ? "Editor mode." : "Read-only view.";
+      document.getElementById("compactModeToggle").textContent = state.compactMode ? "Comfort mode" : "Compact mode";
     }
 
     function escapeHtml(value) {
@@ -2592,9 +2664,15 @@
 
     function photoCategory(need) {
       const text = String(need || "").toLowerCase();
-      if (text.startsWith("before") || text.includes(" before ")) return "Before photos";
-      if (text.startsWith("after") || text.includes(" after ")) return "After photos";
-      return "During photos";
+      if (text.includes("before")) return "Before Transport";
+      if (text.includes("after")) return "After Transport";
+      if (text.includes("engine")) return "Engine Bay";
+      if (text.includes("trunk")) return "Trunk";
+      if (text.includes("underside") || text.includes("undercarriage") || text.includes("frame") || text.includes("floor")) return "Undercarriage";
+      if (text.includes("interior") || text.includes("seat") || text.includes("dash")) return "Interior";
+      if (text.includes("damage") || text.includes("scratch") || text.includes("dent") || text.includes("rust")) return "Damage";
+      if (text.includes("vin") || text.includes("title") || text.includes("paperwork") || text.includes("odometer")) return "Documentation";
+      return "Progress";
     }
 
     function photoNeedTemplate(step, need) {
@@ -2605,6 +2683,17 @@
               <input type="checkbox" data-action="photoCheck" data-photo-need="${escapeHtml(need)}" ${isPhotoNeedDone(step, need) ? "checked" : ""} />
               <span>${escapeHtml(need)} <span class="pill">${escapeHtml(photoCategory(need))}</span></span>
             </label>
+            ${isEditorMode() ? itemEditorButtons("photosNeeded", step.photosNeeded.indexOf(need)) : ""}
+            <div class="grid-two">
+              <label>Category
+                <select data-action="pendingPhotoCategory" data-photo-need="${escapeHtml(need)}">
+                  ${PHOTO_CATEGORIES.map((category) => `<option value="${category}" ${photoCategory(need) === category ? "selected" : ""}>${category}</option>`).join("")}
+                </select>
+              </label>
+              <label>Caption
+                <input data-action="pendingPhotoCaption" data-photo-need="${escapeHtml(need)}" placeholder="Optional caption" />
+              </label>
+            </div>
             <div class="photo-actions">
               <label>
                 Take Photo
@@ -2620,6 +2709,7 @@
             ${photosForNeed(step, need).map(({ photo, index }) => `
               <figure class="photo-tile">
                 <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || need)}" />
+                <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || need)}</figcaption>
                 <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
               </figure>
             `).join("")}
@@ -2651,7 +2741,7 @@
           ${(step.damagePhotos || []).map((photo, index) => `
             <figure class="photo-tile">
               <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
-              <figcaption class="photo-caption">${escapeHtml(photo.location || "Damage photo")}</figcaption>
+              <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               <button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>
             </figure>
           `).join("")}
@@ -2667,7 +2757,7 @@
             ${photos.map(({ photo }) => `
               <figure class="photo-tile">
                 <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
-                ${photo.location ? `<figcaption class="photo-caption">${escapeHtml(photo.location)}</figcaption>` : ""}
+                <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || photo.category || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               </figure>
             `).join("")}
           </div>
@@ -2691,6 +2781,7 @@
               ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => `
                 <figure class="photo-tile">
                   <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" />
+                  <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || step.title)}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
                   <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
                 </figure>
               `).join("")}
@@ -2702,14 +2793,14 @@
 
     function phaseProgress(phase) {
       if (!phase.steps.length) return 0;
-      return Math.round((phase.steps.filter((step) => step.status === "Done").length / phase.steps.length) * 100);
+      return Math.round(phase.steps.reduce((sum, step) => sum + stepCompletion(step), 0) / phase.steps.length);
     }
 
     function updateDashboard() {
       const steps = allSteps().map((item) => item.step);
       const total = steps.length || 1;
       const done = steps.filter((step) => step.status === "Done").length;
-      const percent = Math.round((done / total) * 100);
+      const percent = Math.round(steps.reduce((sum, step) => sum + stepCompletion(step), 0) / total);
       const costs = projectCostTotals(!isEditorMode());
       const needsHelp = steps.filter((step) => step.needsHelp || step.status === "Needs Help").length;
       document.getElementById("overallPercent").textContent = `${percent}%`;
@@ -2769,6 +2860,53 @@
       `).join("");
     }
 
+    function sectionOpen() {
+      return state.compactMode ? "" : "open";
+    }
+
+    function stepCompletion(step) {
+      const checklist = normalizeChecklist(step.checklist || []);
+      if (!checklist.length) return step.status === "Done" ? 100 : 0;
+      return Math.round((checklist.filter((item) => item.done).length / checklist.length) * 100);
+    }
+
+    function itemEditorButtons(listName, index) {
+      if (!isEditorMode() || index < 0) return "";
+      return `
+        <div class="mini-actions">
+          <button type="button" class="ghost" data-action="editListItem" data-list="${listName}" data-index="${index}">Edit</button>
+          <button type="button" class="ghost" data-action="moveListItem" data-list="${listName}" data-index="${index}" data-dir="-1">Up</button>
+          <button type="button" class="ghost" data-action="moveListItem" data-list="${listName}" data-index="${index}" data-dir="1">Down</button>
+          <button type="button" class="ghost" data-action="deleteListItem" data-list="${listName}" data-index="${index}">Delete</button>
+        </div>
+      `;
+    }
+
+    function editableTextListTemplate(step, listName, items, emptyText) {
+      const normalized = listName === "checklist" ? normalizeChecklist(items) : items;
+      return `
+        <div class="section-content">
+          ${normalized.length ? normalized.map((item, index) => {
+            const text = listName === "checklist" ? (item.text || item) : item;
+            return `
+              <div class="editable-row">
+                <div class="editable-row-main">
+                  ${listName === "checklist" ? `
+                    <label class="check-row">
+                      <input type="checkbox" data-action="checklist" data-index="${index}" ${item.done ? "checked" : ""} ${editDisabled()} />
+                      <span>${escapeHtml(text)}</span>
+                    </label>
+                  ` : `<span>${escapeHtml(text)}</span>`}
+                  ${itemEditorButtons(listName, index)}
+                </div>
+              </div>
+            `;
+          }).join("") : `<div class="empty">${escapeHtml(emptyText)}</div>`}
+          ${isEditorMode() ? `<button type="button" class="secondary" data-action="addListItem" data-list="${listName}">Add item</button>` : ""}
+        </div>
+      `;
+    }
+
     function costItemsTemplate(step) {
       const totals = stepCostTotals(step);
       const editor = isEditorMode();
@@ -2791,7 +2929,7 @@
                     ${COST_CATEGORIES.map((category) => `<option value="${category}" ${item.category === category ? "selected" : ""}>${category}</option>`).join("")}
                   </select>
                 </label>
-                <label>Cost amount
+                <label>Cost per item
                   <input type="number" min="0" step="0.01" inputmode="decimal" data-action="costAmount" data-index="${index}" value="${escapeHtml(item.amount)}" placeholder="0.00" ${disabled} />
                 </label>
                 <label>Quantity
@@ -2805,6 +2943,7 @@
               <label>Notes
                 <textarea data-action="costNotes" data-index="${index}" placeholder="Receipt, vendor, part number, fitment notes" ${disabled}>${escapeHtml(item.notes)}</textarea>
               </label>
+              <strong>Total: ${currency(costItemTotal(item))}</strong>
               ${editor ? `<button type="button" class="ghost" data-action="removeCostItem" data-index="${index}">Remove item</button>` : ""}
             </div>
           `).join("") || '<div class="empty">No cost items yet.</div>'}
@@ -2828,6 +2967,7 @@
                 <span class="pill ${statusClass(step.status)}">${escapeHtml(step.status)}</span>
                 <span class="pill ${difficultyClass(step.difficulty)}">${escapeHtml(step.difficulty)}</span>
                 <span class="pill">${escapeHtml(step.estimatedTime)}</span>
+                <span class="pill">${stepCompletion(step)}% step</span>
                 <span class="pill">${checked}/${step.checklist.length} checklist</span>
                 ${isHelp ? '<span class="pill help">Pro help</span>' : ""}
               </div>
@@ -2835,6 +2975,11 @@
             <span aria-hidden="true">Open</span>
           </summary>
           <div class="step-body">
+            <div class="progress-shell"><div class="progress-bar" style="width:${stepCompletion(step)}%"></div></div>
+            <div class="button-row editor-only">
+              <button type="button" class="ghost" data-action="expandStepSections">Expand step</button>
+              <button type="button" class="ghost" data-action="collapseStepSections">Collapse step</button>
+            </div>
             <div class="grid-two">
               <label>Status
                 <select data-action="status" ${disabled}>
@@ -2846,50 +2991,67 @@
               </label>
             </div>
 
-            <div class="section-box">
-              <h4>Checklist</h4>
-              ${step.checklist.map((item, index) => `
-                <label class="check-row">
-                  <input type="checkbox" data-action="checklist" data-index="${index}" ${item.done ? "checked" : ""} ${disabled} />
-                  <span>${escapeHtml(item.text || item)}</span>
-                </label>
-              `).join("")}
-            </div>
+            <details class="section-box" ${sectionOpen()}>
+              <summary><h4>Checklist</h4><span>${stepCompletion(step)}%</span></summary>
+              ${editableTextListTemplate(step, "checklist", step.checklist, "No checklist items yet.")}
+            </details>
 
             <div class="grid-two">
-              <div class="section-box">
-                <h4>Required tools</h4>
-                ${step.tools.length ? step.tools.map((tool) => `
-                  <label class="tool-row">
-                    <input type="checkbox" data-action="toolOwned" data-tool="${escapeHtml(tool)}" ${isToolOwned(tool) ? "checked" : ""} ${disabled} />
-                    <span>${escapeHtml(tool)}</span>
-                  </label>
-                `).join("") : '<div class="chips"><span class="chip">None listed</span></div>'}
-              </div>
-              <div class="section-box">
-                <h4>Parts / supplies</h4>
-                ${step.parts.length ? step.parts.map((part) => `
-                  <label class="tool-row">
-                    <input type="checkbox" data-action="supplyOwned" data-supply="${escapeHtml(part)}" ${isSupplyOwned(part) ? "checked" : ""} ${disabled} />
-                    <span>${escapeHtml(part)}</span>
-                  </label>
-                `).join("") : '<div class="chips"><span class="chip">None listed</span></div>'}
-              </div>
+              <details class="section-box" ${sectionOpen()}>
+                <summary><h4>Required tools</h4><span>${step.tools.length}</span></summary>
+                <div class="section-content">
+                  ${step.tools.length ? step.tools.map((tool, index) => `
+                    <div class="editable-row">
+                      <div class="editable-row-main">
+                        <label class="tool-row">
+                          <input type="checkbox" data-action="toolOwned" data-tool="${escapeHtml(tool)}" ${isToolOwned(tool) ? "checked" : ""} ${disabled} />
+                          <span>${escapeHtml(tool)}</span>
+                        </label>
+                        ${itemEditorButtons("tools", index)}
+                      </div>
+                    </div>
+                  `).join("") : '<div class="empty">No tools listed.</div>'}
+                  ${editor ? '<button type="button" class="secondary" data-action="addListItem" data-list="tools">Add item</button>' : ""}
+                </div>
+              </details>
+              <details class="section-box" ${sectionOpen()}>
+                <summary><h4>Parts / supplies</h4><span>${step.parts.length}</span></summary>
+                <div class="section-content">
+                  ${step.parts.length ? step.parts.map((part, index) => `
+                    <div class="editable-row">
+                      <div class="editable-row-main">
+                        <label class="tool-row">
+                          <input type="checkbox" data-action="supplyOwned" data-supply="${escapeHtml(part)}" ${isSupplyOwned(part) ? "checked" : ""} ${disabled} />
+                          <span>${escapeHtml(part)}</span>
+                        </label>
+                        ${itemEditorButtons("parts", index)}
+                      </div>
+                    </div>
+                  `).join("") : '<div class="empty">No parts or supplies listed.</div>'}
+                  ${editor ? '<button type="button" class="secondary" data-action="addListItem" data-list="parts">Add item</button>' : ""}
+                </div>
+              </details>
             </div>
 
-            <div class="section-box">
-              <h4>Photos to take</h4>
+            <details class="section-box" ${sectionOpen()}>
+              <summary><h4>Safety warnings</h4><span>${step.warnings.length}</span></summary>
+              ${editableTextListTemplate(step, "warnings", step.warnings, "No safety warnings listed.")}
+            </details>
+
+            <details class="section-box" ${sectionOpen()}>
+              <summary><h4>Photos</h4><span>${step.photosNeeded.length + (step.damagePhotos || []).length + step.photos.length}</span></summary>
               ${editor ? `
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicPhotos" ${step.publicPhotos ? "checked" : ""} />
                   <span>Show uploaded photos publicly</span>
                 </label>
               ` : ""}
+              ${editor && !(step.photoSections && step.photoSections.length) ? `<button type="button" class="secondary" data-action="addListItem" data-list="photosNeeded">Add photo requirement</button>` : ""}
               ${photoContentTemplate(step)}
-            </div>
+            </details>
 
-            <div class="section-box">
-              <h4>Itemized Costs</h4>
+            <details class="section-box" ${sectionOpen()}>
+              <summary><h4>Itemized Costs</h4><span>${currency(stepCostTotals(step).subtotal)}</span></summary>
               ${editor ? `
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicCosts" ${step.publicCosts ? "checked" : ""} />
@@ -2897,11 +3059,11 @@
                 </label>
               ` : ""}
               ${editor || step.publicCosts ? costItemsTemplate(step) : '<div class="empty">Costs are private.</div>'}
-            </div>
+            </details>
 
             ${editor ? `
-              <div class="section-box">
-                <h4>Notes</h4>
+              <details class="section-box" ${sectionOpen()}>
+                <summary><h4>Notes</h4><span>${step.publicNotes ? "Public" : "Private"}</span></summary>
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicNotes" ${step.publicNotes ? "checked" : ""} />
                   <span>Show notes publicly</span>
@@ -2909,21 +3071,21 @@
                 <label>Notes
                   <textarea data-action="notes" placeholder="Measurements, observations, parts numbers, next move...">${escapeHtml(step.notes)}</textarea>
                 </label>
-              </div>
+              </details>
             ` : `
-              <div class="section-box">
-                <h4>Notes</h4>
+              <details class="section-box" ${sectionOpen()}>
+                <summary><h4>Notes</h4></summary>
                 ${step.publicNotes && step.notes ? `<p>${escapeHtml(step.notes)}</p>` : '<div class="empty">No public notes for this step yet.</div>'}
-              </div>
+              </details>
             `}
 
-            <div class="section-box">
-              <h4>Additional Help</h4>
+            <details class="section-box" ${sectionOpen()}>
+              <summary><h4>Additional Help</h4><span>${(step.additionalHelp || []).length}</span></summary>
               <div class="help-links">
                 ${(step.additionalHelp || []).map((link, index) => `
                   <div class="list-card">
                     <a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>
-                    ${editor ? `<button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button>` : ""}
+                    ${editor ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
               </div>
@@ -2938,7 +3100,7 @@
                 </div>
                 <button type="button" class="secondary" data-action="addAdditionalHelp">Add help link</button>
               ` : ""}
-            </div>
+            </details>
 
             <div class="button-row editor-only">
               <button type="button" class="secondary" data-action="markDone">Mark done today</button>
@@ -2956,12 +3118,37 @@
         photos: isEditorMode() || step.publicPhotos ? (step.photos || []) : [],
         damagePhotos: isEditorMode() || step.publicPhotos ? (step.damagePhotos || []) : []
       })).filter((item) => item.photos.length || item.damagePhotos.length);
-      document.getElementById("galleryList").innerHTML = items.length ? items.map(({ phase, step }) => `
+      const allPublicPhotos = items.flatMap(({ phase, step, photos, damagePhotos }) => [
+        ...photos.map((photo) => ({ phase, step, photo })),
+        ...damagePhotos.map((photo) => ({ phase, step, photo }))
+      ]);
+      const beforePhotos = allPublicPhotos.filter(({ photo }) => photo.category === "Before Transport");
+      const afterPhotos = allPublicPhotos.filter(({ photo }) => photo.category === "After Transport");
+      const comparison = (beforePhotos.length || afterPhotos.length) ? `
+        <article class="list-card">
+          <h3>Before / After Transport Comparison</h3>
+          <div class="comparison-grid">
+            <div class="comparison-column">
+              <h3>Before Transport</h3>
+              <div class="photo-grid">
+                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.need || "Before")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
+              </div>
+            </div>
+            <div class="comparison-column">
+              <h3>After Transport</h3>
+              <div class="photo-grid">
+                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.need || "After")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
+              </div>
+            </div>
+          </div>
+        </article>
+      ` : "";
+      document.getElementById("galleryList").innerHTML = items.length ? comparison + items.map(({ phase, step }) => `
         <article class="list-card">
           <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
           <div class="photo-grid">
-            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /></figure>`).join("") : ""}
-            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.location || "Damage photo")}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.category || photo.need || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
           </div>
         </article>
       `).join("") : '<div class="empty">No public photos yet.</div>';
@@ -3042,6 +3229,14 @@
           ${step.notes ? `<p>${escapeHtml(step.notes)}</p>` : ""}
         </article>
       `).join("") : '<div class="empty">Completed steps with dates will appear here.</div>';
+      document.getElementById("historyList").innerHTML = `
+        <article class="list-card">
+          <h3>Project History</h3>
+          ${(state.history || []).length ? state.history.map((entry) => `
+            <p><strong>${new Date(entry.date).toLocaleDateString()}</strong> - ${escapeHtml(entry.message)}${entry.detail ? `<br>${escapeHtml(entry.detail)}` : ""}</p>
+          `).join("") : '<div class="empty">Project activity will appear here.</div>'}
+        </article>
+      `;
     }
 
     function renderVehicleInfo() {
@@ -3129,9 +3324,11 @@
       const { phase, step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!phase || !step) return;
       if (action === "status") {
+        const oldStatus = step.status;
         step.status = value;
         step.needsHelp = value === "Needs Help" ? true : step.needsHelp;
         if (value === "Done" && !step.completedDate) step.completedDate = new Date().toISOString().slice(0, 10);
+        if (oldStatus !== value) recordHistory("Changed status", `${step.title}: ${oldStatus} to ${value}`);
       }
       if (action === "completedDate") step.completedDate = value;
       if (action === "cost") step.cost = value;
@@ -3147,7 +3344,10 @@
         if (action === "helpPhone") step.professionalHelp.phone = value;
         if (action === "helpNotes") step.professionalHelp.notes = value;
       }
-      if (action === "notes") step.notes = value;
+      if (action === "notes") {
+        if (!step.notes && value.trim()) recordHistory("Added notes", step.title);
+        step.notes = value;
+      }
       if (action === "videoUrl") step.videoUrl = value;
       saveState();
     }
@@ -3155,9 +3355,13 @@
     async function handlePhotos(card, files, need) {
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
+      const categoryInput = [...card.querySelectorAll('[data-action="pendingPhotoCategory"]')].find((item) => item.dataset.photoNeed === need);
+      const captionInput = [...card.querySelectorAll('[data-action="pendingPhotoCaption"]')].find((item) => item.dataset.photoNeed === need);
+      const category = categoryInput ? categoryInput.value : photoCategory(need);
+      const caption = captionInput && captionInput.value.trim() ? captionInput.value.trim() : need;
       const readers = [...files].map((file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve({ name: file.name, need: photoNeedKey(need), dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onload = () => resolve({ name: file.name, need: photoNeedKey(need), category, caption, dataUrl: reader.result, addedAt: new Date().toISOString() });
         reader.onerror = reject;
         reader.readAsDataURL(file);
       }));
@@ -3165,6 +3369,7 @@
       step.photos.push(...photos);
       step.photoChecks = step.photoChecks || {};
       step.photoChecks[photoNeedKey(need)] = true;
+      recordHistory(`Added ${photos.length} photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${caption}`);
       saveState();
     }
 
@@ -3178,13 +3383,14 @@
       }
       const readers = [...files].map((file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve({ name: file.name, location: trimmedLocation, dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onload = () => resolve({ name: file.name, location: trimmedLocation, category: "Damage", caption: trimmedLocation, dataUrl: reader.result, addedAt: new Date().toISOString() });
         reader.onerror = reject;
         reader.readAsDataURL(file);
       }));
       const photos = await Promise.all(readers);
       step.damagePhotos = step.damagePhotos || [];
       step.damagePhotos.push(...photos);
+      recordHistory(`Added damage photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${trimmedLocation}`);
       saveState();
     }
 
@@ -3240,9 +3446,16 @@
     function parseHelpLinks(value) {
       return value.split("\n").map((line) => {
         const [label, ...urlParts] = line.split("|");
-        const url = urlParts.join("|").trim();
+        const url = normalizeUrl(urlParts.join("|").trim());
         return { label: (label || "").trim() || url, url };
       }).filter((link) => link.url);
+    }
+
+    function normalizeUrl(url) {
+      const trimmed = String(url || "").trim();
+      if (!trimmed) return "";
+      if (/^(https?:|mailto:|tel:)/i.test(trimmed)) return trimmed;
+      return `https://${trimmed}`;
     }
 
     function parseOutcomes(value) {
@@ -3254,6 +3467,24 @@
         if (key && text) parsed[key] = text;
       });
       return Object.keys(parsed).length ? parsed : likelyOutcomesFor("");
+    }
+
+    function getEditableList(step, listName) {
+      if (listName === "checklist") {
+        step.checklist = normalizeChecklist(step.checklist || []);
+        return step.checklist;
+      }
+      if (!Array.isArray(step[listName])) step[listName] = [];
+      return step[listName];
+    }
+
+    function getListItemText(item) {
+      return typeof item === "string" ? item : (item.text || "");
+    }
+
+    function setListItemText(list, index, value) {
+      if (typeof list[index] === "string") list[index] = value;
+      else list[index].text = value;
     }
 
     document.addEventListener("change", (event) => {
@@ -3280,6 +3511,7 @@
         saveState();
         return;
       }
+      if (input.dataset.action === "pendingPhotoCategory") return;
       const card = input.closest(".step-card");
       if (!card || !input.dataset.action) return;
       const action = input.dataset.action;
@@ -3288,6 +3520,7 @@
       if (action === "checklist") {
         step.checklist = normalizeChecklist(step.checklist);
         step.checklist[Number(input.dataset.index)].done = input.checked;
+        if (input.checked) recordHistory("Completed checklist item", `${step.title}: ${step.checklist[Number(input.dataset.index)].text}`);
         if (step.checklist.every((item) => item.done)) {
           step.status = "Done";
           step.completedDate = step.completedDate || new Date().toISOString().slice(0, 10);
@@ -3381,6 +3614,7 @@
         if (input.dataset.action === "helpPhone") step.professionalHelp.phone = input.value;
         if (input.dataset.action === "helpNotes") step.professionalHelp.notes = input.value;
       } else {
+        if (input.dataset.action === "notes" && !step.notes && input.value.trim()) recordHistory("Added notes", step.title);
         step[input.dataset.action] = input.value;
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -3397,7 +3631,7 @@
         document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
         return;
       }
-      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "compactModeToggle" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
         return;
       }
       if (!isEditorMode()) {
@@ -3420,12 +3654,68 @@
             purchased: false,
             notes: ""
           });
+          recordHistory("Added cost item", step.title);
           saveState();
         }
         if (button.dataset.action === "removeCostItem") {
           step.costItems = normalizeCostItems(step);
           step.costItems.splice(Number(button.dataset.index), 1);
+          recordHistory("Removed cost item", step.title);
           saveState();
+        }
+        if (button.dataset.action === "addListItem") {
+          const listName = button.dataset.list;
+          const value = prompt("Add item");
+          if (!value) return;
+          const list = getEditableList(step, listName);
+          list.push(listName === "checklist" ? { text: value.trim(), done: false } : value.trim());
+          recordHistory(`Added ${listName} item`, `${step.title}: ${value.trim()}`);
+          saveState();
+        }
+        if (button.dataset.action === "editListItem") {
+          const listName = button.dataset.list;
+          const list = getEditableList(step, listName);
+          const index = Number(button.dataset.index);
+          const current = getListItemText(list[index]);
+          const value = prompt("Edit item", current);
+          if (!value) return;
+          setListItemText(list, index, value.trim());
+          if (listName === "photosNeeded") {
+            (step.photoSections || []).forEach((section) => {
+              section.items = (section.items || []).map((item) => item === current ? value.trim() : item);
+            });
+          }
+          recordHistory(`Edited ${listName} item`, `${step.title}: ${value.trim()}`);
+          saveState();
+        }
+        if (button.dataset.action === "deleteListItem") {
+          const listName = button.dataset.list;
+          const list = getEditableList(step, listName);
+          const index = Number(button.dataset.index);
+          const current = getListItemText(list[index]);
+          if (!confirm(`Delete "${current}"?`)) return;
+          list.splice(index, 1);
+          if (listName === "photosNeeded") {
+            (step.photoSections || []).forEach((section) => {
+              section.items = (section.items || []).filter((item) => item !== current);
+            });
+          }
+          recordHistory(`Deleted ${listName} item`, `${step.title}: ${current}`);
+          saveState();
+        }
+        if (button.dataset.action === "moveListItem") {
+          const list = getEditableList(step, button.dataset.list);
+          const index = Number(button.dataset.index);
+          const nextIndex = index + Number(button.dataset.dir);
+          if (nextIndex < 0 || nextIndex >= list.length) return;
+          [list[index], list[nextIndex]] = [list[nextIndex], list[index]];
+          saveState();
+        }
+        if (button.dataset.action === "expandStepSections") {
+          card.querySelectorAll(".section-box").forEach((section) => section.open = true);
+        }
+        if (button.dataset.action === "collapseStepSections") {
+          card.querySelectorAll(".section-box").forEach((section) => section.open = false);
         }
         if (button.dataset.action === "removePhoto") {
           const removed = step.photos[Number(button.dataset.index)];
@@ -3434,6 +3724,7 @@
             step.photoChecks = step.photoChecks || {};
             step.photoChecks[photoNeedKey(removed.need)] = false;
           }
+          recordHistory("Removed photo", step.title);
           saveState();
         }
         if (button.dataset.action === "showDamageForm") {
@@ -3447,31 +3738,49 @@
         if (button.dataset.action === "removeDamagePhoto") {
           step.damagePhotos = step.damagePhotos || [];
           step.damagePhotos.splice(Number(button.dataset.index), 1);
+          recordHistory("Removed damage photo", step.title);
           saveState();
         }
         if (button.dataset.action === "addAdditionalHelp") {
           const labelInput = card.querySelector('[data-action="newHelpLabel"]');
           const urlInput = card.querySelector('[data-action="newHelpUrl"]');
-          const url = urlInput ? urlInput.value.trim() : "";
+          const url = normalizeUrl(urlInput ? urlInput.value : "");
           if (!url) {
             alert("Add a hyperlink first.");
             return;
           }
+          const label = (labelInput && labelInput.value.trim()) || url;
           step.additionalHelp = step.additionalHelp || [];
-          step.additionalHelp.push({ label: (labelInput && labelInput.value.trim()) || url, url });
+          step.additionalHelp.push({ label, url });
+          recordHistory("Added help link", `${step.title}: ${label}`);
           if (labelInput) labelInput.value = "";
           if (urlInput) urlInput.value = "";
+          saveState();
+        }
+        if (button.dataset.action === "editAdditionalHelp") {
+          const index = Number(button.dataset.index);
+          const link = (step.additionalHelp || [])[index];
+          if (!link) return;
+          const label = prompt("Help link label", link.label || "");
+          if (label === null) return;
+          const url = normalizeUrl(prompt("Help link URL", link.url || ""));
+          if (!url) return;
+          link.label = label.trim() || url.trim();
+          link.url = url.trim();
+          recordHistory("Edited help link", `${step.title}: ${link.label}`);
           saveState();
         }
         if (button.dataset.action === "removeAdditionalHelp") {
           step.additionalHelp = step.additionalHelp || [];
           step.additionalHelp.splice(Number(button.dataset.index), 1);
+          recordHistory("Removed help link", step.title);
           saveState();
         }
         if (button.dataset.action === "markDone") {
           step.status = "Done";
           step.completedDate = new Date().toISOString().slice(0, 10);
           step.checklist = normalizeChecklist(step.checklist).map((item) => ({ ...item, done: true }));
+          recordHistory("Marked step done", step.title);
           saveState();
         }
         if (button.dataset.action === "editStep") openStepModal(card.dataset.phaseId, card.dataset.stepId);
@@ -3516,6 +3825,10 @@
     });
     document.getElementById("printTop").addEventListener("click", () => window.print());
     document.getElementById("generateShopping").addEventListener("click", () => document.querySelector('[data-view="shoppingView"]').click());
+    document.getElementById("compactModeToggle").addEventListener("click", () => {
+      state.compactMode = !state.compactMode;
+      saveState();
+    });
     document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = true));
     document.getElementById("collapseAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = false));
     document.getElementById("cancelEdit").addEventListener("click", closeStepModal);
