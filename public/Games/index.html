@@ -113,20 +113,38 @@
       outline: none;
     }
 
-    .game-title {
+    .game-copy {
       position: absolute;
       left: 0;
       right: 0;
       top: 50%;
       z-index: 3;
       transform: translateY(-50%);
-      padding: 0 18px;
+      display: grid;
+      gap: 10px;
+      padding: 0 22px;
       text-align: center;
+    }
+
+    .game-title {
       font-size: clamp(2rem, 6.6vw, 4.6rem);
       line-height: 0.95;
       font-weight: 900;
       letter-spacing: 0;
       text-shadow: 0 6px 0 rgba(0, 0, 0, 0.28);
+    }
+
+    .game-description {
+      width: min(520px, 100%);
+      margin: 0 auto;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(8, 25, 31, 0.58);
+      color: #fff8df;
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      font-weight: 800;
+      line-height: 1.25;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
     }
 
     .roach-preview {
@@ -137,7 +155,8 @@
     .roach-preview::before,
     .math-preview::before,
     .space-preview::before,
-    .titanic-preview::before {
+    .titanic-preview::before,
+    .safari-preview::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -217,6 +236,12 @@
         radial-gradient(circle at 86% 24%, rgba(255, 255, 255, 0.5) 0 2px, transparent 3px),
         radial-gradient(circle at 80% 78%, #5a79d8 0 74px, transparent 75px),
         linear-gradient(180deg, #101834 0%, #24447d 72%, #2e738e 100%);
+    }
+
+    .safari-preview {
+      background:
+        radial-gradient(circle at 78% 16%, #ffd44d 0 54px, transparent 56px),
+        linear-gradient(180deg, #82d8ff 0%, #d8f5ff 43%, #f4c45a 44%, #e3a04a 100%);
     }
 
     .titanic-preview {
@@ -318,6 +343,68 @@
       clip-path: polygon(0 50%, 100% 0, 72% 50%, 100% 100%);
     }
 
+    .safari-tree {
+      position: absolute;
+      left: 9%;
+      bottom: 58px;
+      z-index: 1;
+      width: 94px;
+      height: 138px;
+      background:
+        radial-gradient(circle at 52% 22%, #2d8f51 0 42px, transparent 43px),
+        linear-gradient(90deg, transparent 0 40px, #704c2f 41px 54px, transparent 55px);
+    }
+
+    .safari-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 30px;
+      z-index: 1;
+      height: 72px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255, 248, 223, 0.42) 0 28px, transparent 29px 70px),
+        linear-gradient(180deg, #d98b40, #b9682c);
+    }
+
+    .safari-cheetah {
+      position: absolute;
+      right: 12%;
+      bottom: 72px;
+      z-index: 1;
+      width: 156px;
+      height: 84px;
+      filter: drop-shadow(0 7px 0 rgba(0, 0, 0, 0.16));
+    }
+
+    .safari-cheetah::before {
+      content: "";
+      position: absolute;
+      left: 24px;
+      top: 30px;
+      width: 88px;
+      height: 38px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 22% 42%, #332014 0 4px, transparent 5px),
+        radial-gradient(circle at 48% 28%, #332014 0 4px, transparent 5px),
+        radial-gradient(circle at 70% 54%, #332014 0 4px, transparent 5px),
+        #f6b548;
+    }
+
+    .safari-cheetah::after {
+      content: "";
+      position: absolute;
+      right: 8px;
+      top: 20px;
+      width: 44px;
+      height: 36px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 66% 38%, #18120f 0 4px, transparent 5px),
+        #f6b548;
+    }
+
     .empty-note {
       margin: 0;
       padding: 18px;
@@ -340,6 +427,14 @@
       .game-tile {
         min-height: 260px;
       }
+
+      .game-copy {
+        padding: 0 14px;
+      }
+
+      .game-description {
+        font-size: 0.98rem;
+      }
     }
   </style>
 </head>
@@ -350,6 +445,18 @@
       <a class="home-link" href="/">Home</a>
     </div>
 
+    <section class="section" aria-labelledby="adventure-title">
+      <h2 id="adventure-title" class="section-title">Adventure Games</h2>
+      <div class="game-grid">
+        <a class="game-tile titanic-preview" href="/TitanicAdventureAcademy" aria-label="Open Titanic Adventure">
+          <span class="game-copy">
+            <span class="game-title">Titanic Adventure</span>
+            <span class="game-description">Explore the ship, solve clues, and learn your way through a sea-worthy classroom quest.</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
     <section class="section" aria-labelledby="kindergarten-title">
       <h2 id="kindergarten-title" class="section-title">Kindergarten</h2>
       <div class="game-grid">
@@ -358,10 +465,10 @@
           <span class="letter-card mid" data-letter="M"></span>
           <span class="letter-card right" data-letter="T"></span>
           <span class="roach" aria-hidden="true"></span>
-          <span class="game-title">Letter Roach</span>
-        </a>
-        <a class="game-tile titanic-preview" href="/TitanicAdventureAcademy" aria-label="Open Titanic Adventure">
-          <span class="game-title">Titanic Adventure</span>
+          <span class="game-copy">
+            <span class="game-title">Letter Roach</span>
+            <span class="game-description">Tap the right letters, build early reading confidence, and keep the silly roach moving.</span>
+          </span>
         </a>
       </div>
     </section>
@@ -375,7 +482,20 @@
           <span class="answer-rock one">10</span>
           <span class="answer-rock two">12</span>
           <span class="answer-rock three">14</span>
-          <span class="game-title">Math Rocket Rescue</span>
+          <span class="game-copy">
+            <span class="game-title">Math Rocket Rescue</span>
+            <span class="game-description">Answer addition and subtraction problems to steer the rocket past the right space rocks.</span>
+          </span>
+        </a>
+        <a class="game-tile safari-preview" href="/CheetahSafariAdventure" aria-label="Open Cheetah Safari Adventure">
+          <span class="safari-tree" aria-hidden="true"></span>
+          <span class="safari-track" aria-hidden="true"></span>
+          <span class="safari-cheetah" aria-hidden="true"></span>
+          <span class="question-bubble">word?</span>
+          <span class="game-copy">
+            <span class="game-title">Safari Adventure</span>
+            <span class="game-description">Race across the safari while practicing sight words, spelling, and quick reading choices.</span>
+          </span>
         </a>
       </div>
     </section>
@@ -387,7 +507,10 @@
           <span class="cloud one" aria-hidden="true"></span>
           <span class="cloud two" aria-hidden="true"></span>
           <span class="ship" aria-hidden="true"></span>
-          <span class="game-title">Space Flyer</span>
+          <span class="game-copy">
+            <span class="game-title">Space Flyer</span>
+            <span class="game-description">Pilot a speedy ship, dodge obstacles, collect points, and chase a new high score.</span>
+          </span>
         </a>
       </div>
     </section>

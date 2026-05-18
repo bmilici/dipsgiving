@@ -21,12 +21,24 @@ const nextConfig: NextConfig = {
         destination: "/Games/index.html",
       },
       {
+        source: "/dev/games",
+        destination: "/dev/games/index.html",
+      },
+      {
         source: "/FirstGradeMath",
         destination: "/FirstGradeMath/index.html",
       },
       {
         source: "/firstgrademath",
         destination: "/FirstGradeMath/index.html",
+      },
+      {
+        source: "/CheetahSafariAdventure",
+        destination: "/CheetahSafariAdventure/index.html",
+      },
+      {
+        source: "/cheetahsafariadventure",
+        destination: "/CheetahSafariAdventure/index.html",
       },
       {
         source: "/TitanicAdventureAcademy",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Captain's Cabin Match</title>
+  <title>Titanic Adventure Academy</title>
   <style>
     :root {
       --ink: #12243d;
@@ -14,10 +14,15 @@
       --blue: #2f78bf;
       --wood: #8a5a35;
       --line: rgba(18, 36, 61, 0.18);
+      --coal: #252a31;
+      --glow: #ffb33f;
     }
 
-    * {
-      box-sizing: border-box;
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-height: 100%;
     }
 
     body {
@@ -31,15 +36,25 @@
       overflow-x: hidden;
     }
 
-    button,
-    a {
-      touch-action: manipulation;
+    body.is-playing {
+      overflow: hidden;
     }
+
+    button,
+    a { touch-action: manipulation; }
+
+    [hidden] { display: none !important; }
 
     .page {
       width: min(1120px, 100%);
       margin: 0 auto;
       padding: 14px;
+    }
+
+    body.is-playing .page {
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
     }
 
     .topbar {
@@ -66,11 +81,10 @@
       text-decoration: none;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
       cursor: pointer;
+      font-family: inherit;
     }
 
-    .small-button {
-      background: #ffffff;
-    }
+    .small-button { background: #ffffff; }
 
     .big-button {
       min-width: 170px;
@@ -79,15 +93,16 @@
       font-size: 1.1rem;
     }
 
-    .repeat-button {
-      width: 100%;
-      min-width: 0;
-      font-size: clamp(1.15rem, 3vw, 1.45rem);
+    .big-button:disabled {
+      cursor: wait;
+      opacity: 0.72;
     }
 
     .home-link:active,
     .small-button:active,
-    .big-button:active {
+    .big-button:active,
+    .ticket-repeat-button:active,
+    .coal-answer:active {
       transform: translateY(3px);
       box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
     }
@@ -96,22 +111,167 @@
       display: flex;
       gap: 10px;
       align-items: center;
+      border: 2px solid rgba(255, 255, 255, 0.92);
+      border-radius: 8px;
+      padding: 8px 12px;
       color: white;
+      background: rgba(18, 36, 61, 0.92);
       font-weight: 900;
-      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.28);
+      text-shadow: none;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28), 0 0 0 2px rgba(255, 212, 77, 0.28);
     }
 
-    .game-wrap {
+    .scoreboard.is-hidden { visibility: hidden; }
+
+    .game-wrap,
+    .level-select {
       position: relative;
-      min-height: min(74vh, 680px);
+      min-height: min(74vh, 700px);
       overflow: hidden;
       border: 4px solid rgba(255, 255, 255, 0.78);
       border-radius: 8px;
+      box-shadow: 0 18px 44px rgba(6, 23, 45, 0.32);
+    }
+
+    .game-wrap {
       background:
         radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.78) 0 36px, transparent 37px),
         linear-gradient(180deg, #82cff5 0 24%, #eef9ff 24% 25%, #15365d 25% 100%);
-      box-shadow: 0 18px 44px rgba(6, 23, 45, 0.32);
     }
+
+    body.is-playing .game-wrap {
+      min-height: 0;
+      height: 100%;
+    }
+
+    .level-select {
+      display: grid;
+      align-content: start;
+      gap: 20px;
+      padding: clamp(18px, 4vw, 34px);
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.24), rgba(13, 35, 58, 0.88)),
+        url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+      color: white;
+    }
+
+    .level-select h1 {
+      max-width: 760px;
+      margin: 0;
+      color: white;
+      font-size: clamp(2.2rem, 7vw, 5rem);
+      line-height: 0.95;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .level-select p {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+      font-weight: 800;
+      line-height: 1.35;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .grade-select {
+      display: grid;
+      gap: 10px;
+      width: min(720px, 100%);
+    }
+
+    .grade-select-title {
+      color: white;
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      font-weight: 900;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .grade-options {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .grade-choice {
+      min-height: 54px;
+      border: 3px solid rgba(255, 255, 255, 0.76);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 249, 232, 0.94);
+      box-shadow: 0 3px 0 rgba(18, 36, 61, 0.16);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: clamp(0.92rem, 2vw, 1.08rem);
+      font-weight: 900;
+      text-shadow: none;
+    }
+
+    .grade-choice.is-selected {
+      color: white;
+      background: #2f78bf;
+      box-shadow: 0 3px 0 rgba(18, 36, 61, 0.2), inset 0 0 0 3px rgba(255, 212, 77, 0.9);
+    }
+
+    .level-card {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 8px;
+      min-height: 230px;
+      border: 3px solid rgba(255, 255, 255, 0.76);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--ink);
+      background: rgba(255, 249, 232, 0.94);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .level-number {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: white;
+      background: #2f78bf;
+      font-size: 1.25rem;
+      font-weight: 900;
+    }
+
+    .level-card h2 {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.55rem);
+      line-height: 1.05;
+    }
+
+    .level-card p {
+      color: #213958;
+      font-size: 1rem;
+      font-weight: 800;
+      text-shadow: none;
+    }
+
+    .level-status {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: white;
+      background: #2f78bf;
+      font-size: 0.85rem;
+      font-weight: 900;
+    }
+
+    .level-card.is-complete .level-status { background: var(--green); }
+    .level-card.is-coming { opacity: 0.82; }
+    .level-card.is-coming .level-status { background: #68778a; }
 
     .ship-top {
       position: absolute;
@@ -137,8 +297,14 @@
       display: grid;
       grid-template-rows: auto auto 1fr auto;
       gap: 14px;
-      min-height: min(74vh, 680px);
+      min-height: min(74vh, 700px);
       padding: 20px;
+    }
+
+    body.is-playing .game-content {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
     }
 
     .title-row {
@@ -148,23 +314,22 @@
       gap: 12px;
     }
 
+    .title-row h1,
+    h1 {
+      max-width: min(660px, 78%);
+      margin: 0;
+      color: white;
+      font-size: clamp(1.8rem, 4.3vw, 3.35rem);
+      line-height: 0.98;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
+    }
+
     .title-row h1 {
-      max-width: min(620px, 78%);
       border: 3px solid rgba(255, 255, 255, 0.72);
       border-radius: 8px;
       padding: 10px 14px;
       background: rgba(13, 35, 58, 0.72);
-      font-size: clamp(1.8rem, 4.3vw, 3.35rem);
       box-shadow: 0 8px 0 rgba(0, 0, 0, 0.16);
-    }
-
-    h1 {
-      max-width: 760px;
-      margin: 0;
-      color: white;
-      font-size: clamp(1.85rem, 5vw, 4rem);
-      line-height: 0.98;
-      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
     }
 
     .stars {
@@ -176,8 +341,31 @@
       text-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
     }
 
-    .prompt-row {
-      display: block;
+    .grade-badge {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: #10213d;
+      background: var(--gold);
+      font-size: clamp(0.82rem, 2vw, 0.98rem);
+      font-weight: 900;
+      text-shadow: none;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    .speech {
+      min-height: 74px;
+      border: 3px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: white;
+      background: rgba(18, 36, 61, 0.62);
+      font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+      font-weight: 900;
+      line-height: 1.25;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
     }
 
     .passenger-area {
@@ -199,18 +387,6 @@
       font-size: clamp(5rem, 15vw, 8.5rem);
       line-height: 1;
       filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.18));
-    }
-
-    .ticket {
-      display: block;
-      min-width: min(250px, 100%);
-      border: 4px dashed #b9792d;
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: var(--ink);
-      background: var(--panel);
-      text-align: center;
-      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.14);
     }
 
     .ticket-repeat-button {
@@ -236,9 +412,10 @@
 
     .ticket-code {
       display: block;
-      font-size: clamp(1.8rem, 6vw, 3.5rem);
+      font-size: clamp(1.35rem, 4.8vw, 3.5rem);
       font-weight: 900;
-      line-height: 0.96;
+      line-height: 1.02;
+      overflow-wrap: anywhere;
     }
 
     .ticket-code::before {
@@ -248,29 +425,12 @@
       line-height: 1;
     }
 
-    .ticket-repeat-button:active {
-      transform: translateY(3px);
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.14);
-    }
-
-    .speech {
-      min-height: 74px;
-      border: 3px solid rgba(255, 255, 255, 0.78);
-      border-radius: 8px;
-      padding: 14px 16px;
-      color: white;
-      background: rgba(18, 36, 61, 0.62);
-      font-size: clamp(1.05rem, 2.4vw, 1.5rem);
-      font-weight: 900;
-      line-height: 1.25;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-    }
-
-    .doors {
+    .doors,
+    .answer-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
-      align-items: end;
+      align-items: stretch;
     }
 
     .door-button {
@@ -352,10 +512,6 @@
       background: rgba(13, 35, 58, 0.82);
     }
 
-    .screen[hidden] {
-      display: none;
-    }
-
     .screen p {
       max-width: 720px;
       margin: 0;
@@ -372,26 +528,12 @@
         url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
     }
 
-    .start-screen h1,
-    .start-screen p,
-    .start-screen .button-row {
-      position: relative;
-      z-index: 1;
-    }
-
     .end-screen {
       justify-content: flex-end;
       padding: clamp(18px, 4vw, 36px);
       background:
         linear-gradient(180deg, rgba(13, 35, 58, 0.04) 0%, rgba(13, 35, 58, 0.34) 45%, rgba(13, 35, 58, 0.86) 100%),
         url("/TitanicAdventureAcademy/animals-onboard-ending.webp") center / cover;
-    }
-
-    .end-screen h1,
-    .end-screen p,
-    .end-screen .button-row {
-      position: relative;
-      z-index: 1;
     }
 
     .loading-screen {
@@ -411,22 +553,213 @@
       box-shadow: 0 14px 34px rgba(0, 0, 0, 0.26);
     }
 
-    .loading-copy {
-      display: grid;
-      justify-items: center;
-      gap: 8px;
-    }
-
-    .loading-copy h1 {
-      font-size: clamp(2.2rem, 7vw, 5rem);
-    }
-
     .button-row {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
     }
+
+    .engine-room {
+      background:
+        radial-gradient(circle at 84% 18%, rgba(255, 212, 77, 0.18) 0 80px, transparent 82px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 92px),
+        linear-gradient(180deg, #31506d 0%, #1b2e43 45%, #5c3a24 46%, #3a2518 100%);
+    }
+
+    .engine-room::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 32%;
+      background:
+        radial-gradient(circle at 18% 52%, #ffe28a 0 10px, #243a55 11px 24px, transparent 25px),
+        radial-gradient(circle at 31% 42%, #bcecff 0 8px, #243a55 9px 22px, transparent 23px),
+        linear-gradient(90deg, transparent 0 9%, #26394c 9% 12%, transparent 12% 28%, #26394c 28% 31%, transparent 31% 100%),
+        linear-gradient(180deg, #566f85, #26384d);
+      opacity: 0.95;
+    }
+
+    .engine-content {
+      grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    }
+
+    .engine-stage {
+      display: grid;
+      grid-template-columns: minmax(150px, 230px) minmax(220px, 1fr) minmax(170px, 250px);
+      gap: 16px;
+      align-items: center;
+    }
+
+    .engineer {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      color: white;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+    }
+
+    .engineer-face {
+      font-size: clamp(4.2rem, 11vw, 7rem);
+      filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.18));
+    }
+
+    .repeat-button {
+      width: min(260px, 100%);
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+    }
+
+    .coal-visual {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      min-height: 190px;
+      padding: 14px;
+      border: 3px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      background: rgba(9, 22, 35, 0.42);
+    }
+
+    .coal-pieces {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: center;
+      gap: 8px;
+      min-height: 94px;
+    }
+
+    .coal-piece {
+      width: clamp(34px, 7vw, 56px);
+      height: clamp(28px, 6vw, 46px);
+      border-radius: 44% 56% 48% 52%;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.16), transparent 24%),
+        linear-gradient(135deg, #4b535f, #15191f);
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.28);
+    }
+
+    .number-card {
+      min-width: 140px;
+      border: 4px dashed #ffd44d;
+      border-radius: 8px;
+      padding: 12px 18px;
+      color: var(--ink);
+      background: #fff9e8;
+      font-size: clamp(3rem, 12vw, 6rem);
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .number-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(72px, 1fr));
+      gap: 10px;
+      width: min(360px, 100%);
+    }
+
+    .number-card-grid .number-card {
+      min-width: 0;
+      padding: 10px 12px;
+      font-size: clamp(2.2rem, 8vw, 4.2rem);
+    }
+
+    .boiler-panel {
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .furnace {
+      position: relative;
+      width: min(230px, 100%);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      border: 10px solid #2a1c17;
+      border-radius: 50% 50% 9px 9px;
+      background:
+        radial-gradient(circle at 50% 60%, rgba(255, 226, 126, var(--furnace-glow, 0.25)) 0 26%, rgba(255, 119, 49, var(--furnace-glow, 0.22)) 27% 46%, #251915 47% 100%);
+      box-shadow: 0 0 calc(10px + var(--furnace-power, 0) * 2px) rgba(255, 179, 63, 0.78), inset 0 -14px 0 rgba(0, 0, 0, 0.2);
+      transition: box-shadow 260ms ease, background 260ms ease;
+    }
+
+    .furnace::before {
+      content: "";
+      position: absolute;
+      inset: 18px 22px auto;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .furnace-mouth {
+      color: #fff2bf;
+      font-size: clamp(2.4rem, 7vw, 4rem);
+      font-weight: 900;
+      text-shadow: 0 3px 0 rgba(0, 0, 0, 0.24);
+    }
+
+    .engine-meter {
+      width: min(280px, 100%);
+      height: 34px;
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      border-radius: 999px;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .engine-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3dbb6d, #ffd44d, #ff8f3d);
+      transition: width 360ms ease;
+    }
+
+    .coal-answer {
+      position: relative;
+      min-height: clamp(96px, 17vw, 150px);
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.15), transparent 18%),
+        linear-gradient(180deg, #444c57, #1a1f27);
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.12), 0 8px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: clamp(2.1rem, 7vw, 4rem);
+      font-weight: 900;
+    }
+
+    .coal-answer.is-correct {
+      animation: loadCoal 580ms ease forwards;
+      background: linear-gradient(180deg, #3dbb6d, #18784a);
+    }
+
+    .coal-answer.is-wrong {
+      animation: shake 260ms ease;
+      background: linear-gradient(180deg, #f08f68, #c94d42);
+    }
+
+    .steam-puff {
+      position: absolute;
+      right: 12%;
+      top: 16%;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.8);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .steam-puff.is-active { animation: steam 900ms ease-out; }
 
     .confetti {
       position: absolute;
@@ -444,6 +777,450 @@
       animation: fall 900ms ease-out forwards;
     }
 
+    .screen.coal-end {
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.16), rgba(13, 35, 58, 0.88)),
+        linear-gradient(180deg, #485f76 0%, #1d3248 48%, #5d3a24 49%, #2c1e17 100%);
+    }
+
+    .cargo-yard {
+      background:
+        radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.78) 0 34px, transparent 35px),
+        linear-gradient(180deg, #8ed8ff 0 28%, #fff6d8 29% 37%, #2f5c83 38% 54%, #b87d45 55% 100%);
+    }
+
+    .cargo-yard::before {
+      content: "";
+      position: absolute;
+      inset: 18% 0 auto;
+      height: 22%;
+      background:
+        linear-gradient(90deg, transparent 0 10%, #d84631 10% 15%, transparent 15% 25%, #d84631 25% 30%, transparent 30%),
+        linear-gradient(180deg, #fff7df 0 46%, #12243d 47% 64%, #b23b2f 65% 100%);
+      opacity: 0.95;
+    }
+
+    .cargo-content {
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    }
+
+    .cargo-stage {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.1fr);
+      gap: 16px;
+      align-items: stretch;
+      min-height: 320px;
+    }
+
+    .cargo-helper,
+    .cargo-belt,
+    .cargo-cart {
+      border: 3px solid rgba(255, 255, 255, 0.62);
+      border-radius: 8px;
+      background: rgba(255, 249, 232, 0.88);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    .cargo-helper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      padding: 8px 12px;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .cargo-helper-face {
+      font-size: clamp(2.6rem, 7vw, 4.6rem);
+      line-height: 1;
+    }
+
+    .cargo-belt {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 12px;
+      min-height: 260px;
+      padding: 16px;
+      background:
+        repeating-linear-gradient(90deg, rgba(18, 36, 61, 0.14) 0 20px, transparent 20px 42px),
+        linear-gradient(180deg, #5f6d78, #33404b);
+    }
+
+    .luggage-item {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: clamp(86px, 16vw, 128px);
+      min-height: 82px;
+      border: 4px solid rgba(18, 36, 61, 0.24);
+      border-radius: 8px;
+      color: #10213d;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.22), transparent 44%),
+        var(--bag-color, #ffd44d);
+      box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.18), 0 7px 0 rgba(0, 0, 0, 0.22);
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      font-family: inherit;
+      font-size: clamp(1.2rem, 4vw, 2rem);
+      font-weight: 900;
+      transition: transform 180ms ease, opacity 180ms ease;
+    }
+
+    .luggage-item::before {
+      content: "";
+      position: absolute;
+      inset: -13px 24px auto;
+      height: 16px;
+      border: 4px solid rgba(18, 36, 61, 0.34);
+      border-bottom: 0;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .luggage-item.is-dragging {
+      z-index: 20;
+      cursor: grabbing;
+      transition: none;
+    }
+
+    .luggage-item.is-loaded {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.7);
+    }
+
+    .luggage-item.is-wrong {
+      animation: shake 260ms ease;
+    }
+
+    .cargo-carts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-content: stretch;
+    }
+
+    .cargo-cart {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 132px;
+      padding: 10px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 80%, #26384d 0 10px, transparent 11px),
+        radial-gradient(circle at 82% 80%, #26384d 0 10px, transparent 11px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 249, 232, 0.92));
+    }
+
+    .cargo-cart.is-over {
+      outline: 5px solid rgba(255, 212, 77, 0.9);
+      transform: translateY(-2px);
+    }
+
+    .cargo-cart-title {
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      padding: 6px;
+      color: white;
+      background: var(--cart-color, #2f78bf);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .cargo-loaded {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 6px;
+      padding-top: 10px;
+    }
+
+    .loaded-bag {
+      min-width: 42px;
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #10213d;
+      background: var(--bag-color, #ffd44d);
+      font-weight: 900;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+      animation: popIn 220ms ease;
+    }
+
+    .cargo-meter {
+      height: 32px;
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      border-radius: 999px;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .cargo-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3dbb6d, #ffd44d, #f06b5f);
+      transition: width 260ms ease;
+    }
+
+    .cargo-end {
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.12), rgba(13, 35, 58, 0.88)),
+        linear-gradient(180deg, #8ed8ff 0%, #2f5c83 44%, #b87d45 45%, #6d4225 100%);
+    }
+
+    .bridge-deck {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 212, 77, 0.22) 0 90px, transparent 92px),
+        linear-gradient(180deg, #6ec9f5 0 22%, #d9f6ff 23% 26%, #163d62 27% 62%, #8a5a35 63% 100%);
+    }
+
+    .bridge-deck::before {
+      content: "";
+      position: absolute;
+      inset: 18% 6% auto;
+      height: 18%;
+      border: 6px solid rgba(255, 255, 255, 0.64);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 12% 40%, rgba(255, 255, 255, 0.92) 0 22px, transparent 23px),
+        radial-gradient(circle at 84% 42%, rgba(255, 255, 255, 0.84) 0 18px, transparent 19px),
+        linear-gradient(180deg, #97e2ff, #2f78bf);
+      opacity: 0.9;
+    }
+
+    .bridge-content {
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+    }
+
+    .bridge-console {
+      display: grid;
+      grid-template-columns: minmax(210px, 0.78fr) minmax(300px, 1.3fr);
+      gap: 14px;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .bridge-panel,
+    .radar-screen {
+      border: 3px solid rgba(255, 255, 255, 0.68);
+      border-radius: 8px;
+      background: rgba(12, 35, 55, 0.76);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+
+    .bridge-panel {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      padding: 12px;
+      color: white;
+      font-weight: 900;
+    }
+
+    .compass {
+      position: relative;
+      width: min(180px, 100%);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      justify-self: center;
+      border: 8px solid #ffd44d;
+      border-radius: 50%;
+      color: #10213d;
+      background:
+        linear-gradient(0deg, transparent 47%, rgba(18, 36, 61, 0.22) 48% 52%, transparent 53%),
+        linear-gradient(90deg, transparent 47%, rgba(18, 36, 61, 0.22) 48% 52%, transparent 53%),
+        #fff9e8;
+      box-shadow: 0 7px 0 rgba(0, 0, 0, 0.2);
+      font-size: 2.4rem;
+    }
+
+    .compass span {
+      position: absolute;
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    .compass .north { top: 7px; }
+    .compass .south { bottom: 7px; }
+    .compass .west { left: 9px; }
+    .compass .east { right: 9px; }
+
+    .bridge-controls {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bridge-clue {
+      min-height: 56px;
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--ink);
+      background: rgba(255, 249, 232, 0.94);
+      line-height: 1.25;
+    }
+
+    .bridge-meter {
+      height: 30px;
+      border: 4px solid rgba(255, 255, 255, 0.8);
+      border-radius: 999px;
+      padding: 4px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .bridge-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #3dbb6d, #58d8ff, #ffd44d);
+      transition: width 260ms ease;
+    }
+
+    .radar-screen {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      padding: clamp(10px, 2vw, 18px);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, transparent 0 22%, rgba(88, 216, 255, 0.1) 23% 24%, transparent 25% 44%, rgba(88, 216, 255, 0.1) 45% 46%, transparent 47%),
+        linear-gradient(0deg, rgba(88, 216, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88, 216, 255, 0.1) 1px, transparent 1px),
+        #071f33;
+      background-size: auto, 34px 34px, 34px 34px, auto;
+    }
+
+    .radar-screen::after {
+      content: "";
+      position: absolute;
+      inset: -35%;
+      background: conic-gradient(from 0deg, rgba(88, 216, 255, 0.34), transparent 34deg, transparent 360deg);
+      animation: radarSweep 2.4s linear infinite;
+      pointer-events: none;
+    }
+
+    .ocean-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(var(--grid-size, 3), minmax(0, 1fr));
+      gap: clamp(5px, 1vw, 9px);
+      width: min(100%, 520px);
+      aspect-ratio: 1;
+    }
+
+    .ocean-tile {
+      position: relative;
+      display: grid;
+      place-items: center;
+      border: 2px solid rgba(181, 242, 255, 0.46);
+      border-radius: 8px;
+      color: white;
+      background:
+        radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.2), transparent 24%),
+        linear-gradient(180deg, #2f94c9, #16608d);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 4px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 900;
+      touch-action: manipulation;
+      overflow: hidden;
+    }
+
+    .ocean-tile:disabled {
+      cursor: default;
+    }
+
+    .ocean-tile .tile-label {
+      position: absolute;
+      left: 5px;
+      top: 4px;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: clamp(0.62rem, 1.5vw, 0.8rem);
+    }
+
+    .ocean-tile .tile-icon {
+      font-size: clamp(1.2rem, 4.4vw, 2.2rem);
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    .ocean-tile.is-safe {
+      outline: 4px solid rgba(255, 212, 77, 0.86);
+      background: linear-gradient(180deg, #39c779, #188d58);
+      box-shadow: 0 0 18px rgba(255, 212, 77, 0.68), 0 4px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .ocean-tile.is-iceberg {
+      background: linear-gradient(180deg, #bff5ff, #54a7cf);
+    }
+
+    .ocean-tile.is-fog {
+      background: linear-gradient(180deg, #c9d8de, #8397a3);
+    }
+
+    .ocean-tile.is-ship {
+      outline: 4px solid white;
+      background: linear-gradient(180deg, #ffd44d, #f08f68);
+    }
+
+    .ocean-tile.is-next {
+      outline: 4px solid rgba(255, 212, 77, 0.82);
+      box-shadow: 0 0 18px rgba(255, 212, 77, 0.64), 0 4px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    .ocean-tile.is-visited {
+      background: linear-gradient(180deg, #3dbb6d, #16704a);
+    }
+
+    .ocean-tile.is-wrong {
+      animation: shake 260ms ease;
+      background: linear-gradient(180deg, #f08f68, #c94d42);
+    }
+
+    .radar-blip {
+      position: absolute;
+      z-index: 3;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 212, 77, 0.9);
+      box-shadow: 0 0 18px rgba(255, 212, 77, 0.95);
+      animation: blip 520ms ease-out forwards;
+      pointer-events: none;
+    }
+
+    .bridge-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bridge-actions .repeat-button {
+      width: auto;
+      min-width: 150px;
+    }
+
+    .bridge-end {
+      background:
+        linear-gradient(180deg, rgba(13, 35, 58, 0.1), rgba(13, 35, 58, 0.86)),
+        linear-gradient(180deg, #72d3ff 0%, #153d62 44%, #8a5a35 45%, #4c2f1e 100%);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     @keyframes fall {
       to {
         transform: translateY(280px) rotate(180deg);
@@ -457,66 +1234,250 @@
       75% { transform: translateX(-3px); }
     }
 
-    @media (max-width: 820px) {
-      .game-content {
-        padding: 14px;
-      }
-
-      .title-row,
-      .prompt-row,
-      .passenger-area {
-        grid-template-columns: 1fr;
-      }
-
-      .title-row {
-        display: grid;
-      }
-
-      .title-row h1 {
-        max-width: 100%;
-      }
-
-      .stars {
-        min-width: 0;
-        text-align: left;
-      }
-
-      .passenger {
-        min-height: 0;
-      }
-
-      .doors {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    @keyframes loadCoal {
+      55% { transform: translate(18px, -16px) scale(0.92); }
+      100% { transform: translate(120px, -70px) scale(0.2); opacity: 0; }
     }
 
-    @media (max-width: 520px) {
-      .page {
+    @keyframes steam {
+      0% { transform: translateY(20px) scale(0.4); opacity: 0; }
+      20% { opacity: 0.9; }
+      100% { transform: translateY(-90px) scale(1.8); opacity: 0; }
+    }
+
+    @keyframes radarSweep {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes blip {
+      0% { transform: scale(0.4); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    @media (max-width: 980px) {
+      .level-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .engine-stage { grid-template-columns: 1fr; }
+      .cargo-stage { grid-template-columns: 1fr; }
+      .bridge-console { grid-template-columns: 1fr; }
+      .boiler-panel { order: 3; }
+    }
+
+    @media (max-width: 820px) {
+      .game-content { padding: 14px; }
+      .title-row,
+      .passenger-area { display: grid; grid-template-columns: 1fr; }
+      .title-row h1 { max-width: 100%; }
+      .stars { min-width: 0; text-align: left; }
+      .passenger { min-height: 0; }
+      .doors,
+      .answer-grid,
+      .cargo-carts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bridge-panel { grid-template-columns: minmax(120px, 180px) 1fr; align-items: center; }
+      .compass { width: min(140px, 100%); }
+    }
+
+    @media (max-width: 560px) {
+      .page { padding: 8px; }
+      .topbar { align-items: stretch; flex-wrap: wrap; }
+      .scoreboard {
+        width: 100%;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .level-grid { grid-template-columns: 1fr; }
+      .grade-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      body.is-playing .page { padding: 6px; }
+      body.is-playing .topbar { gap: 6px; margin-bottom: 6px; }
+      body.is-playing .home-link,
+      body.is-playing .small-button {
+        min-height: 40px;
+        border: 2px solid rgba(255, 255, 255, 0.92);
+        padding: 7px 12px;
+        color: white;
+        background: #12365f;
+        font-size: 0.92rem;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.34), 0 0 0 2px rgba(255, 212, 77, 0.45);
+      }
+      body.is-playing .home-link {
+        background: #ffd44d;
+        color: #10213d;
+        text-shadow: none;
+      }
+      body.is-playing .small-button {
+        min-width: 118px;
+      }
+      body.is-playing .scoreboard {
+        width: auto;
+        margin-left: auto;
+        padding: 7px 10px;
+        font-size: 0.86rem;
+        line-height: 1.15;
+      }
+      body.is-playing .game-wrap {
+        border-width: 3px;
+      }
+      body.is-playing .game-content {
+        gap: 8px;
         padding: 8px;
       }
-
-      .topbar {
-        align-items: stretch;
+      body.is-playing .title-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px;
       }
-
-      .scoreboard {
-        flex-direction: column;
-        align-items: flex-end;
-        justify-content: center;
-        gap: 2px;
+      body.is-playing .title-row h1 {
+        max-width: 100%;
+        padding: 7px 9px;
+        font-size: clamp(1.15rem, 6vw, 1.75rem);
+        line-height: 1;
       }
-
-      .game-wrap,
-      .game-content {
-        min-height: 780px;
+      body.is-playing .grade-badge {
+        margin-top: 4px;
+        padding: 4px 8px;
+        font-size: 0.78rem;
       }
-
-      .doors {
-        gap: 10px;
+      body.is-playing .stars {
+        max-width: 96px;
+        font-size: 1.05rem;
+        line-height: 1.1;
       }
-
-      .door-button {
+      body.is-playing .speech {
+        min-height: 46px;
+        padding: 8px 10px;
+        font-size: 0.96rem;
+      }
+      body.is-playing .passenger-area {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        align-items: start;
+        gap: 8px;
+      }
+      body.is-playing .passenger {
+        min-height: 0;
+        padding-top: 2px;
+      }
+      body.is-playing .animal { font-size: 3.05rem; }
+      body.is-playing .ticket-repeat-button {
+        min-width: 0;
+        width: 100%;
+        padding: 8px 6px;
+        border-width: 3px;
+      }
+      body.is-playing .ticket-label { font-size: 0.68rem; }
+      body.is-playing .ticket-code { font-size: 1rem; }
+      body.is-playing .ticket-code::before { font-size: 1.85rem; }
+      .door-button { min-height: 142px; }
+      body.is-playing .door-button { min-height: clamp(86px, 18vh, 122px); }
+      body.is-playing .door-code {
+        width: min(96px, 82%);
+        padding: 8px 5px;
+        font-size: clamp(1.35rem, 7vw, 2rem);
+      }
+      body.is-playing .feedback {
+        min-height: 34px;
+        font-size: 1rem;
+      }
+      body.is-playing .engine-content,
+      body.is-playing .cargo-content {
+        grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+      }
+      body.is-playing .engine-stage {
+        min-height: 0;
+        gap: 8px;
+      }
+      body.is-playing .engineer {
+        grid-template-columns: auto minmax(0, 1fr);
+        justify-items: start;
+        text-align: left;
+      }
+      body.is-playing .engineer-face { font-size: 2.6rem; }
+      body.is-playing .coal-visual {
+        min-height: 96px;
+        padding: 8px;
+        gap: 6px;
+      }
+      body.is-playing .coal-pieces {
+        min-height: 54px;
+        gap: 5px;
+      }
+      body.is-playing .coal-piece {
+        width: 27px;
+        height: 23px;
+      }
+      body.is-playing .number-card {
+        min-width: 96px;
+        padding: 8px 10px;
+        font-size: clamp(2rem, 14vw, 3.4rem);
+      }
+      body.is-playing .boiler-panel {
+        display: none;
+      }
+      .coal-answer { min-height: 92px; }
+      body.is-playing .coal-answer {
+        min-height: clamp(64px, 14vh, 90px);
+        font-size: clamp(1.55rem, 9vw, 2.8rem);
+      }
+      body.is-playing .cargo-stage {
+        min-height: 0;
+        gap: 8px;
+      }
+      body.is-playing .cargo-helper {
+        padding: 6px 8px;
+        font-size: 0.86rem;
+      }
+      body.is-playing .cargo-helper-face { font-size: 2rem; }
+      body.is-playing .cargo-belt {
         min-height: 142px;
+        padding: 12px;
+        gap: 10px;
+        align-content: flex-start;
+        overflow: auto;
+      }
+      body.is-playing .luggage-item {
+        width: min(88px, 28vw);
+        min-height: 62px;
+        font-size: 1rem;
+      }
+      body.is-playing .luggage-item::before {
+        inset: -11px 20px auto;
+        height: 13px;
+      }
+      .cargo-carts { grid-template-columns: 1fr; }
+      body.is-playing .cargo-carts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      body.is-playing .cargo-cart {
+        min-height: 84px;
+        padding: 7px;
+      }
+      body.is-playing .cargo-cart-title {
+        min-height: 31px;
+        padding: 5px;
+        font-size: 0.82rem;
+      }
+      body.is-playing .loaded-bag {
+        min-width: 34px;
+        padding: 4px 6px;
+        font-size: 0.8rem;
+      }
+      body.is-playing .screen {
+        padding: 14px;
+      }
+      body.is-playing .screen h1 {
+        max-width: 100%;
+        font-size: clamp(1.8rem, 10vw, 2.6rem);
+      }
+      body.is-playing .button-row {
+        gap: 8px;
+      }
+      body.is-playing .big-button {
+        min-width: 138px;
+        min-height: 48px;
+        padding: 10px 12px;
+        font-size: 0.98rem;
       }
     }
   </style>
@@ -525,26 +1486,35 @@
   <main class="page">
     <div class="topbar">
       <a class="home-link" href="/games">Home</a>
-      <div class="scoreboard" aria-live="polite">
-        <span>Passenger: <strong id="roundCount">1</strong>/<strong id="roundTotal">10</strong></span>
+      <button id="levelSelectButton" class="small-button" type="button" hidden>Level Select</button>
+      <div id="scoreboard" class="scoreboard is-hidden" aria-live="polite">
+        <span id="roundLabel">Round: <strong id="roundCount">1</strong>/<strong id="roundTotal">10</strong></span>
         <span>Stars: <strong id="score">0</strong></span>
       </div>
     </div>
 
-    <section class="game-wrap" aria-label="Captain's Cabin Match game">
+    <section id="levelSelect" class="level-select" aria-labelledby="level-select-title">
+      <h1 id="level-select-title">Titanic Adventure</h1>
+      <p>Choose a cheerful training level and help the crew get ready for a bright voyage.</p>
+      <div class="grade-select" aria-label="Titanic Adventure grade selector">
+        <div class="grade-select-title">Titanic Adventure Grade</div>
+        <div id="gradeOptions" class="grade-options"></div>
+      </div>
+      <div id="levelGrid" class="level-grid"></div>
+    </section>
+
+    <section id="cabinGame" class="game-wrap" aria-label="Level 1 Cabin Match game" hidden>
       <div class="ship-top" aria-hidden="true"></div>
       <div class="hall" aria-hidden="true"></div>
-
       <div class="game-content">
         <div class="title-row">
-          <h1>Captain's Cabin Match</h1>
-          <div id="starDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆</div>
+          <div>
+            <h1>Captain's Cabin Match</h1>
+            <div id="cabinGradeBadge" class="grade-badge">Kindergarten</div>
+          </div>
+          <div id="starDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
         </div>
-
-        <div class="prompt-row">
-          <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
-        </div>
-
+        <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
         <div class="passenger-area">
           <div class="passenger" aria-live="polite">
             <div id="animal" class="animal" aria-hidden="true">🐻</div>
@@ -553,39 +1523,183 @@
               <span id="ticketCode" class="ticket-code">Repeat</span>
             </button>
           </div>
-
           <div id="doors" class="doors" aria-label="Cabin choices"></div>
         </div>
-
         <div id="feedback" class="feedback" aria-live="polite"></div>
       </div>
-
       <div id="loadingScreen" class="screen loading-screen" hidden>
         <img class="loading-art" src="/TitanicAdventureAcademy/all-aboard-loading.webp" alt="A cheerful Titanic at a sunny dock with animal passengers." />
-        <div class="loading-copy">
+        <div>
           <h1>Getting Ready</h1>
           <p id="loadingMessage">Getting the next ticket ready...</p>
         </div>
       </div>
-
       <div id="startScreen" class="screen start-screen">
         <h1>Captain's Cabin Match</h1>
-        <p>Help each animal passenger board by listening to the ticket and matching the cabin door.</p>
+        <p id="startScreenText">Help each animal passenger board by listening to the ticket and matching the cabin door.</p>
         <div class="button-row">
           <button id="startButton" class="big-button" type="button">Start Boarding</button>
+          <button class="big-button js-level-select" type="button">Level Select</button>
         </div>
       </div>
-
       <div id="endScreen" class="screen end-screen" hidden>
         <h1>Great job, Captain!</h1>
         <p>You earned <strong id="finalStars">0</strong> stars helping passengers find their cabins.</p>
         <div class="button-row">
           <button id="playAgainButton" class="big-button" type="button">Play Again</button>
-          <a class="big-button" href="/games">Home</a>
+          <button class="big-button js-level-select" type="button">Back to Level Select</button>
         </div>
       </div>
-
       <div id="confetti" class="confetti" aria-hidden="true"></div>
+    </section>
+
+    <section id="coalGame" class="game-wrap engine-room" aria-label="Level 2 Engine Room Coal Count game" hidden>
+      <div class="steam-puff" id="steamPuff" aria-hidden="true"></div>
+      <div class="game-content engine-content">
+        <div class="title-row">
+          <div>
+            <h1>Engine Room Coal Count</h1>
+            <div id="coalGradeBadge" class="grade-badge">Kindergarten</div>
+          </div>
+          <div id="coalStarDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
+        </div>
+        <div id="coalSpeech" class="speech" aria-live="polite">Tap Start Engine to begin math training.</div>
+        <div class="engine-stage">
+          <div class="engineer">
+            <div class="engineer-face" aria-hidden="true">👷‍♂️</div>
+            <button id="coalRepeatButton" class="big-button repeat-button" type="button">🔊 Repeat</button>
+          </div>
+          <div class="coal-visual" aria-live="polite">
+            <div id="coalPieces" class="coal-pieces"></div>
+            <div id="numberCard" class="number-card" hidden></div>
+          </div>
+          <div class="boiler-panel">
+            <div id="furnace" class="furnace" style="--furnace-glow: 0.2; --furnace-power: 0;">
+              <div class="furnace-mouth">Go!</div>
+            </div>
+            <div class="engine-meter" aria-label="Engine power meter">
+              <div id="engineFill" class="engine-fill"></div>
+            </div>
+          </div>
+        </div>
+        <div id="coalAnswers" class="answer-grid" aria-label="Coal count answer choices"></div>
+        <div id="coalFeedback" class="feedback" aria-live="polite"></div>
+      </div>
+      <div id="coalStartScreen" class="screen">
+        <h1>Engine Room Coal Count</h1>
+        <p id="coalStartText">Power the ship with Kindergarten math. Tap the correct coal answer to brighten the boiler.</p>
+        <div class="button-row">
+          <button id="coalStartButton" class="big-button" type="button">Start Engine</button>
+          <button class="big-button js-level-select" type="button">Level Select</button>
+        </div>
+      </div>
+      <div id="coalEndScreen" class="screen coal-end" hidden>
+        <h1>Great job, Engineer Captain!</h1>
+        <p>You earned <strong id="coalFinalStars">0</strong> stars and powered the engine with math.</p>
+        <div class="button-row">
+          <button id="coalPlayAgainButton" class="big-button" type="button">Play Again</button>
+          <button class="big-button js-level-select" type="button">Back to Level Select</button>
+        </div>
+      </div>
+      <div id="coalConfetti" class="confetti" aria-hidden="true"></div>
+    </section>
+
+    <section id="cargoGame" class="game-wrap cargo-yard" aria-label="Level 3 Cargo Crew Challenge game" hidden>
+      <div class="game-content cargo-content">
+        <div class="title-row">
+          <div>
+            <h1>Cargo Crew Challenge</h1>
+            <div id="cargoGradeBadge" class="grade-badge">Kindergarten</div>
+          </div>
+          <div id="cargoStarDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
+        </div>
+        <div id="cargoSpeech" class="speech" aria-live="polite">Tap Start Loading to begin cargo training.</div>
+        <div class="cargo-helper">
+          <span class="cargo-helper-face" aria-hidden="true">👩‍✈️</span>
+          <button id="cargoRepeatButton" class="big-button repeat-button" type="button">🔊 Repeat</button>
+          <button id="cargoHintButton" class="big-button repeat-button" type="button">Hint</button>
+        </div>
+        <div class="cargo-stage">
+          <div id="cargoBelt" class="cargo-belt" aria-label="Luggage to sort"></div>
+          <div id="cargoCarts" class="cargo-carts" aria-label="Cargo carts"></div>
+        </div>
+        <div class="cargo-meter" aria-label="Cargo loading meter">
+          <div id="cargoFill" class="cargo-fill"></div>
+        </div>
+        <div id="cargoFeedback" class="feedback" aria-live="polite"></div>
+      </div>
+      <div id="cargoStartScreen" class="screen start-screen">
+        <h1>Cargo Crew Challenge</h1>
+        <p id="cargoStartText">Help the cargo crew sort and load luggage before departure.</p>
+        <div class="button-row">
+          <button id="cargoStartButton" class="big-button" type="button">Start Loading</button>
+          <button class="big-button js-level-select" type="button">Level Select</button>
+        </div>
+      </div>
+      <div id="cargoEndScreen" class="screen cargo-end" hidden>
+        <h1>Great sorting, Captain!</h1>
+        <p>You earned <strong id="cargoFinalStars">0</strong> stars loading the cargo carts.</p>
+        <div class="button-row">
+          <button id="cargoPlayAgainButton" class="big-button" type="button">Play Again</button>
+          <button class="big-button js-level-select" type="button">Back to Level Select</button>
+        </div>
+      </div>
+      <div id="cargoConfetti" class="confetti" aria-hidden="true"></div>
+    </section>
+
+    <section id="bridgeGame" class="game-wrap bridge-deck" aria-label="Level 4 Bridge Navigation game" hidden>
+      <div class="game-content bridge-content">
+        <div class="title-row">
+          <div>
+            <h1>Bridge Navigation</h1>
+            <div id="bridgeGradeBadge" class="grade-badge">Kindergarten</div>
+          </div>
+          <div id="bridgeStarDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
+        </div>
+        <div id="bridgeSpeech" class="speech" aria-live="polite">Tap Start Navigation to begin captain training.</div>
+        <div class="bridge-actions">
+          <button id="bridgeRepeatButton" class="big-button repeat-button" type="button">🔊 Repeat</button>
+          <button id="bridgeReplayButton" class="big-button repeat-button" type="button">Replay Radar</button>
+        </div>
+        <div class="bridge-console">
+          <aside class="bridge-panel" aria-label="Captain bridge instruments">
+            <div class="compass" aria-hidden="true">
+              <span class="north">N</span>
+              <span class="east">E</span>
+              <span class="south">S</span>
+              <span class="west">W</span>
+              🧭
+            </div>
+            <div class="bridge-controls">
+              <div id="bridgeClue" class="bridge-clue">Watch the radar, then tap the safe route.</div>
+              <div class="bridge-meter" aria-label="Ship progress meter">
+                <div id="bridgeFill" class="bridge-fill"></div>
+              </div>
+            </div>
+          </aside>
+          <div id="radarScreen" class="radar-screen">
+            <div id="bridgeGrid" class="ocean-grid" aria-label="Ocean navigation grid"></div>
+          </div>
+        </div>
+        <div id="bridgeFeedback" class="feedback" aria-live="polite"></div>
+      </div>
+      <div id="bridgeStartScreen" class="screen start-screen">
+        <h1>Bridge Navigation</h1>
+        <p id="bridgeStartText">Watch the radar and remember the safe path across the ocean grid.</p>
+        <div class="button-row">
+          <button id="bridgeStartButton" class="big-button" type="button">Start Navigation</button>
+          <button class="big-button js-level-select" type="button">Level Select</button>
+        </div>
+      </div>
+      <div id="bridgeEndScreen" class="screen bridge-end" hidden>
+        <h1>Great navigation, Captain!</h1>
+        <p>You earned <strong id="bridgeFinalStars">0</strong> stars guiding the ship through the safe path.</p>
+        <div class="button-row">
+          <button id="bridgePlayAgainButton" class="big-button" type="button">Play Again</button>
+          <button class="big-button js-level-select" type="button">Back to Level Select</button>
+        </div>
+      </div>
+      <div id="bridgeConfetti" class="confetti" aria-hidden="true"></div>
     </section>
   </main>
 
@@ -595,10 +1709,176 @@
     const earlyRounds = 5;
     const easyLetters = ["A", "B", "C"];
     const hardLetters = ["A", "B", "C", "D", "E", "F"];
+    const progressKey = "titanicAdventureProgress";
+    const cabinProgressKey = "titanicCabinMatchProgress";
+    const coalProgressKey = "titanicCoalCountProgress";
+    const cargoProgressKey = "titanicCargoCrewProgress";
+    const bridgeProgressKey = "titanicBridgeNavigationProgress";
+    const adventureGradeKey = "titanicAdventureGrade";
+    const cabinGradeKey = "titanicCabinMatchGrade";
+    const globalGradeKeys = [adventureGradeKey, "titanicSelectedGrade", "selectedGrade", "dipsgivingSelectedGrade"];
 
-    const roundCountEl = document.getElementById("roundCount");
-    const roundTotalEl = document.getElementById("roundTotal");
+    const cabinGradeConfigs = {
+      kindergarten: {
+        label: "Kindergarten",
+        shortLabel: "K",
+        maxNumber: 20,
+        choiceCount: 3,
+        letters: ["A", "B", "C"],
+        types: ["exactMatch"],
+        intro: "Kindergarten cabin clues use letters and numbers from 1 to 20.",
+      },
+      first: {
+        label: "1st Grade",
+        shortLabel: "1st",
+        maxNumber: 50,
+        choiceCount: 4,
+        letters: ["A", "B", "C", "D"],
+        types: ["exactMatch", "oneMore", "oneLess", "addition", "oddEven", "leftRight", "greaterThan", "lessThan"],
+        intro: "1st Grade adds one more, one less, simple addition, odd and even, and comparing numbers.",
+      },
+      second: {
+        label: "2nd Grade",
+        shortLabel: "2nd",
+        maxNumber: 100,
+        choiceCount: 4,
+        letters: ["A", "B", "C", "D", "E"],
+        types: ["addition", "subtraction", "tenMore", "tenLess", "skipCounting", "betweenNumbers"],
+        intro: "2nd Grade uses numbers to 100 with larger addition, subtraction, skip counting, and between clues.",
+      },
+      third: {
+        label: "3rd Grade",
+        shortLabel: "3rd",
+        maxNumber: 200,
+        choiceCount: 4,
+        letters: ["A", "B", "C", "D", "E", "F"],
+        types: ["multiplication", "division", "multiStep", "logicClue", "deckDirections"],
+        intro: "3rd Grade uses multiplication, division, multi-step clues, logic, and deck directions.",
+      },
+    };
+
+    const coalGradeConfigs = {
+      kindergarten: {
+        label: "Kindergarten",
+        maxNumber: 20,
+        choiceCount: 3,
+        types: ["numberRecognition", "countObjects", "addition", "moreOrLess"],
+        intro: "Kindergarten Coal Count uses numbers to 20, counting, small addition, and more or less.",
+      },
+      first: {
+        label: "1st Grade",
+        maxNumber: 50,
+        choiceCount: 4,
+        types: ["addition", "subtraction", "greaterThan", "lessThan", "missingNumber", "doubles", "skipCounting"],
+        intro: "1st Grade Coal Count uses math within 50, missing numbers, doubles, and skip counting.",
+      },
+      second: {
+        label: "2nd Grade",
+        maxNumber: 100,
+        choiceCount: 4,
+        types: ["addition", "subtraction", "tenMore", "tenLess", "placeValue", "skipCounting", "wordProblem"],
+        intro: "2nd Grade Coal Count uses numbers to 100, place value, ten more, ten less, and word problems.",
+      },
+      third: {
+        label: "3rd Grade",
+        maxNumber: 500,
+        choiceCount: 4,
+        types: ["multiplication", "division", "multiStep", "comparison", "wordProblem"],
+        intro: "3rd Grade Coal Count uses multiplication, division, multi-step clues, comparisons, and word problems.",
+      },
+    };
+
+    const cargoGradeConfigs = {
+      kindergarten: {
+        label: "Kindergarten",
+        cartCount: 2,
+        itemCount: 4,
+        types: ["colorSort", "shapeSort", "letterSort", "numberSort"],
+        intro: "Kindergarten Cargo Crew sorts colors, shapes, letters, and numbers.",
+      },
+      first: {
+        label: "1st Grade",
+        cartCount: 3,
+        itemCount: 6,
+        types: ["oddEvenSort", "greaterThanSort", "lessThanSort", "additionSort", "letterSort"],
+        intro: "1st Grade Cargo Crew sorts odd and even numbers, comparisons, addition, and beginning letters.",
+      },
+      second: {
+        label: "2nd Grade",
+        cartCount: 3,
+        itemCount: 7,
+        types: ["rangeSort", "placeValueSort", "additionSort", "subtractionSort", "skipCountingSort"],
+        intro: "2nd Grade Cargo Crew sorts ranges, place value, larger facts, and skip counting.",
+      },
+      third: {
+        label: "3rd Grade",
+        cartCount: 4,
+        itemCount: 8,
+        types: ["multiplicationSort", "divisionSort", "fractionSort", "logicSort"],
+        intro: "3rd Grade Cargo Crew sorts multiplication, division, fractions, and logic clues.",
+      },
+    };
+
+    const bridgeGradeConfigs = {
+      kindergarten: {
+        label: "Kindergarten",
+        gridSize: 3,
+        minSteps: 2,
+        maxSteps: 3,
+        revealTimeMs: 4200,
+        icebergCount: 2,
+        maxReplays: 99,
+        types: ["safePathMemory", "icebergAvoidance"],
+        intro: "Kindergarten Bridge Navigation uses a 3 by 3 radar grid and short safe paths.",
+      },
+      first: {
+        label: "1st Grade",
+        gridSize: 4,
+        minSteps: 3,
+        maxSteps: 4,
+        revealTimeMs: 3400,
+        icebergCount: 4,
+        maxReplays: 99,
+        types: ["safePathMemory", "icebergAvoidance", "compassRoute"],
+        intro: "1st Grade Bridge Navigation adds north, south, east, and west clues.",
+      },
+      second: {
+        label: "2nd Grade",
+        gridSize: 5,
+        minSteps: 4,
+        maxSteps: 6,
+        revealTimeMs: 2850,
+        icebergCount: 7,
+        maxReplays: 2,
+        types: ["safePathMemory", "compassRoute", "coordinateRoute", "mixedNavigation"],
+        intro: "2nd Grade Bridge Navigation adds coordinates like A1 and sequencing clues.",
+      },
+      third: {
+        label: "3rd Grade",
+        gridSize: 6,
+        minSteps: 6,
+        maxSteps: 8,
+        revealTimeMs: 2300,
+        icebergCount: 10,
+        fogCount: 5,
+        maxReplays: 1,
+        types: ["compassRoute", "coordinateRoute", "fogMemory", "mixedNavigation"],
+        intro: "3rd Grade Bridge Navigation combines coordinates, compass clues, fog, and longer routes.",
+      },
+    };
+
+    const levelSelect = document.getElementById("levelSelect");
+    const levelGrid = document.getElementById("levelGrid");
+    const gradeOptions = document.getElementById("gradeOptions");
+    const levelSelectButton = document.getElementById("levelSelectButton");
+    const scoreboard = document.getElementById("scoreboard");
+    const roundLabel = document.getElementById("roundLabel");
+    let roundCountEl = document.getElementById("roundCount");
+    let roundTotalEl = document.getElementById("roundTotal");
     const scoreEl = document.getElementById("score");
+
+    const cabinGame = document.getElementById("cabinGame");
+    const cabinGradeBadge = document.getElementById("cabinGradeBadge");
     const starDisplay = document.getElementById("starDisplay");
     const speechEl = document.getElementById("speech");
     const repeatButton = document.getElementById("repeatButton");
@@ -609,11 +1889,81 @@
     const loadingScreen = document.getElementById("loadingScreen");
     const loadingMessage = document.getElementById("loadingMessage");
     const startScreen = document.getElementById("startScreen");
+    const startScreenText = document.getElementById("startScreenText");
     const endScreen = document.getElementById("endScreen");
     const startButton = document.getElementById("startButton");
     const playAgainButton = document.getElementById("playAgainButton");
     const finalStars = document.getElementById("finalStars");
     const confetti = document.getElementById("confetti");
+
+    const coalGame = document.getElementById("coalGame");
+    const coalGradeBadge = document.getElementById("coalGradeBadge");
+    const coalStarDisplay = document.getElementById("coalStarDisplay");
+    const coalSpeech = document.getElementById("coalSpeech");
+    const coalRepeatButton = document.getElementById("coalRepeatButton");
+    const coalPieces = document.getElementById("coalPieces");
+    const numberCard = document.getElementById("numberCard");
+    const coalAnswers = document.getElementById("coalAnswers");
+    const coalFeedback = document.getElementById("coalFeedback");
+    const coalStartScreen = document.getElementById("coalStartScreen");
+    const coalStartText = document.getElementById("coalStartText");
+    const coalEndScreen = document.getElementById("coalEndScreen");
+    const coalStartButton = document.getElementById("coalStartButton");
+    const coalPlayAgainButton = document.getElementById("coalPlayAgainButton");
+    const coalFinalStars = document.getElementById("coalFinalStars");
+    const coalConfetti = document.getElementById("coalConfetti");
+    const furnace = document.getElementById("furnace");
+    const engineFill = document.getElementById("engineFill");
+    const steamPuff = document.getElementById("steamPuff");
+
+    const cargoGame = document.getElementById("cargoGame");
+    const cargoGradeBadge = document.getElementById("cargoGradeBadge");
+    const cargoStarDisplay = document.getElementById("cargoStarDisplay");
+    const cargoSpeech = document.getElementById("cargoSpeech");
+    const cargoRepeatButton = document.getElementById("cargoRepeatButton");
+    const cargoHintButton = document.getElementById("cargoHintButton");
+    const cargoBelt = document.getElementById("cargoBelt");
+    const cargoCarts = document.getElementById("cargoCarts");
+    const cargoFill = document.getElementById("cargoFill");
+    const cargoFeedback = document.getElementById("cargoFeedback");
+    const cargoStartScreen = document.getElementById("cargoStartScreen");
+    const cargoStartText = document.getElementById("cargoStartText");
+    const cargoEndScreen = document.getElementById("cargoEndScreen");
+    const cargoStartButton = document.getElementById("cargoStartButton");
+    const cargoPlayAgainButton = document.getElementById("cargoPlayAgainButton");
+    const cargoFinalStars = document.getElementById("cargoFinalStars");
+    const cargoConfetti = document.getElementById("cargoConfetti");
+
+    const bridgeGame = document.getElementById("bridgeGame");
+    const bridgeGradeBadge = document.getElementById("bridgeGradeBadge");
+    const bridgeStarDisplay = document.getElementById("bridgeStarDisplay");
+    const bridgeSpeech = document.getElementById("bridgeSpeech");
+    const bridgeRepeatButton = document.getElementById("bridgeRepeatButton");
+    const bridgeReplayButton = document.getElementById("bridgeReplayButton");
+    const bridgeClue = document.getElementById("bridgeClue");
+    const radarScreen = document.getElementById("radarScreen");
+    const bridgeGrid = document.getElementById("bridgeGrid");
+    const bridgeFill = document.getElementById("bridgeFill");
+    const bridgeFeedback = document.getElementById("bridgeFeedback");
+    const bridgeStartScreen = document.getElementById("bridgeStartScreen");
+    const bridgeStartText = document.getElementById("bridgeStartText");
+    const bridgeEndScreen = document.getElementById("bridgeEndScreen");
+    const bridgeStartButton = document.getElementById("bridgeStartButton");
+    const bridgePlayAgainButton = document.getElementById("bridgePlayAgainButton");
+    const bridgeFinalStars = document.getElementById("bridgeFinalStars");
+    const bridgeConfetti = document.getElementById("bridgeConfetti");
+
+    let progress = readProgress();
+    let cabinProgress = readCabinProgress();
+    let coalProgress = readCoalProgress();
+    let cargoProgress = readCargoProgress();
+    let bridgeProgress = readBridgeProgress();
+    let selectedCabinGrade = getInitialCabinGrade();
+    let activeLevel = "select";
+    let voiceAudio = null;
+    let audioContext = null;
+    const ttsAudioCache = new Map();
+    const ttsAudioPromises = new Map();
 
     let currentRound = 0;
     let stars = 0;
@@ -622,71 +1972,220 @@
     let gameRounds = [];
     let acceptingAnswers = false;
     let backgroundPreloadStarted = false;
-    let voiceAudio = null;
-    let audioContext = null;
-    const ttsAudioCache = new Map();
-    const ttsAudioPromises = new Map();
+    let cabinPromptPromise = null;
+
+    let coalRound = 0;
+    let coalStars = 0;
+    let coalRounds = [];
+    let currentCoalQuestion = null;
+    let acceptingCoalAnswers = false;
+    let coalFirstPromptPromise = null;
+
+    let cargoRound = 0;
+    let cargoStars = 0;
+    let cargoRounds = [];
+    let currentCargoRound = null;
+    let cargoLoadedCount = 0;
+    let cargoRoundComplete = false;
+    let cargoFirstPromptPromise = null;
+    let activeDrag = null;
+
+    let bridgeRound = 0;
+    let bridgeStars = 0;
+    let bridgeRounds = [];
+    let currentBridgeRound = null;
+    let bridgePathIndex = 0;
+    let bridgeRevealing = false;
+    let acceptingBridgeTiles = false;
+    let bridgeReplaysUsed = 0;
+    let bridgeFirstPromptPromise = null;
+    let bridgeRevealTimer = null;
+    let bridgeReminderTimer = null;
+    let bridgeRevealStep = 0;
 
     roundTotalEl.textContent = String(roundsPerGame);
 
-    function buildTicket(roundIndex) {
-      const isEasy = roundIndex < earlyRounds;
-      const letters = isEasy ? easyLetters : hardLetters;
-      const maxNumber = isEasy ? 10 : 20;
-      return {
-        letter: letters[Math.floor(Math.random() * letters.length)],
-        number: Math.floor(Math.random() * maxNumber) + 1,
-        choiceCount: isEasy ? 3 : 4,
-      };
-    }
-
-    function ticketCode(ticket) {
-      return ticket.letter + ticket.number;
-    }
-
-    function getPromptText(ticket) {
-      return "Find cabin " + ticket.letter + " " + ticket.number + "!";
-    }
-
-    function buildChoices(ticket) {
-      const correct = ticketCode(ticket);
-      const choices = new Set([correct]);
-      const letters = ticket.choiceCount === 3 ? easyLetters : hardLetters;
-      const maxNumber = ticket.choiceCount === 3 ? 10 : 20;
-
-      while (choices.size < ticket.choiceCount) {
-        const letter = Math.random() < 0.55 ? ticket.letter : letters[Math.floor(Math.random() * letters.length)];
-        const number = Math.floor(Math.random() * maxNumber) + 1;
-        choices.add(letter + number);
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(progressKey)) || {};
+      } catch (error) {
+        return {};
       }
-
-      return Array.from(choices).sort(() => Math.random() - 0.5);
     }
 
-    function buildGameRounds() {
-      return Array.from({ length: roundsPerGame }, (_, index) => {
-        const ticket = buildTicket(index);
-        return {
-          ticket,
-          choices: buildChoices(ticket),
-        };
-      });
+    function saveProgress() {
+      localStorage.setItem(progressKey, JSON.stringify(progress));
     }
 
-    function prepareNewGame() {
-      currentRound = 0;
-      stars = 0;
-      currentTicket = null;
-      currentChoices = [];
-      acceptingAnswers = false;
-      backgroundPreloadStarted = false;
-      gameRounds = buildGameRounds();
-      feedbackEl.textContent = "";
-      speechEl.textContent = "Tap Start Boarding to begin captain training.";
-      ticketCodeEl.textContent = "Repeat";
-      updateHud();
-      renderDoors();
-      preloadFirstRoundInBackground();
+    function readCabinProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(cabinProgressKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveCabinProgress() {
+      localStorage.setItem(cabinProgressKey, JSON.stringify(cabinProgress));
+    }
+
+    function readCoalProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(coalProgressKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveCoalProgress() {
+      localStorage.setItem(coalProgressKey, JSON.stringify(coalProgress));
+    }
+
+    function readCargoProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(cargoProgressKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveCargoProgress() {
+      localStorage.setItem(cargoProgressKey, JSON.stringify(cargoProgress));
+    }
+
+    function readBridgeProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(bridgeProgressKey)) || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveBridgeProgress() {
+      localStorage.setItem(bridgeProgressKey, JSON.stringify(bridgeProgress));
+    }
+
+    function normalizeGradeKey(value) {
+      const grade = String(value || "").toLowerCase().replace(/\s+/g, "");
+      if (["k", "kg", "kindergarten"].includes(grade)) return "kindergarten";
+      if (["1", "1st", "first", "firstgrade", "grade1"].includes(grade)) return "first";
+      if (["2", "2nd", "second", "secondgrade", "grade2"].includes(grade)) return "second";
+      if (["3", "3rd", "third", "thirdgrade", "grade3"].includes(grade)) return "third";
+      return cabinGradeConfigs[grade] ? grade : "";
+    }
+
+    function getUrlGradeOverride() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        return normalizeGradeKey(params.get("grade"));
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function applyTitanicTestStorageControls() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("resetTitanic") === "1") {
+          localStorage.removeItem(adventureGradeKey);
+          localStorage.removeItem(cabinGradeKey);
+          localStorage.removeItem(cabinProgressKey);
+          localStorage.removeItem(coalProgressKey);
+          localStorage.removeItem(cargoProgressKey);
+          localStorage.removeItem(bridgeProgressKey);
+        }
+      } catch (error) {
+        // URL test controls are optional helpers for local testing.
+      }
+    }
+
+    function getInitialCabinGrade() {
+      applyTitanicTestStorageControls();
+      const urlGrade = getUrlGradeOverride();
+      if (urlGrade) {
+        localStorage.setItem(adventureGradeKey, urlGrade);
+        localStorage.setItem(cabinGradeKey, urlGrade);
+        return urlGrade;
+      }
+      const storedAdventureGrade = normalizeGradeKey(localStorage.getItem(adventureGradeKey));
+      if (storedAdventureGrade) return storedAdventureGrade;
+      const storedCabinGrade = normalizeGradeKey(localStorage.getItem(cabinGradeKey));
+      if (storedCabinGrade) return storedCabinGrade;
+      for (const key of globalGradeKeys) {
+        const grade = normalizeGradeKey(localStorage.getItem(key));
+        if (grade) return grade;
+      }
+      return "kindergarten";
+    }
+
+    function setCabinGrade(grade) {
+      selectedCabinGrade = normalizeGradeKey(grade) || "kindergarten";
+      localStorage.setItem(adventureGradeKey, selectedCabinGrade);
+      localStorage.setItem(cabinGradeKey, selectedCabinGrade);
+      renderGradeOptions();
+      renderLevelSelect();
+      if (activeLevel === "cabin") prepareNewGame();
+      if (activeLevel === "coal") prepareCoalGame();
+      if (activeLevel === "cargo") prepareCargoGame();
+      if (activeLevel === "bridge") prepareBridgeGame();
+    }
+
+    function completeLevel(level, levelStars) {
+      const current = progress[level] || { complete: false, stars: 0 };
+      progress[level] = { complete: true, stars: Math.max(current.stars || 0, levelStars) };
+      saveProgress();
+    }
+
+    function completeCabinGrade(levelStars) {
+      const current = cabinProgress[selectedCabinGrade] || { completed: false, bestStars: 0 };
+      cabinProgress[selectedCabinGrade] = {
+        completed: true,
+        bestStars: Math.max(current.bestStars || 0, levelStars),
+      };
+      saveCabinProgress();
+      completeLevel("cabin", levelStars);
+    }
+
+    function completeCoalGrade(levelStars) {
+      const current = coalProgress[selectedCabinGrade] || { completed: false, bestStars: 0 };
+      coalProgress[selectedCabinGrade] = {
+        completed: true,
+        bestStars: Math.max(current.bestStars || 0, levelStars),
+      };
+      saveCoalProgress();
+      completeLevel("coal", levelStars);
+    }
+
+    function completeCargoGrade(levelStars) {
+      const current = cargoProgress[selectedCabinGrade] || { completed: false, bestStars: 0, roundsCompleted: 0 };
+      cargoProgress[selectedCabinGrade] = {
+        completed: true,
+        bestStars: Math.max(current.bestStars || 0, levelStars),
+        roundsCompleted: roundsPerGame,
+      };
+      saveCargoProgress();
+      completeLevel("cargo", levelStars);
+    }
+
+    function completeBridgeGrade(levelStars) {
+      const current = bridgeProgress[selectedCabinGrade] || { completed: false, bestStars: 0, bestRoundCompleted: 0 };
+      bridgeProgress[selectedCabinGrade] = {
+        completed: true,
+        bestStars: Math.max(current.bestStars || 0, levelStars),
+        bestRoundCompleted: Math.max(current.bestRoundCompleted || 0, roundsPerGame),
+      };
+      saveBridgeProgress();
+      completeLevel("bridge", levelStars);
+    }
+
+    function saveBridgeRoundProgress() {
+      const current = bridgeProgress[selectedCabinGrade] || { completed: false, bestStars: 0, bestRoundCompleted: 0 };
+      bridgeProgress[selectedCabinGrade] = {
+        completed: Boolean(current.completed),
+        bestStars: Math.max(current.bestStars || 0, bridgeStars),
+        bestRoundCompleted: Math.max(current.bestRoundCompleted || 0, bridgeRound),
+      };
+      saveBridgeProgress();
     }
 
     function getVoiceAudio() {
@@ -728,27 +2227,28 @@
     async function unlockAudioContext() {
       try {
         const context = getAudioContext();
-        if (context.state === "suspended") {
-          await timebox(context.resume(), 500);
-        }
+        if (context.state === "suspended") await timebox(context.resume(), 500);
       } catch (error) {
-        // The reusable HTML audio element still handles the main voice prompt.
+        // The reusable HTML audio element handles the main Google TTS prompts.
       }
     }
 
-    async function getTextToSpeechAudio(ticket) {
-      const cacheKey = ticketCode(ticket);
+    function ttsCacheKey(text) {
+      return text.toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    async function getTextToSpeechAudio(text) {
+      const cacheKey = ttsCacheKey(text);
       if (ttsAudioCache.has(cacheKey)) return ttsAudioCache.get(cacheKey);
       if (ttsAudioPromises.has(cacheKey)) return ttsAudioPromises.get(cacheKey);
 
       const audioPromise = (async () => {
-        const query = new URLSearchParams({ ticket: cacheKey });
+        const query = new URLSearchParams({ text });
         const response = await fetch("/api/text-to-speech?" + query.toString());
         if (!response.ok) throw new Error("Text-to-speech request failed");
         const audioData = await response.arrayBuffer();
         const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audioAsset = { url: audioUrl, buffer: null };
+        const audioAsset = { url: URL.createObjectURL(audioBlob) };
         ttsAudioCache.set(cacheKey, audioAsset);
         return audioAsset;
       })();
@@ -760,52 +2260,6 @@
         ttsAudioPromises.delete(cacheKey);
         throw error;
       }
-    }
-
-    function updateLoadingMessage(isReady) {
-      loadingMessage.textContent = isReady ? "Ready to board!" : "Getting the next ticket ready...";
-    }
-
-    async function preloadRoundVoice(round, showLoading) {
-      if (showLoading) {
-        loadingScreen.hidden = false;
-        updateLoadingMessage(false);
-      }
-      try {
-        await getTextToSpeechAudio(round.ticket);
-      } catch (error) {
-        // The ticket can still try again when the prompt plays.
-      }
-      if (showLoading) {
-        updateLoadingMessage(true);
-        await waitFor(150);
-        loadingScreen.hidden = true;
-      }
-    }
-
-    function preloadFirstRoundInBackground() {
-      if (!gameRounds.length) return;
-      preloadRoundVoice(gameRounds[0], false);
-    }
-
-    async function preloadRemainingRoundVoices(rounds, startIndex) {
-      let nextItem = startIndex;
-      const workerCount = Math.min(3, Math.max(0, rounds.length - startIndex));
-      if (!workerCount) return;
-
-      const preloadQueue = Array.from({ length: workerCount }, async () => {
-        while (nextItem < rounds.length) {
-          const round = rounds[nextItem];
-          nextItem += 1;
-          try {
-            await getTextToSpeechAudio(round.ticket);
-          } catch (error) {
-            // A missed background preload still falls back when that ticket appears.
-          }
-        }
-      });
-
-      await Promise.all(preloadQueue);
     }
 
     async function playReusableVoiceAudio(audioUrl) {
@@ -837,48 +2291,23 @@
       });
     }
 
-    async function playAudioBuffer(audioBuffer) {
-      const context = getAudioContext();
-      if (context.state === "suspended") {
-        await timebox(context.resume(), 500);
-      }
-      const source = context.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(context.destination);
-      source.start(0);
-      await waitFor(40);
-    }
-
-    async function speakWithBrowserVoice() {
-      if (!("speechSynthesis" in window) || !currentTicket) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(getPromptText(currentTicket));
-      utterance.rate = 0.85;
-      utterance.pitch = 1.08;
-      window.speechSynthesis.speak(utterance);
-    }
-
-    async function sayCurrentTicket() {
-      if (!currentTicket) return;
-      speechEl.textContent = "Listen for the cabin, then tap the matching door.";
-
+    async function speakText(text, visibleElement) {
+      if (visibleElement) visibleElement.textContent = text;
       try {
-        const audioAsset = await getTextToSpeechAudio(currentTicket);
+        const audioAsset = await getTextToSpeechAudio(text);
         await playReusableVoiceAudio(audioAsset.url);
-        return;
       } catch (error) {
-        // Some mobile browsers are picky about media elements after async work.
+        // On-screen text always remains available if the Google audio cannot play.
       }
+    }
 
-      try {
-        const audioAsset = await getTextToSpeechAudio(currentTicket);
-        if (audioAsset.buffer) {
-          await playAudioBuffer(audioAsset.buffer);
-          return;
-        }
-      } catch (error) {
-        await speakWithBrowserVoice();
-      }
+    function preloadTextList(texts) {
+      const uniqueTexts = Array.from(new Set(texts.filter(Boolean)));
+      return Promise.all(uniqueTexts.map((text) => getTextToSpeechAudio(text).catch(() => {})));
+    }
+
+    function preloadTextListInBackground(texts) {
+      preloadTextList(texts).catch(() => {});
     }
 
     function playTone(frequency, duration, type) {
@@ -899,10 +2328,516 @@
       }
     }
 
-    function updateHud() {
+    function playBoatHorn() {
+      try {
+        const context = getAudioContext();
+        [196, 147].forEach((frequency, index) => {
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+          const start = context.currentTime + index * 0.18;
+          oscillator.type = "sawtooth";
+          oscillator.frequency.setValueAtTime(frequency, start);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.linearRampToValueAtTime(0.08, start + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
+          oscillator.connect(gain);
+          gain.connect(context.destination);
+          oscillator.start(start);
+          oscillator.stop(start + 0.44);
+        });
+      } catch (error) {
+        playTone(180, 0.24, "sawtooth");
+      }
+    }
+
+    function showStars(target) {
+      const rect = target.getBoundingClientRect();
+      target.innerHTML = "";
+      for (let i = 0; i < 16; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "spark";
+        spark.textContent = "★";
+        spark.style.left = Math.floor(Math.random() * Math.max(1, rect.width - 24)) + "px";
+        spark.style.animationDelay = Math.floor(Math.random() * 180) + "ms";
+        target.appendChild(spark);
+      }
+      setTimeout(() => {
+        target.innerHTML = "";
+      }, 1200);
+    }
+
+    function renderLevelSelect() {
+      renderGradeOptions();
+      const levels = [
+        { id: "cabin", number: 1, title: "Cabin Match", subtitle: "Help passengers find their rooms", available: true },
+        { id: "coal", number: 2, title: "Engine Room Coal Count", subtitle: "Power the ship with math", available: true },
+        { id: "cargo", number: 3, title: "Cargo Crew Challenge", subtitle: "Sort and load luggage", available: true },
+        { id: "bridge", number: 4, title: "Bridge Navigation", subtitle: "Remember the safe path", available: true },
+        { id: "messages", number: 5, title: "Captain's Message Center", subtitle: "Read ship messages", available: false },
+      ];
+
+      levelGrid.innerHTML = "";
+      levels.forEach((level) => {
+        const saved = progress[level.id];
+        const cabinSaved = cabinProgress[selectedCabinGrade] || {};
+        const coalSaved = coalProgress[selectedCabinGrade] || {};
+        const cargoSaved = cargoProgress[selectedCabinGrade] || {};
+        const bridgeSaved = bridgeProgress[selectedCabinGrade] || {};
+        const gradeLabel = cabinGradeConfigs[selectedCabinGrade].label;
+        const card = document.createElement("article");
+        const isCabinComplete = level.id === "cabin" && cabinSaved.completed;
+        const isCoalComplete = level.id === "coal" && coalSaved.completed;
+        const isCargoComplete = level.id === "cargo" && cargoSaved.completed;
+        const isBridgeComplete = level.id === "bridge" && bridgeSaved.completed;
+        const isLevelComplete = level.id === "cabin" ? isCabinComplete : level.id === "coal" ? isCoalComplete : level.id === "cargo" ? isCargoComplete : level.id === "bridge" ? isBridgeComplete : saved && saved.complete;
+        card.className = "level-card" + (isLevelComplete ? " is-complete" : "") + (!level.available ? " is-coming" : "");
+        let status = !level.available ? "Coming Soon" : saved && saved.complete ? "Complete: " + saved.stars + " stars" : "Available";
+        if (level.id === "cabin") {
+          status = isCabinComplete ? gradeLabel + ": " + cabinSaved.bestStars + " stars" : gradeLabel + ": Available";
+        }
+        if (level.id === "coal") {
+          status = isCoalComplete ? gradeLabel + ": " + coalSaved.bestStars + " stars" : gradeLabel + ": Available";
+        }
+        if (level.id === "cargo") {
+          status = isCargoComplete ? gradeLabel + ": " + cargoSaved.bestStars + " stars" : gradeLabel + ": Available";
+        }
+        if (level.id === "bridge") {
+          status = isBridgeComplete ? gradeLabel + ": " + bridgeSaved.bestStars + " stars" : gradeLabel + ": Available";
+        }
+        card.innerHTML =
+          '<div class="level-number">' + level.number + '</div>' +
+          '<h2>' + level.title + '</h2>' +
+          '<p>' + level.subtitle + '</p>' +
+          '<span class="level-status">' + status + '</span>';
+        if (level.available) {
+          const button = document.createElement("button");
+          button.className = "big-button";
+          button.type = "button";
+          button.textContent = "Play";
+          button.addEventListener("click", () => showLevel(level.id));
+          card.appendChild(button);
+        }
+        levelGrid.appendChild(card);
+      });
+    }
+
+    function showLevel(level) {
+      const previousLevel = activeLevel;
+      activeLevel = level;
+      if (previousLevel === "bridge" && level !== "bridge") {
+        clearTimeout(bridgeRevealTimer);
+        clearTimeout(bridgeReminderTimer);
+        acceptingBridgeTiles = false;
+        bridgeRevealing = false;
+      }
+      document.body.classList.toggle("is-playing", level !== "select");
+      levelSelect.hidden = level !== "select";
+      cabinGame.hidden = level !== "cabin";
+      coalGame.hidden = level !== "coal";
+      cargoGame.hidden = level !== "cargo";
+      bridgeGame.hidden = level !== "bridge";
+      scoreboard.classList.toggle("is-hidden", level === "select");
+      levelSelectButton.hidden = level === "select";
+      if (level === "select") {
+        renderLevelSelect();
+        return;
+      }
+      if (level === "cabin") {
+        roundLabel.innerHTML = 'Passenger: <strong id="roundCount">1</strong>/<strong id="roundTotal">10</strong>';
+      } else if (level === "cargo") {
+        roundLabel.innerHTML = 'Round: <strong id="roundCount">1</strong> of <strong id="roundTotal">10</strong>';
+      } else {
+        roundLabel.innerHTML = 'Round: <strong id="roundCount">1</strong>/<strong id="roundTotal">10</strong>';
+      }
+      refreshHudRefs();
+      roundTotalEl.textContent = String(roundsPerGame);
+      if (level === "cabin") prepareNewGame();
+      if (level === "coal") prepareCoalGame();
+      if (level === "cargo") prepareCargoGame();
+      if (level === "bridge") prepareBridgeGame();
+    }
+
+    function refreshHudRefs() {
+      roundCountEl = document.getElementById("roundCount");
+      roundTotalEl = document.getElementById("roundTotal");
+    }
+
+    function renderGradeOptions() {
+      gradeOptions.innerHTML = "";
+      Object.entries(cabinGradeConfigs).forEach(([grade, config]) => {
+        const button = document.createElement("button");
+        button.className = "grade-choice" + (grade === selectedCabinGrade ? " is-selected" : "");
+        button.type = "button";
+        button.textContent = config.label;
+        button.setAttribute("aria-pressed", String(grade === selectedCabinGrade));
+        button.addEventListener("click", () => setCabinGrade(grade));
+        gradeOptions.appendChild(button);
+      });
+    }
+
+    function cabinCode(letter, number) {
+      return letter + number;
+    }
+
+    function randomCabin(config, min, max) {
+      return {
+        letter: config.letters[randomInt(0, config.letters.length - 1)],
+        number: randomInt(min || 1, max || config.maxNumber),
+      };
+    }
+
+    function makeCabinChoices(correctAnswer, count, config) {
+      const match = String(correctAnswer).match(/^([A-Z]+)(\d+)$/);
+      const correctLetter = match ? match[1] : config.letters[0];
+      const correctNumber = match ? Number(match[2]) : randomInt(1, config.maxNumber);
+      const choices = new Set([correctAnswer]);
+      let distance = 1;
+
+      while (choices.size < count) {
+        if (correctNumber - distance >= 1) choices.add(cabinCode(correctLetter, correctNumber - distance));
+        if (choices.size < count && correctNumber + distance <= config.maxNumber) choices.add(cabinCode(correctLetter, correctNumber + distance));
+        if (choices.size < count) choices.add(cabinCode(config.letters[randomInt(0, config.letters.length - 1)], correctNumber));
+        if (choices.size < count) choices.add(cabinCode(config.letters[randomInt(0, config.letters.length - 1)], randomInt(1, config.maxNumber)));
+        distance += 1;
+      }
+      return shuffled(Array.from(choices)).slice(0, count);
+    }
+
+    function cabinQuestion(config, gradeLevel, type, details) {
+      const correctAnswer = cabinCode(details.letter, details.answer);
+      const question = {
+        promptText: details.promptText,
+        ttsText: details.ttsText || details.promptText,
+        correctAnswer,
+        answerChoices: details.answerChoices || makeCabinChoices(correctAnswer, details.choiceCount || config.choiceCount, config),
+        visualTicketText: details.visualTicketText || correctAnswer,
+        gradeLevel,
+        questionType: type,
+      };
+      return question;
+    }
+
+    const cabinQuestionBuilders = {
+      exactMatch(config, gradeLevel) {
+        const cabin = randomCabin(config);
+        return cabinQuestion(config, gradeLevel, "exactMatch", {
+          letter: cabin.letter,
+          answer: cabin.number,
+          promptText: "Find cabin " + cabin.letter + " " + cabin.number + ".",
+        });
+      },
+      oneMore(config, gradeLevel) {
+        const cabin = randomCabin(config, 1, config.maxNumber - 1);
+        const answer = cabin.number + 1;
+        return cabinQuestion(config, gradeLevel, "oneMore", {
+          letter: cabin.letter,
+          answer,
+          promptText: "Find the cabin one number higher than " + cabin.letter + " " + cabin.number + ".",
+          visualTicketText: cabinCode(cabin.letter, cabin.number) + " + 1",
+        });
+      },
+      oneLess(config, gradeLevel) {
+        const cabin = randomCabin(config, 2, config.maxNumber);
+        const answer = cabin.number - 1;
+        return cabinQuestion(config, gradeLevel, "oneLess", {
+          letter: cabin.letter,
+          answer,
+          promptText: "Find the cabin one number smaller than " + cabin.letter + " " + cabin.number + ".",
+          visualTicketText: cabinCode(cabin.letter, cabin.number) + " - 1",
+        });
+      },
+      addition(config, gradeLevel) {
+        const addend = gradeLevel === "first" ? randomInt(1, 5) : randomInt(3, 20);
+        const start = randomInt(1, config.maxNumber - addend);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "addition", {
+          letter,
+          answer: start + addend,
+          promptText: "Cabin " + letter + " " + start + " plus " + addend + ".",
+          ttsText: "Find cabin " + letter + " " + start + " plus " + addend + ".",
+          visualTicketText: cabinCode(letter, start) + " + " + addend,
+        });
+      },
+      subtraction(config, gradeLevel) {
+        const subtrahend = randomInt(3, 20);
+        const start = randomInt(subtrahend + 1, config.maxNumber);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "subtraction", {
+          letter,
+          answer: start - subtrahend,
+          promptText: "Find the cabin " + subtrahend + " less than " + letter + " " + start + ".",
+          visualTicketText: cabinCode(letter, start) + " - " + subtrahend,
+        });
+      },
+      oddEven(config, gradeLevel) {
+        const wantEven = Math.random() < 0.5;
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        const correctNumber = randomInt(1, Math.floor(config.maxNumber / 2)) * 2 - (wantEven ? 0 : 1);
+        const wrongNumbers = [];
+        while (wrongNumbers.length < config.choiceCount - 1) {
+          const n = randomInt(1, config.maxNumber);
+          if (n % 2 !== correctNumber % 2) wrongNumbers.push(n);
+        }
+        return cabinQuestion(config, gradeLevel, "oddEven", {
+          letter,
+          answer: correctNumber,
+          promptText: "Find the " + (wantEven ? "even" : "odd") + " cabin.",
+          visualTicketText: wantEven ? "Even" : "Odd",
+          answerChoices: shuffled([correctNumber, ...wrongNumbers].map((number) => cabinCode(letter, number))),
+        });
+      },
+      leftRight(config, gradeLevel) {
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        const base = randomInt(2, config.maxNumber - 2);
+        const goRight = Math.random() < 0.5;
+        const numbers = [base - 1, base, base + 1, base + 2];
+        return cabinQuestion(config, gradeLevel, "leftRight", {
+          letter,
+          answer: goRight ? base + 1 : base - 1,
+          promptText: "Find the cabin just to the " + (goRight ? "right" : "left") + " of " + letter + " " + base + ".",
+          visualTicketText: (goRight ? "Right of " : "Left of ") + cabinCode(letter, base),
+          answerChoices: numbers.map((number) => cabinCode(letter, number)),
+        });
+      },
+      greaterThan(config, gradeLevel) {
+        return compareCabins(config, gradeLevel, "greaterThan", "largest");
+      },
+      lessThan(config, gradeLevel) {
+        return compareCabins(config, gradeLevel, "lessThan", "smallest");
+      },
+      tenMore(config, gradeLevel) {
+        const cabin = randomCabin(config, 1, config.maxNumber - 10);
+        return cabinQuestion(config, gradeLevel, "tenMore", {
+          letter: cabin.letter,
+          answer: cabin.number + 10,
+          promptText: "Find the cabin 10 more than " + cabin.letter + " " + cabin.number + ".",
+          visualTicketText: cabinCode(cabin.letter, cabin.number) + " + 10",
+        });
+      },
+      tenLess(config, gradeLevel) {
+        const cabin = randomCabin(config, 11, config.maxNumber);
+        return cabinQuestion(config, gradeLevel, "tenLess", {
+          letter: cabin.letter,
+          answer: cabin.number - 10,
+          promptText: "Find the cabin 10 less than " + cabin.letter + " " + cabin.number + ".",
+          visualTicketText: cabinCode(cabin.letter, cabin.number) + " - 10",
+        });
+      },
+      skipCounting(config, gradeLevel) {
+        const step = [2, 5, 10][randomInt(0, 2)];
+        const start = randomInt(1, config.maxNumber - step * 3);
+        const answer = start + step * 3;
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "skipCounting", {
+          letter,
+          answer,
+          promptText: "Which cabin comes next? " + start + ", " + (start + step) + ", " + (start + step * 2) + ", blank.",
+          visualTicketText: start + ", " + (start + step) + ", " + (start + step * 2) + ", __",
+        });
+      },
+      betweenNumbers(config, gradeLevel) {
+        const answer = randomInt(2, config.maxNumber - 1);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "betweenNumbers", {
+          letter,
+          answer,
+          promptText: "Mrs. Penguin is staying between " + letter + " " + (answer - 1) + " and " + letter + " " + (answer + 1) + ".",
+          visualTicketText: (answer - 1) + " < ? < " + (answer + 1),
+        });
+      },
+      multiplication(config, gradeLevel) {
+        const a = randomInt(2, 10);
+        const b = randomInt(2, 10);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "multiplication", {
+          letter,
+          answer: a * b,
+          promptText: "Find the cabin number equal to " + a + " times " + b + ".",
+          visualTicketText: a + " x " + b,
+        });
+      },
+      division(config, gradeLevel) {
+        const answer = randomInt(2, 12);
+        const divisor = randomInt(2, 10);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "division", {
+          letter,
+          answer,
+          promptText: "Find the cabin number equal to " + (answer * divisor) + " divided by " + divisor + ".",
+          visualTicketText: (answer * divisor) + " / " + divisor,
+        });
+      },
+      multiStep(config, gradeLevel) {
+        const start = randomInt(1, config.maxNumber - 12);
+        const plus = 10;
+        const minus = randomInt(2, 8);
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        return cabinQuestion(config, gradeLevel, "multiStep", {
+          letter,
+          answer: start + plus - minus,
+          promptText: "Start at " + letter + " " + start + ". Move 10 more, then " + minus + " less. Which cabin?",
+          visualTicketText: cabinCode(letter, start) + " + 10 - " + minus,
+        });
+      },
+      logicClue(config, gradeLevel) {
+        const letter = config.letters[randomInt(0, config.letters.length - 1)];
+        const base = randomInt(4, config.maxNumber - 4);
+        const answer = base + 2;
+        const choices = shuffled([base, base + 1, answer, base + 3].map((number) => cabinCode(letter, number)));
+        return cabinQuestion(config, gradeLevel, "logicClue", {
+          letter,
+          answer,
+          promptText: "The rabbit family is not in " + letter + " " + base + " or " + letter + " " + (base + 3) + ". Choose the even cabin left.",
+          visualTicketText: "Not " + cabinCode(letter, base) + " or " + cabinCode(letter, base + 3),
+          answerChoices: choices,
+        });
+      },
+      deckDirections(config, gradeLevel) {
+        const letters = config.letters;
+        const index = randomInt(2, letters.length - 1);
+        const number = randomInt(1, Math.min(50, config.maxNumber));
+        return cabinQuestion(config, gradeLevel, "deckDirections", {
+          letter: letters[index - 2],
+          answer: number,
+          promptText: "Find the cabin 2 decks above " + letters[index] + " " + number + ".",
+          visualTicketText: letters[index] + number + " up 2",
+        });
+      },
+    };
+
+    function compareCabins(config, gradeLevel, type, direction) {
+      const letter = config.letters[randomInt(0, config.letters.length - 1)];
+      const numbers = new Set();
+      while (numbers.size < config.choiceCount) numbers.add(randomInt(1, config.maxNumber));
+      const list = Array.from(numbers);
+      const answer = direction === "largest" ? Math.max(...list) : Math.min(...list);
+      return cabinQuestion(config, gradeLevel, type, {
+        letter,
+        answer,
+        promptText: "Find the cabin with the " + direction + " number.",
+        visualTicketText: direction === "largest" ? "Largest" : "Smallest",
+        answerChoices: shuffled(list.map((number) => cabinCode(letter, number))),
+      });
+    }
+
+    function buildCabinQuestion(gradeLevel, roundIndex) {
+      const config = cabinGradeConfigs[gradeLevel] || cabinGradeConfigs.kindergarten;
+      const type = config.types[roundIndex % config.types.length];
+      const builder = cabinQuestionBuilders[type] || cabinQuestionBuilders.exactMatch;
+      return builder(config, gradeLevel);
+    }
+
+    function getPromptText(question) {
+      return question.ttsText;
+    }
+
+    function getCabinVisiblePrompt(question) {
+      return question && question.questionType === "exactMatch" ? "Listen to the cabin clue, then tap the matching door." : question.promptText;
+    }
+
+    function getCabinTicketText(question) {
+      return question && question.questionType === "exactMatch" ? "Repeat" : question.visualTicketText || "Repeat";
+    }
+
+    function buildGameRounds() {
+      // Add 4th/5th grade later by extending cabinGradeConfigs and adding builders
+      // to cabinQuestionBuilders; the game loop consumes the same question shape.
+      return Array.from({ length: roundsPerGame }, (_, index) => buildCabinQuestion(selectedCabinGrade, index));
+    }
+
+    function updateCabinHud() {
       roundCountEl.textContent = String(Math.min(currentRound + 1, roundsPerGame));
       scoreEl.textContent = String(stars);
       starDisplay.textContent = Array.from({ length: roundsPerGame }, (_, index) => index < stars ? "★" : "☆").join("");
+    }
+
+    function prepareNewGame() {
+      const config = cabinGradeConfigs[selectedCabinGrade] || cabinGradeConfigs.kindergarten;
+      currentRound = 0;
+      stars = 0;
+      currentTicket = null;
+      currentChoices = [];
+      acceptingAnswers = false;
+      backgroundPreloadStarted = false;
+      gameRounds = buildGameRounds();
+      feedbackEl.textContent = "";
+      speechEl.textContent = "Tap Start Boarding to begin " + config.label + " captain training.";
+      cabinGradeBadge.textContent = config.label;
+      startScreenText.textContent = config.intro + " Help each animal passenger board by listening to the ticket and matching the cabin door.";
+      ticketCodeEl.textContent = "Repeat";
+      startButton.disabled = true;
+      startButton.textContent = "Getting Voice Ready...";
+      startScreen.hidden = false;
+      endScreen.hidden = true;
+      loadingScreen.hidden = true;
+      updateCabinHud();
+      renderDoors();
+      cabinPromptPromise = preloadCabinPrompts();
+      cabinPromptPromise.finally(() => {
+        startButton.disabled = false;
+        startButton.textContent = "Start Boarding";
+      });
+    }
+
+    function updateLoadingMessage(isReady) {
+      loadingMessage.textContent = isReady ? "Ready to board!" : "Getting the next ticket ready...";
+    }
+
+    async function preloadRoundVoice(round, showLoading) {
+      if (showLoading) {
+        loadingScreen.hidden = false;
+        updateLoadingMessage(false);
+      }
+      try {
+        await getTextToSpeechAudio(getPromptText(round));
+      } catch (error) {
+        // The ticket can still try again when the prompt plays.
+      }
+      if (showLoading) {
+        updateLoadingMessage(true);
+        await waitFor(150);
+        loadingScreen.hidden = true;
+      }
+    }
+
+    function preloadFirstRoundInBackground() {
+      if (!gameRounds.length) return;
+      preloadRoundVoice(gameRounds[0], false);
+    }
+
+    function preloadCabinPrompts() {
+      return preloadTextList([
+        gameRounds[0] ? getPromptText(gameRounds[0]) : "",
+        "Try again, Captain!",
+        "Listen to the cabin clue, then tap the matching door.",
+      ]);
+    }
+
+    function preloadRemainingCabinPrompts() {
+      preloadTextListInBackground(gameRounds.slice(1).map((round) => getPromptText(round)));
+    }
+
+    async function preloadRemainingRoundVoices(rounds, startIndex) {
+      let nextItem = startIndex;
+      const workerCount = Math.min(3, Math.max(0, rounds.length - startIndex));
+      const preloadQueue = Array.from({ length: workerCount }, async () => {
+        while (nextItem < rounds.length) {
+          const round = rounds[nextItem];
+          nextItem += 1;
+          try {
+            await getTextToSpeechAudio(getPromptText(round));
+          } catch (error) {
+            // A missed background preload still falls back when that ticket appears.
+          }
+        }
+      });
+      await Promise.all(preloadQueue);
+    }
+
+    async function sayCurrentTicket() {
+      if (!currentTicket) return;
+      speechEl.textContent = getCabinVisiblePrompt(currentTicket);
+      await speakText(getPromptText(currentTicket));
     }
 
     function renderDoors() {
@@ -919,22 +2854,6 @@
       });
     }
 
-    function showStars() {
-      const rect = confetti.getBoundingClientRect();
-      confetti.innerHTML = "";
-      for (let i = 0; i < 16; i += 1) {
-        const spark = document.createElement("span");
-        spark.className = "spark";
-        spark.textContent = "★";
-        spark.style.left = Math.floor(Math.random() * Math.max(1, rect.width - 24)) + "px";
-        spark.style.animationDelay = Math.floor(Math.random() * 180) + "ms";
-        confetti.appendChild(spark);
-      }
-      setTimeout(() => {
-        confetti.innerHTML = "";
-      }, 1200);
-    }
-
     async function nextRound() {
       if (currentRound >= roundsPerGame) {
         endGame();
@@ -942,30 +2861,32 @@
       }
 
       const round = gameRounds[currentRound];
-      currentTicket = round.ticket;
-      currentChoices = round.choices;
+      currentTicket = round;
+      currentChoices = round.answerChoices;
       acceptingAnswers = false;
-      if (!ttsAudioCache.has(ticketCode(currentTicket))) {
-        await preloadRoundVoice(round, true);
+      if (!ttsAudioCache.has(ttsCacheKey(getPromptText(currentTicket)))) {
+        preloadRoundVoice(round, false);
       }
       acceptingAnswers = true;
       feedbackEl.textContent = "";
       animalEl.textContent = animals[currentRound % animals.length];
-      ticketCodeEl.textContent = "Repeat";
-      updateHud();
+      speechEl.textContent = getCabinVisiblePrompt(currentTicket);
+      ticketCodeEl.textContent = getCabinTicketText(currentTicket);
+      updateCabinHud();
       renderDoors();
       sayCurrentTicket();
     }
 
     function chooseDoor(choice, button) {
       if (!acceptingAnswers || !currentTicket) return;
-      const isCorrect = choice === ticketCode(currentTicket);
+      const isCorrect = choice === currentTicket.correctAnswer;
 
       if (!isCorrect) {
         button.classList.remove("is-wrong");
         void button.offsetWidth;
         button.classList.add("is-wrong");
-        feedbackEl.textContent = "Try again!";
+        feedbackEl.textContent = "Try again, Captain!";
+        speakText("Try again, Captain!", feedbackEl);
         playTone(180, 0.12, "sine");
         setTimeout(() => button.classList.remove("is-wrong"), 350);
         return;
@@ -975,11 +2896,13 @@
       button.classList.add("is-correct");
       stars += 1;
       feedbackEl.textContent = "Correct! Welcome aboard!";
-      updateHud();
-      showStars();
-      playTone(720, 0.08, "triangle");
-      setTimeout(() => playTone(940, 0.1, "triangle"), 90);
+      updateCabinHud();
+      showStars(confetti);
+      playBoatHorn();
       currentRound += 1;
+      if (gameRounds[currentRound]) {
+        preloadRoundVoice(gameRounds[currentRound], false);
+      }
       setTimeout(nextRound, 1050);
     }
 
@@ -992,29 +2915,1481 @@
       speechEl.textContent = "Getting the next ticket ready.";
       await timebox(unlockAudioContext(), 700);
       await timebox(unlockVoiceAudio(), 700);
-      if (!ttsAudioCache.has(ticketCode(gameRounds[0].ticket))) {
-        await preloadRoundVoice(gameRounds[0], true);
-      }
-      if (!backgroundPreloadStarted) {
-        backgroundPreloadStarted = true;
-        preloadRemainingRoundVoices(gameRounds, 1);
-      }
+      loadingScreen.hidden = false;
+      updateLoadingMessage(false);
+      await timebox(cabinPromptPromise || preloadCabinPrompts(), 8000);
+      updateLoadingMessage(true);
+      await waitFor(150);
+      loadingScreen.hidden = true;
+      preloadRemainingCabinPrompts();
       nextRound();
     }
 
     function endGame() {
       acceptingAnswers = false;
+      completeCabinGrade(stars);
       finalStars.textContent = String(stars);
       endScreen.hidden = false;
+      speakText("Great job, Captain! You earned " + stars + " stars in " + cabinGradeConfigs[selectedCabinGrade].label + " Cabin Match.", speechEl);
     }
 
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffled(values) {
+      return values.slice().sort(() => Math.random() - 0.5);
+    }
+
+    function makeChoices(answer, count, min, max) {
+      const choices = new Set([answer]);
+      let distance = 1;
+      while (choices.size < count) {
+        const lower = answer - distance;
+        const higher = answer + distance;
+        if (lower >= min) choices.add(lower);
+        if (choices.size < count && higher <= max) choices.add(higher);
+        if (choices.size < count) choices.add(randomInt(min, max));
+        distance += 1;
+      }
+      return shuffled(Array.from(choices)).slice(0, count);
+    }
+
+    function coalQuestion(config, gradeLevel, type, details) {
+      return {
+        promptText: details.promptText,
+        ttsText: details.ttsText || details.promptText,
+        correctAnswer: details.correctAnswer,
+        answerChoices: details.answerChoices || makeChoices(details.correctAnswer, config.choiceCount, details.min || 0, details.max || config.maxNumber),
+        visualObjects: details.visualObjects || { number: details.visualText || "?" },
+        gradeLevel,
+        questionType: type,
+      };
+    }
+
+    function makeCoalCompareQuestion(config, gradeLevel, type, direction) {
+      const numbers = new Set();
+      while (numbers.size < config.choiceCount) numbers.add(randomInt(1, config.maxNumber));
+      const list = shuffled(Array.from(numbers));
+      const answer = direction === "greater" ? Math.max(...list) : Math.min(...list);
+      return coalQuestion(config, gradeLevel, type, {
+        promptText: direction === "greater" ? "Which number is largest?" : "Which number is smallest?",
+        correctAnswer: answer,
+        answerChoices: list,
+        visualObjects: { numberCards: list },
+      });
+    }
+
+    const coalQuestionBuilders = {
+      numberRecognition(config, gradeLevel) {
+        const answer = randomInt(1, config.maxNumber);
+        return coalQuestion(config, gradeLevel, "numberRecognition", {
+          promptText: "Find the number " + answer + ".",
+          correctAnswer: answer,
+          min: 1,
+          visualObjects: { number: "?" },
+        });
+      },
+      countObjects(config, gradeLevel) {
+        const answer = randomInt(1, Math.min(20, config.maxNumber));
+        return coalQuestion(config, gradeLevel, "countObjects", {
+          promptText: "How many coal pieces are there?",
+          correctAnswer: answer,
+          min: 1,
+          max: Math.min(20, config.maxNumber),
+          visualObjects: { coalCount: answer },
+        });
+      },
+      addition(config, gradeLevel) {
+        const maxSum = gradeLevel === "kindergarten" ? 5 : gradeLevel === "first" ? 20 : 100;
+        const a = gradeLevel === "kindergarten" ? randomInt(1, 3) : randomInt(4, Math.floor(maxSum * 0.7));
+        const b = randomInt(1, Math.max(1, maxSum - a));
+        return coalQuestion(config, gradeLevel, "addition", {
+          promptText: "What is " + a + " plus " + b + "?",
+          correctAnswer: a + b,
+          min: 1,
+          max: maxSum,
+          visualObjects: { number: a + " + " + b },
+        });
+      },
+      subtraction(config, gradeLevel) {
+        const maxStart = gradeLevel === "first" ? 20 : 100;
+        const a = randomInt(6, maxStart);
+        const b = randomInt(1, Math.min(30, a - 1));
+        return coalQuestion(config, gradeLevel, "subtraction", {
+          promptText: "What is " + a + " minus " + b + "?",
+          correctAnswer: a - b,
+          min: 0,
+          max: maxStart,
+          visualObjects: { number: a + " - " + b },
+        });
+      },
+      greaterThan(config, gradeLevel) {
+        return makeCoalCompareQuestion(config, gradeLevel, "greaterThan", "greater");
+      },
+      lessThan(config, gradeLevel) {
+        return makeCoalCompareQuestion(config, gradeLevel, "lessThan", "less");
+      },
+      moreOrLess(config, gradeLevel) {
+        const more = Math.random() < 0.5;
+        let a = randomInt(1, 12);
+        let b = randomInt(1, 12);
+        while (a === b) b = randomInt(1, 12);
+        const answer = more ? Math.max(a, b) : Math.min(a, b);
+        const choices = new Set([answer, a, b]);
+        while (choices.size < config.choiceCount) choices.add(randomInt(1, 12));
+        return coalQuestion(config, gradeLevel, "moreOrLess", {
+          promptText: more ? "Which pile has more coal?" : "Which pile has less coal?",
+          correctAnswer: answer,
+          answerChoices: shuffled(Array.from(choices)).slice(0, config.choiceCount),
+          visualObjects: { numberCards: [a, b] },
+        });
+      },
+      missingNumber(config, gradeLevel) {
+        const step = [1, 2, 5, 10][randomInt(0, 3)];
+        const start = randomInt(1, config.maxNumber - step * 3);
+        const answer = start + step * 3;
+        return coalQuestion(config, gradeLevel, "missingNumber", {
+          promptText: "What comes next? " + start + ", " + (start + step) + ", " + (start + step * 2) + ", blank.",
+          correctAnswer: answer,
+          min: 1,
+          visualObjects: { number: start + ", " + (start + step) + ", " + (start + step * 2) + ", __" },
+        });
+      },
+      skipCounting(config, gradeLevel) {
+        const step = [2, 5, 10][randomInt(0, 2)];
+        const start = randomInt(1, config.maxNumber - step * 3);
+        const answer = start + step * 3;
+        return coalQuestion(config, gradeLevel, "skipCounting", {
+          promptText: "Count by " + step + "s. What comes next? " + start + ", " + (start + step) + ", " + (start + step * 2) + ", blank.",
+          correctAnswer: answer,
+          min: 1,
+          visualObjects: { number: start + ", " + (start + step) + ", " + (start + step * 2) + ", __" },
+        });
+      },
+      doubles(config, gradeLevel) {
+        const a = randomInt(2, 10);
+        return coalQuestion(config, gradeLevel, "doubles", {
+          promptText: "What double makes " + a + " plus " + a + "?",
+          ttsText: "What is " + a + " plus " + a + "?",
+          correctAnswer: a + a,
+          min: 1,
+          max: 20,
+          visualObjects: { number: a + " + " + a },
+        });
+      },
+      tenMore(config, gradeLevel) {
+        const start = randomInt(1, config.maxNumber - 10);
+        return coalQuestion(config, gradeLevel, "tenMore", {
+          promptText: "What is 10 more than " + start + "?",
+          correctAnswer: start + 10,
+          min: 1,
+          visualObjects: { number: start + " + 10" },
+        });
+      },
+      tenLess(config, gradeLevel) {
+        const start = randomInt(11, config.maxNumber);
+        return coalQuestion(config, gradeLevel, "tenLess", {
+          promptText: "What is 10 less than " + start + "?",
+          correctAnswer: start - 10,
+          min: 0,
+          visualObjects: { number: start + " - 10" },
+        });
+      },
+      placeValue(config, gradeLevel) {
+        const tens = randomInt(1, 9);
+        const ones = randomInt(0, 9);
+        return coalQuestion(config, gradeLevel, "placeValue", {
+          promptText: "Which number has " + tens + " tens and " + ones + " ones?",
+          correctAnswer: tens * 10 + ones,
+          min: 1,
+          max: 100,
+          visualObjects: { number: tens + " tens + " + ones + " ones" },
+        });
+      },
+      wordProblem(config, gradeLevel) {
+        if (gradeLevel === "third") {
+          const carts = randomInt(3, 8);
+          const pieces = randomInt(4, 12);
+          return coalQuestion(config, gradeLevel, "wordProblem", {
+            promptText: "The engine needs " + carts + " carts with " + pieces + " coal pieces each. How many coal pieces?",
+            correctAnswer: carts * pieces,
+            min: 1,
+            max: 120,
+            visualObjects: { number: carts + " carts x " + pieces },
+          });
+        }
+        const start = randomInt(20, 65);
+        const added = randomInt(10, 25);
+        return coalQuestion(config, gradeLevel, "wordProblem", {
+          promptText: "The engine has " + start + " coal pieces. Add " + added + " more. How many now?",
+          correctAnswer: start + added,
+          min: 1,
+          max: 100,
+          visualObjects: { number: start + " + " + added },
+        });
+      },
+      multiplication(config, gradeLevel) {
+        const a = randomInt(2, 12);
+        const b = randomInt(2, 12);
+        return coalQuestion(config, gradeLevel, "multiplication", {
+          promptText: "What is " + a + " times " + b + "?",
+          correctAnswer: a * b,
+          min: 1,
+          max: 144,
+          visualObjects: { number: a + " x " + b },
+        });
+      },
+      division(config, gradeLevel) {
+        const answer = randomInt(2, 12);
+        const divisor = randomInt(2, 12);
+        return coalQuestion(config, gradeLevel, "division", {
+          promptText: "What is " + (answer * divisor) + " divided by " + divisor + "?",
+          correctAnswer: answer,
+          min: 1,
+          max: 144,
+          visualObjects: { number: (answer * divisor) + " / " + divisor },
+        });
+      },
+      multiStep(config, gradeLevel) {
+        const start = randomInt(40, 120);
+        const used = randomInt(10, 35);
+        const added = randomInt(15, 60);
+        return coalQuestion(config, gradeLevel, "multiStep", {
+          promptText: "Start with " + start + " coal pieces. Use " + used + ", then add " + added + ". How many are left?",
+          correctAnswer: start - used + added,
+          min: 0,
+          max: 200,
+          visualObjects: { number: start + " - " + used + " + " + added },
+        });
+      },
+      comparison(config, gradeLevel) {
+        return Math.random() < 0.5 ? makeCoalCompareQuestion(config, gradeLevel, "greaterThan", "greater") : makeCoalCompareQuestion(config, gradeLevel, "lessThan", "less");
+      },
+    };
+
+    function buildCoalQuestion(gradeLevel, roundIndex) {
+      const config = coalGradeConfigs[gradeLevel] || coalGradeConfigs.kindergarten;
+      const type = config.types[roundIndex % config.types.length];
+      const builder = coalQuestionBuilders[type] || coalQuestionBuilders.numberRecognition;
+      return builder(config, gradeLevel);
+    }
+
+    function buildCoalRounds() {
+      // Add 4th/5th grade later by extending coalGradeConfigs and adding builders
+      // to coalQuestionBuilders; the game loop consumes the same question shape.
+      return Array.from({ length: roundsPerGame }, (_, index) => buildCoalQuestion(selectedCabinGrade, index));
+    }
+
+    function updateCoalHud() {
+      roundCountEl.textContent = String(Math.min(coalRound + 1, roundsPerGame));
+      scoreEl.textContent = String(coalStars);
+      coalStarDisplay.textContent = Array.from({ length: roundsPerGame }, (_, index) => index < coalStars ? "★" : "☆").join("");
+      const percent = Math.min(100, Math.round((coalStars / roundsPerGame) * 100));
+      engineFill.style.width = percent + "%";
+      furnace.style.setProperty("--furnace-glow", String(0.22 + coalStars * 0.065));
+      furnace.style.setProperty("--furnace-power", String(coalStars * 6));
+    }
+
+    function prepareCoalGame() {
+      const config = coalGradeConfigs[selectedCabinGrade] || coalGradeConfigs.kindergarten;
+      coalRound = 0;
+      coalStars = 0;
+      coalRounds = buildCoalRounds();
+      currentCoalQuestion = null;
+      acceptingCoalAnswers = false;
+      coalSpeech.textContent = "Tap Start Engine to begin " + config.label + " math training.";
+      coalGradeBadge.textContent = config.label;
+      coalStartText.textContent = config.intro + " Tap the correct coal answer to brighten the boiler.";
+      coalFeedback.textContent = "";
+      coalStartButton.disabled = true;
+      coalStartButton.textContent = "Getting Voice Ready...";
+      coalStartScreen.hidden = false;
+      coalEndScreen.hidden = true;
+      renderCoalVisual(null);
+      renderCoalAnswers([]);
+      updateCoalHud();
+      coalFirstPromptPromise = preloadCoalPrompts();
+      coalFirstPromptPromise.finally(() => {
+        coalStartButton.disabled = false;
+        coalStartButton.textContent = "Start Engine";
+      });
+    }
+
+    function preloadCoalPrompts() {
+      return preloadTextList([
+        coalRounds[0] ? coalRounds[0].ttsText : "",
+        "Try again, Engineer Captain!",
+      ]);
+    }
+
+    function preloadRemainingCoalPrompts() {
+      preloadTextListInBackground([
+        ...coalRounds.slice(1).map((question) => question.ttsText),
+        "Great job, Engineer Captain!",
+      ]);
+    }
+
+    function getCoalDisplayPrompt(question) {
+      return question.promptText;
+    }
+
+    function renderCoalVisual(question) {
+      coalPieces.innerHTML = "";
+      numberCard.hidden = true;
+      numberCard.textContent = "";
+      numberCard.classList.remove("number-card-grid");
+      if (!question) return;
+      const visual = question.visualObjects || {};
+      if (visual.coalCount) {
+        for (let i = 0; i < visual.coalCount; i += 1) {
+          const piece = document.createElement("span");
+          piece.className = "coal-piece";
+          coalPieces.appendChild(piece);
+        }
+        return;
+      }
+      if (visual.numberCards) {
+        numberCard.hidden = false;
+        numberCard.classList.add("number-card-grid");
+        visual.numberCards.forEach((value) => {
+          const card = document.createElement("span");
+          card.className = "number-card";
+          card.textContent = String(value);
+          numberCard.appendChild(card);
+        });
+        return;
+      }
+      numberCard.hidden = false;
+      numberCard.textContent = visual.number || "?";
+    }
+
+    function renderCoalAnswers(choices) {
+      coalAnswers.innerHTML = "";
+      choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.className = "coal-answer";
+        button.type = "button";
+        button.textContent = String(choice);
+        button.setAttribute("aria-label", "Answer " + choice);
+        button.addEventListener("click", () => chooseCoalAnswer(choice, button));
+        coalAnswers.appendChild(button);
+      });
+    }
+
+    async function sayCurrentCoalPrompt() {
+      if (!currentCoalQuestion) return;
+      coalSpeech.textContent = getCoalDisplayPrompt(currentCoalQuestion);
+      await speakText(currentCoalQuestion.ttsText, coalSpeech);
+    }
+
+    function nextCoalRound() {
+      if (coalRound >= roundsPerGame) {
+        endCoalGame();
+        return;
+      }
+      currentCoalQuestion = coalRounds[coalRound];
+      acceptingCoalAnswers = true;
+      coalFeedback.textContent = "";
+      coalSpeech.textContent = getCoalDisplayPrompt(currentCoalQuestion);
+      renderCoalVisual(currentCoalQuestion);
+      renderCoalAnswers(currentCoalQuestion.answerChoices);
+      updateCoalHud();
+      sayCurrentCoalPrompt();
+    }
+
+    async function startCoalGame() {
+      coalStartScreen.hidden = true;
+      coalEndScreen.hidden = true;
+      coalFeedback.textContent = "";
+      await Promise.all([
+        timebox(unlockAudioContext(), 700),
+        timebox(unlockVoiceAudio(), 700),
+        timebox(coalFirstPromptPromise || preloadCoalPrompts(), 8000),
+      ]);
+      preloadRemainingCoalPrompts();
+      nextCoalRound();
+    }
+
+    function chooseCoalAnswer(choice, button) {
+      if (!acceptingCoalAnswers || !currentCoalQuestion) return;
+      const isCorrect = Number(choice) === Number(currentCoalQuestion.correctAnswer);
+
+      if (!isCorrect) {
+        button.classList.remove("is-wrong");
+        void button.offsetWidth;
+        button.classList.add("is-wrong");
+        coalFeedback.textContent = "Try again, Engineer Captain!";
+        speakText("Try again, Engineer Captain!", coalFeedback);
+        playTone(180, 0.12, "sine");
+        setTimeout(() => button.classList.remove("is-wrong"), 350);
+        return;
+      }
+
+      acceptingCoalAnswers = false;
+      button.classList.add("is-correct");
+      coalStars += 1;
+      coalFeedback.textContent = "Correct! Coal loaded!";
+      showStars(coalConfetti);
+      steamPuff.classList.remove("is-active");
+      void steamPuff.offsetWidth;
+      steamPuff.classList.add("is-active");
+      playBoatHorn();
+      coalRound += 1;
+      updateCoalHud();
+      if (coalRounds[coalRound]) {
+        getTextToSpeechAudio(coalRounds[coalRound].ttsText).catch(() => {});
+      }
+      setTimeout(nextCoalRound, 1050);
+    }
+
+    function endCoalGame() {
+      acceptingCoalAnswers = false;
+      completeCoalGrade(coalStars);
+      coalFinalStars.textContent = String(coalStars);
+      coalEndScreen.hidden = false;
+      speakText("Great job, Engineer Captain! You earned " + coalStars + " stars in " + coalGradeConfigs[selectedCabinGrade].label + " Coal Count.", coalSpeech);
+    }
+
+    const cargoColors = [
+      { id: "red", label: "Red", value: "#f06b5f" },
+      { id: "blue", label: "Blue", value: "#2f78bf" },
+      { id: "green", label: "Green", value: "#3dbb6d" },
+      { id: "gold", label: "Gold", value: "#ffd44d" },
+    ];
+    const cargoShapes = [
+      { id: "circle", label: "Circle", symbol: "○" },
+      { id: "square", label: "Square", symbol: "□" },
+      { id: "star", label: "Star", symbol: "★" },
+      { id: "triangle", label: "Triangle", symbol: "△" },
+    ];
+    const cargoLetters = ["B", "M", "S", "T"];
+    const cargoWords = ["boat", "bell", "moon", "map", "star", "shell", "ticket", "tug"];
+
+    function cargoCart(id, label, color, description) {
+      return {
+        id,
+        label,
+        color: color || "#2f78bf",
+        description: description || "This cart is for " + label + " luggage.",
+      };
+    }
+
+    function cargoItem(id, label, correctCartId, color) {
+      return {
+        id,
+        label: String(label),
+        correctCartId,
+        color: color || cargoColors[randomInt(0, cargoColors.length - 1)].value,
+      };
+    }
+
+    function createCargoRound(config, gradeLevel, roundType, details) {
+      const luggageItems = shuffled(details.luggageItems).map((item, index) => ({ ...item, id: item.id || roundType + "-" + index }));
+      return {
+        gradeLevel,
+        roundType,
+        promptText: details.promptText,
+        ttsText: details.ttsText || details.promptText,
+        carts: details.carts,
+        luggageItems,
+        correctCartId: details.correctCartId || "",
+        ruleEvaluator: details.ruleEvaluator || roundType,
+        requiredCorrectItems: luggageItems.length,
+        hintText: details.hintText || "Try again, Captain!",
+      };
+    }
+
+    function buildCargoColorSort(config, gradeLevel) {
+      const colors = shuffled(cargoColors).slice(0, config.cartCount);
+      return createCargoRound(config, gradeLevel, "colorSort", {
+        promptText: "Drag each suitcase to the matching color cart.",
+        carts: colors.map((color) => cargoCart(color.id, color.label, color.value, "This cart is for " + color.label.toLowerCase() + " luggage.")),
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const color = colors[index % colors.length];
+          return cargoItem("color-" + index, color.label, color.id, color.value);
+        }),
+        hintText: "Match the suitcase color to the cart.",
+      });
+    }
+
+    function buildCargoShapeSort(config, gradeLevel) {
+      const shapes = shuffled(cargoShapes).slice(0, config.cartCount);
+      return createCargoRound(config, gradeLevel, "shapeSort", {
+        promptText: "Drag each shape tag to the matching cargo cart.",
+        carts: shapes.map((shape, index) => cargoCart(shape.id, shape.label, cargoColors[index].value, "This cart is for " + shape.label.toLowerCase() + " tags.")),
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const shape = shapes[index % shapes.length];
+          return cargoItem("shape-" + index, shape.symbol, shape.id);
+        }),
+        hintText: "Match the tag shape to the cart.",
+      });
+    }
+
+    function buildCargoLetterSort(config, gradeLevel) {
+      const letters = shuffled(cargoLetters).slice(0, config.cartCount);
+      const useWords = gradeLevel === "first";
+      return createCargoRound(config, gradeLevel, "letterSort", {
+        promptText: useWords ? "Drag words to the cart for their beginning letter." : "Drag each letter tag to the matching cargo cart.",
+        carts: letters.map((letter, index) => cargoCart(letter, letter, cargoColors[index].value, useWords ? "This cart is for words that start with " + letter + "." : "This cart is for letter " + letter + " luggage.")),
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const letter = letters[index % letters.length];
+          const word = cargoWords.find((value) => value[0].toUpperCase() === letter) || letter;
+          return cargoItem("letter-" + index, useWords ? word : letter, letter);
+        }),
+        hintText: useWords ? "Listen for the first sound." : "Match the letter to the cart.",
+      });
+    }
+
+    function buildCargoNumberSort(config, gradeLevel) {
+      const numbers = shuffled(Array.from({ length: 20 }, (_, index) => index + 1)).slice(0, config.cartCount);
+      return createCargoRound(config, gradeLevel, "numberSort", {
+        promptText: "Drag each number tag to the matching cargo cart.",
+        carts: numbers.map((number, index) => cargoCart(String(number), String(number), cargoColors[index].value, "This cart is for number " + number + " luggage.")),
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = numbers[index % numbers.length];
+          return cargoItem("number-" + index, number, String(number));
+        }),
+        hintText: "Match the number to the cart.",
+      });
+    }
+
+    function buildCargoOddEvenSort(config, gradeLevel) {
+      const carts = [
+        cargoCart("even", "Even", "#2f78bf", "This cart is for even numbers."),
+        cargoCart("odd", "Odd", "#f06b5f", "This cart is for odd numbers."),
+      ];
+      return createCargoRound(config, gradeLevel, "oddEvenSort", {
+        promptText: "Drag even numbers to the Even cart and odd numbers to the Odd cart.",
+        carts,
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(1, 50);
+          return cargoItem("odd-even-" + index, number, number % 2 === 0 ? "even" : "odd");
+        }),
+        hintText: "Even numbers can be shared by two.",
+      });
+    }
+
+    function buildCargoCompareSort(config, gradeLevel, type, direction) {
+      const threshold = gradeLevel === "first" ? 10 : 40;
+      const passId = direction === "greater" ? "greater" : "less";
+      const otherId = "other";
+      return createCargoRound(config, gradeLevel, type, {
+        promptText: "Drag numbers " + (direction === "greater" ? "greater than " : "less than ") + threshold + " to the matching cart.",
+        carts: [
+          cargoCart(passId, direction === "greater" ? "Greater Than " + threshold : "Less Than " + threshold, "#2f78bf", "This cart is for numbers " + (direction === "greater" ? "greater than " : "less than ") + threshold + "."),
+          cargoCart(otherId, "Other", "#68778a", "This cart is for numbers that do not match the rule."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(1, gradeLevel === "first" ? 20 : 80);
+          const matches = direction === "greater" ? number > threshold : number < threshold;
+          return cargoItem("compare-" + index, number, matches ? passId : otherId);
+        }),
+        hintText: "Check the number before you load it.",
+      });
+    }
+
+    function buildCargoOperationSort(config, gradeLevel, type) {
+      const isAddition = type === "additionSort";
+      const max = gradeLevel === "first" ? 20 : 100;
+      const target = gradeLevel === "first" ? randomInt(6, 15) : randomInt(30, 80);
+      return createCargoRound(config, gradeLevel, type, {
+        promptText: "Drag luggage that equals " + target + " to the " + target + " cart.",
+        carts: [
+          cargoCart("target", String(target), "#3dbb6d", "This cart is for luggage that equals " + target + "."),
+          cargoCart("other", "Other", "#68778a", "This cart is for luggage that does not equal " + target + "."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const makeTarget = index % 3 === 0;
+          let a;
+          let b;
+          let answer;
+          if (isAddition) {
+            answer = makeTarget ? target : randomInt(2, max);
+            while (!makeTarget && answer === target) answer = randomInt(2, max);
+            a = randomInt(1, Math.max(1, answer - 1));
+            b = answer - a;
+          } else {
+            answer = makeTarget ? target : randomInt(1, max);
+            while (!makeTarget && answer === target) answer = randomInt(1, max);
+            b = randomInt(1, 20);
+            a = answer + b;
+          }
+          return cargoItem("operation-" + index, isAddition ? a + "+" + b : a + "-" + b, answer === target ? "target" : "other");
+        }),
+        hintText: "Solve the tag before loading it.",
+      });
+    }
+
+    function buildCargoRangeSort(config, gradeLevel) {
+      return createCargoRound(config, gradeLevel, "rangeSort", {
+        promptText: "Drag numbers between 20 and 40 to the Middle cart.",
+        carts: [
+          cargoCart("low", "Below 20", "#68778a", "This cart is for numbers below 20."),
+          cargoCart("middle", "20 to 40", "#3dbb6d", "This cart is for numbers between 20 and 40."),
+          cargoCart("high", "Above 40", "#2f78bf", "This cart is for numbers above 40."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(1, 70);
+          const cart = number < 20 ? "low" : number <= 40 ? "middle" : "high";
+          return cargoItem("range-" + index, number, cart);
+        }),
+        hintText: "Find where the number belongs.",
+      });
+    }
+
+    function buildCargoPlaceValueSort(config, gradeLevel) {
+      return createCargoRound(config, gradeLevel, "placeValueSort", {
+        promptText: "Drag numbers with 5 tens to the 50s cart.",
+        carts: [
+          cargoCart("50s", "50s", "#3dbb6d", "This cart is for numbers with 5 tens."),
+          cargoCart("40s", "40s", "#2f78bf", "This cart is for numbers with 4 tens."),
+          cargoCart("other", "Other", "#68778a", "This cart is for the other tens."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(30, 79);
+          const tens = Math.floor(number / 10);
+          const cart = tens === 5 ? "50s" : tens === 4 ? "40s" : "other";
+          return cargoItem("place-" + index, number, cart);
+        }),
+        hintText: "Look at the tens digit.",
+      });
+    }
+
+    function buildCargoSkipCountingSort(config, gradeLevel) {
+      return createCargoRound(config, gradeLevel, "skipCountingSort", {
+        promptText: "Drag skip-counting numbers by 5s to the By 5s cart.",
+        carts: [
+          cargoCart("by5", "By 5s", "#3dbb6d", "This cart is for numbers you say when counting by 5s."),
+          cargoCart("other", "Other", "#68778a", "This cart is for numbers that do not fit the skip-counting carts."),
+          cargoCart("by10", "By 10s", "#2f78bf", "This cart is for numbers you say when counting by 10s."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(1, 100);
+          const cart = number % 10 === 0 ? "by10" : number % 5 === 0 ? "by5" : "other";
+          return cargoItem("skip-" + index, number, cart);
+        }),
+        hintText: "Numbers by 5 end in 5 or 0.",
+      });
+    }
+
+    function buildCargoMultiplicationSort(config, gradeLevel) {
+      const target = 24;
+      return createCargoRound(config, gradeLevel, "multiplicationSort", {
+        promptText: "Drag answers equal to 6 times 4 into Cargo Cart B.",
+        carts: [
+          cargoCart("b", "Cart B", "#3dbb6d", "Cargo Cart B is for answers equal to 6 times 4."),
+          cargoCart("a", "Cart A", "#2f78bf", "Cargo Cart A is for other answers."),
+          cargoCart("c", "Cart C", "#ffd44d", "Cargo Cart C is for other answers."),
+          cargoCart("d", "Cart D", "#f06b5f", "Cargo Cart D is for other answers."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          let value = index % 3 === 0 ? target : randomInt(10, 60);
+          while (index % 3 !== 0 && value === target) value = randomInt(10, 60);
+          return cargoItem("multiply-" + index, value, value === target ? "b" : ["a", "c", "d"][index % 3]);
+        }),
+        hintText: "Six times four equals twenty four.",
+      });
+    }
+
+    function buildCargoDivisionSort(config, gradeLevel) {
+      return createCargoRound(config, gradeLevel, "divisionSort", {
+        promptText: "Drag numbers divisible by 3 into the Divisible by 3 cart.",
+        carts: [
+          cargoCart("div3", "Divisible by 3", "#3dbb6d", "This cart is for numbers divisible by 3."),
+          cargoCart("other", "Other", "#68778a", "This cart is for numbers that are not divisible by 3 or even."),
+          cargoCart("even", "Even", "#2f78bf", "This cart is for even numbers that are not divisible by 3."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(6, 72);
+          const cart = number % 3 === 0 ? "div3" : number % 2 === 0 ? "even" : "other";
+          return cargoItem("division-" + index, number, cart);
+        }),
+        hintText: "Try counting by threes.",
+      });
+    }
+
+    function buildCargoFractionSort(config, gradeLevel) {
+      const items = ["1/2", "1/4", "1/2", "3/4", "1/2", "1/3", "2/2", "1/2"];
+      return createCargoRound(config, gradeLevel, "fractionSort", {
+        promptText: "Drag luggage with one-half shaded tags into the Fraction cart.",
+        carts: [
+          cargoCart("half", "One Half", "#3dbb6d", "This cart is for one-half tags."),
+          cargoCart("other", "Other Fractions", "#68778a", "This cart is for other fraction tags."),
+          cargoCart("whole", "Whole", "#2f78bf", "This cart is for whole tags."),
+        ],
+        luggageItems: items.slice(0, config.itemCount).map((label, index) => cargoItem("fraction-" + index, label, label === "1/2" ? "half" : label === "2/2" ? "whole" : "other")),
+        hintText: "One half looks like 1 over 2.",
+      });
+    }
+
+    function buildCargoLogicSort(config, gradeLevel) {
+      return createCargoRound(config, gradeLevel, "logicSort", {
+        promptText: "Drag numbers greater than 40 and odd into the Logic cart.",
+        carts: [
+          cargoCart("logic", "Greater Than 40 and Odd", "#3dbb6d", "This cart is for numbers greater than 40 and odd."),
+          cargoCart("even", "Even", "#2f78bf", "This cart is for even numbers."),
+          cargoCart("small", "40 or Less", "#68778a", "This cart is for numbers 40 or less."),
+        ],
+        luggageItems: Array.from({ length: config.itemCount }, (_, index) => {
+          const number = randomInt(20, 80);
+          const cart = number > 40 && number % 2 === 1 ? "logic" : number % 2 === 0 ? "even" : "small";
+          return cargoItem("logic-" + index, number, cart);
+        }),
+        hintText: "Both clues must be true.",
+      });
+    }
+
+    const cargoRoundBuilders = {
+      colorSort: buildCargoColorSort,
+      shapeSort: buildCargoShapeSort,
+      letterSort: buildCargoLetterSort,
+      numberSort: buildCargoNumberSort,
+      oddEvenSort: buildCargoOddEvenSort,
+      greaterThanSort: (config, gradeLevel) => buildCargoCompareSort(config, gradeLevel, "greaterThanSort", "greater"),
+      lessThanSort: (config, gradeLevel) => buildCargoCompareSort(config, gradeLevel, "lessThanSort", "less"),
+      additionSort: (config, gradeLevel) => buildCargoOperationSort(config, gradeLevel, "additionSort"),
+      subtractionSort: (config, gradeLevel) => buildCargoOperationSort(config, gradeLevel, "subtractionSort"),
+      rangeSort: buildCargoRangeSort,
+      placeValueSort: buildCargoPlaceValueSort,
+      skipCountingSort: buildCargoSkipCountingSort,
+      multiplicationSort: buildCargoMultiplicationSort,
+      divisionSort: buildCargoDivisionSort,
+      fractionSort: buildCargoFractionSort,
+      logicSort: buildCargoLogicSort,
+    };
+
+    function buildCargoRound(gradeLevel, roundIndex) {
+      const config = cargoGradeConfigs[gradeLevel] || cargoGradeConfigs.kindergarten;
+      const type = config.types[roundIndex % config.types.length];
+      const builder = cargoRoundBuilders[type] || buildCargoColorSort;
+      return builder(config, gradeLevel);
+    }
+
+    function buildCargoRounds() {
+      // Add 4th/5th grade later by extending cargoGradeConfigs and adding builders
+      // to cargoRoundBuilders; the drag engine consumes the same round shape.
+      return Array.from({ length: roundsPerGame }, (_, index) => buildCargoRound(selectedCabinGrade, index));
+    }
+
+    function updateCargoHud() {
+      roundCountEl.textContent = String(Math.min(cargoRound + 1, roundsPerGame));
+      scoreEl.textContent = String(cargoStars);
+      cargoStarDisplay.textContent = Array.from({ length: roundsPerGame }, (_, index) => index < cargoStars ? "★" : "☆").join("");
+      const target = currentCargoRound ? currentCargoRound.requiredCorrectItems : 1;
+      cargoFill.style.width = Math.round((cargoLoadedCount / target) * 100) + "%";
+    }
+
+    function prepareCargoGame() {
+      const config = cargoGradeConfigs[selectedCabinGrade] || cargoGradeConfigs.kindergarten;
+      cargoRound = 0;
+      cargoStars = 0;
+      cargoLoadedCount = 0;
+      cargoRoundComplete = false;
+      currentCargoRound = null;
+      cargoRounds = buildCargoRounds();
+      cargoGradeBadge.textContent = config.label;
+      cargoSpeech.textContent = "Click a cart to hear what luggage goes there.";
+      cargoStartText.textContent = config.intro + " Drag each suitcase into the correct cargo cart.";
+      cargoFeedback.textContent = "";
+      cargoStartScreen.hidden = false;
+      cargoEndScreen.hidden = true;
+      cargoStartButton.disabled = true;
+      cargoStartButton.textContent = "Getting Voice Ready...";
+      renderCargoRound(null);
+      updateCargoHud();
+      cargoFirstPromptPromise = preloadCargoPrompts();
+      cargoFirstPromptPromise.finally(() => {
+        cargoStartButton.disabled = false;
+        cargoStartButton.textContent = "Start Loading";
+      });
+    }
+
+    function preloadCargoPrompts() {
+      const firstRound = cargoRounds[0];
+      return preloadTextList([
+        "Click a cart to hear what luggage goes there.",
+        firstRound ? firstRound.hintText : "",
+        ...(firstRound ? firstRound.carts.map((cart) => cart.description) : []),
+      ]);
+    }
+
+    function preloadCargoRoundAudio(round) {
+      if (!round) return;
+      preloadTextListInBackground([
+        round.hintText,
+        ...round.carts.map((cart) => cart.description),
+      ]);
+    }
+
+    function preloadRemainingCargoPrompts() {
+      const rounds = cargoRounds.slice(1);
+      const cartRules = rounds.flatMap((round) => round.carts.map((cart) => cart.description));
+      preloadTextListInBackground([
+        ...rounds.map((round) => round.hintText),
+        ...cartRules,
+        "Great sorting, Captain!",
+      ]);
+    }
+
+    async function sayCurrentCargoPrompt() {
+      if (!currentCargoRound) return;
+      const text = "Click a cart to hear what luggage goes there.";
+      cargoSpeech.textContent = text;
+      await speakText(text, cargoSpeech);
+    }
+
+    async function sayCargoHint() {
+      if (!currentCargoRound) return;
+      cargoFeedback.textContent = currentCargoRound.hintText;
+      await speakText(currentCargoRound.hintText, cargoFeedback);
+    }
+
+    async function sayCargoCartRule(cart) {
+      if (!cart) return;
+      cargoSpeech.textContent = cart.description;
+      await speakText(cart.description, cargoSpeech);
+    }
+
+    function renderCargoRound(round) {
+      cargoBelt.innerHTML = "";
+      cargoCarts.innerHTML = "";
+      if (!round) return;
+      round.carts.forEach((cart) => {
+        const cartEl = document.createElement("section");
+        cartEl.className = "cargo-cart";
+        cartEl.dataset.cartId = cart.id;
+        cartEl.dataset.description = cart.description;
+        cartEl.tabIndex = 0;
+        cartEl.setAttribute("role", "button");
+        cartEl.setAttribute("aria-label", cart.description);
+        cartEl.style.setProperty("--cart-color", cart.color);
+        cartEl.innerHTML = '<div class="cargo-cart-title">' + cart.label + '</div><div class="cargo-loaded"></div>';
+        cartEl.addEventListener("click", () => sayCargoCartRule(cart));
+        cartEl.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            sayCargoCartRule(cart);
+          }
+        });
+        cargoCarts.appendChild(cartEl);
+      });
+      round.luggageItems.forEach((item) => {
+        const itemEl = document.createElement("button");
+        itemEl.className = "luggage-item";
+        itemEl.type = "button";
+        itemEl.textContent = item.label;
+        itemEl.dataset.itemId = item.id;
+        itemEl.dataset.correctCartId = item.correctCartId;
+        itemEl.style.setProperty("--bag-color", item.color);
+        itemEl.setAttribute("aria-label", "Luggage " + item.label);
+        itemEl.addEventListener("pointerdown", startCargoDrag);
+        cargoBelt.appendChild(itemEl);
+      });
+    }
+
+    function nextCargoRound() {
+      if (cargoRound >= roundsPerGame) {
+        endCargoGame();
+        return;
+      }
+      currentCargoRound = cargoRounds[cargoRound];
+      cargoLoadedCount = 0;
+      cargoRoundComplete = false;
+      cargoFeedback.textContent = "";
+      cargoSpeech.textContent = "Click a cart to hear what luggage goes there.";
+      renderCargoRound(currentCargoRound);
+      preloadCargoRoundAudio(currentCargoRound);
+      updateCargoHud();
+    }
+
+    async function startCargoGame() {
+      cargoStartScreen.hidden = true;
+      cargoEndScreen.hidden = true;
+      cargoFeedback.textContent = "";
+      await Promise.all([
+        timebox(unlockAudioContext(), 700),
+        timebox(unlockVoiceAudio(), 700),
+        timebox(cargoFirstPromptPromise || preloadCargoPrompts(), 8000),
+      ]);
+      preloadRemainingCargoPrompts();
+      nextCargoRound();
+    }
+
+    function startCargoDrag(event) {
+      const item = event.currentTarget;
+      if (!currentCargoRound || cargoRoundComplete || item.classList.contains("is-loaded")) return;
+      const rect = item.getBoundingClientRect();
+      activeDrag = {
+        item,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        originLeft: rect.left,
+        originTop: rect.top,
+      };
+      item.classList.add("is-dragging");
+      item.setPointerCapture(event.pointerId);
+      item.addEventListener("pointermove", moveCargoDrag);
+      item.addEventListener("pointerup", endCargoDrag);
+      item.addEventListener("pointercancel", cancelCargoDrag);
+    }
+
+    function moveCargoDrag(event) {
+      if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+      const dx = event.clientX - activeDrag.startX;
+      const dy = event.clientY - activeDrag.startY;
+      activeDrag.item.style.transform = "translate(" + dx + "px, " + dy + "px)";
+      highlightCargoCart(event.clientX, event.clientY);
+    }
+
+    function findCargoCartAt(x, y) {
+      const stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : [];
+      const found = stack.find((element) => element.classList && element.classList.contains("cargo-cart"));
+      return found || null;
+    }
+
+    function highlightCargoCart(x, y) {
+      const cart = findCargoCartAt(x, y);
+      document.querySelectorAll(".cargo-cart").forEach((cartEl) => {
+        cartEl.classList.toggle("is-over", cartEl === cart);
+      });
+    }
+
+    function clearCargoDragListeners(item) {
+      item.removeEventListener("pointermove", moveCargoDrag);
+      item.removeEventListener("pointerup", endCargoDrag);
+      item.removeEventListener("pointercancel", cancelCargoDrag);
+      item.classList.remove("is-dragging");
+      document.querySelectorAll(".cargo-cart").forEach((cartEl) => cartEl.classList.remove("is-over"));
+    }
+
+    function endCargoDrag(event) {
+      if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+      const item = activeDrag.item;
+      const cart = findCargoCartAt(event.clientX, event.clientY);
+      clearCargoDragListeners(item);
+      if (cart && cart.dataset.cartId === item.dataset.correctCartId) {
+        loadCargoItem(item, cart);
+      } else {
+        item.style.transform = "";
+        item.classList.remove("is-wrong");
+        void item.offsetWidth;
+        item.classList.add("is-wrong");
+        cargoFeedback.textContent = currentCargoRound.hintText;
+        speakText(currentCargoRound.hintText, cargoFeedback);
+        playTone(180, 0.12, "sine");
+        setTimeout(() => item.classList.remove("is-wrong"), 350);
+      }
+      activeDrag = null;
+    }
+
+    function cancelCargoDrag(event) {
+      if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+      activeDrag.item.style.transform = "";
+      clearCargoDragListeners(activeDrag.item);
+      activeDrag = null;
+    }
+
+    function loadCargoItem(item, cart) {
+      item.classList.add("is-loaded");
+      const loaded = document.createElement("span");
+      loaded.className = "loaded-bag";
+      loaded.textContent = item.textContent;
+      loaded.style.setProperty("--bag-color", item.style.getPropertyValue("--bag-color"));
+      cart.querySelector(".cargo-loaded").appendChild(loaded);
+      cargoLoadedCount += 1;
+      cargoFeedback.textContent = "Loaded!";
+      playBoatHorn();
+      updateCargoHud();
+      if (cargoLoadedCount >= currentCargoRound.requiredCorrectItems) {
+        finishCargoRound();
+      }
+    }
+
+    function finishCargoRound() {
+      cargoRoundComplete = true;
+      cargoStars += 1;
+      showStars(cargoConfetti);
+      updateCargoHud();
+      cargoRound += 1;
+      if (cargoRounds[cargoRound]) preloadCargoRoundAudio(cargoRounds[cargoRound]);
+      setTimeout(nextCargoRound, 950);
+    }
+
+    function endCargoGame() {
+      completeCargoGrade(cargoStars);
+      cargoFinalStars.textContent = String(cargoStars);
+      cargoEndScreen.hidden = false;
+      speakText("Great sorting, Captain! You earned " + cargoStars + " stars in " + cargoGradeConfigs[selectedCabinGrade].label + " Cargo Crew Challenge.", cargoSpeech);
+    }
+
+    function bridgeTileId(row, col) {
+      return row + "-" + col;
+    }
+
+    function parseBridgeTile(tileId) {
+      const parts = String(tileId).split("-").map(Number);
+      return { row: parts[0], col: parts[1] };
+    }
+
+    function bridgeCoordinate(tileId) {
+      const tile = parseBridgeTile(tileId);
+      return String.fromCharCode(65 + tile.col) + (tile.row + 1);
+    }
+
+    function bridgeDirection(fromTile, toTile) {
+      const from = parseBridgeTile(fromTile);
+      const to = parseBridgeTile(toTile);
+      if (to.row < from.row) return "north";
+      if (to.row > from.row) return "south";
+      if (to.col > from.col) return "east";
+      return "west";
+    }
+
+    function bridgeNeighbors(tileId, gridSize) {
+      const tile = parseBridgeTile(tileId);
+      return [
+        { row: tile.row - 1, col: tile.col },
+        { row: tile.row + 1, col: tile.col },
+        { row: tile.row, col: tile.col - 1 },
+        { row: tile.row, col: tile.col + 1 },
+      ].filter((next) => next.row >= 0 && next.col >= 0 && next.row < gridSize && next.col < gridSize)
+        .map((next) => bridgeTileId(next.row, next.col));
+    }
+
+    function buildBridgePath(config) {
+      const length = randomInt(config.minSteps, config.maxSteps);
+      for (let attempt = 0; attempt < 80; attempt += 1) {
+        const path = [bridgeTileId(randomInt(1, config.gridSize - 2), 0)];
+        while (path.length < length) {
+          const current = path[path.length - 1];
+          const currentTile = parseBridgeTile(current);
+          const neighbors = bridgeNeighbors(current, config.gridSize)
+            .filter((tile) => !path.includes(tile))
+            .filter((tile) => parseBridgeTile(tile).col >= currentTile.col);
+          if (!neighbors.length) break;
+          const eastward = neighbors.filter((tile) => parseBridgeTile(tile).col > currentTile.col);
+          const pool = eastward.length && (path.length === 1 || Math.random() < 0.68) ? eastward : neighbors;
+          path.push(pool[randomInt(0, pool.length - 1)]);
+        }
+        if (path.length === length) return path;
+      }
+      return Array.from({ length: Math.min(length, config.gridSize) }, (_, index) => bridgeTileId(Math.floor(config.gridSize / 2), index));
+    }
+
+    function chooseBridgeTiles(config, blockedTiles, count) {
+      const blocked = new Set(blockedTiles);
+      const choices = [];
+      for (let row = 0; row < config.gridSize; row += 1) {
+        for (let col = 0; col < config.gridSize; col += 1) {
+          const id = bridgeTileId(row, col);
+          if (!blocked.has(id)) choices.push(id);
+        }
+      }
+      return shuffled(choices).slice(0, count);
+    }
+
+    function describeBridgeRoute(round, mode) {
+      const coordinates = round.safePathTiles.map(bridgeCoordinate);
+      const directions = round.safePathTiles.slice(1).map((tile, index) => bridgeDirection(round.safePathTiles[index], tile));
+      if (mode === "coordinates") return "Coordinates: " + coordinates.join(", ") + ".";
+      if (mode === "directions") return "Start at " + coordinates[0] + ", then go " + directions.join(", ") + ".";
+      if (mode === "mixed") return "Start at " + coordinates[0] + ". Route: " + directions.join(", ") + ". Finish at " + coordinates[coordinates.length - 1] + ".";
+      return "Remember the glowing safe path.";
+    }
+
+    function createBridgeRound(config, gradeLevel, roundType, details) {
+      const safePathTiles = details.safePathTiles || buildBridgePath({ ...config, minSteps: details.minSteps || config.minSteps, maxSteps: details.maxSteps || config.maxSteps });
+      const icebergTiles = details.icebergTiles || chooseBridgeTiles(config, safePathTiles, details.icebergCount === undefined ? config.icebergCount : details.icebergCount);
+      const fogTiles = details.fogTiles || (roundType === "fogMemory" ? chooseBridgeTiles(config, safePathTiles.concat(icebergTiles), config.fogCount || 0) : []);
+      return {
+        gradeLevel,
+        gridSize: config.gridSize,
+        revealTimeMs: config.revealTimeMs,
+        icebergTiles,
+        safePathTiles,
+        fogTiles,
+        roundType,
+        promptText: details.promptText,
+        ttsText: details.ttsText || details.promptText,
+        hintText: details.hintText || "Follow the safe path one tile at a time.",
+        maxReplays: details.maxReplays === undefined ? config.maxReplays : details.maxReplays,
+        isPractice: Boolean(details.isPractice),
+      };
+    }
+
+    const bridgeRoundBuilders = {
+      practiceNavigation(config, gradeLevel) {
+        return createBridgeRound(config, gradeLevel, "practiceNavigation", {
+          minSteps: config.minSteps,
+          maxSteps: Math.min(config.maxSteps, config.minSteps + 1),
+          icebergCount: Math.max(1, Math.floor(config.icebergCount / 2)),
+          maxReplays: 99,
+          isPractice: true,
+          promptText: "Practice round. Watch the numbered route. The ship starts on number 1. Tap number 2 next.",
+          hintText: "Practice round: the route stays visible while you learn.",
+        });
+      },
+      safePathMemory(config, gradeLevel) {
+        return createBridgeRound(config, gradeLevel, "safePathMemory", {
+          promptText: "Watch the radar and remember the safe path.",
+          hintText: "Tap the glowing path in the same order.",
+        });
+      },
+      icebergAvoidance(config, gradeLevel) {
+        return createBridgeRound(config, gradeLevel, "icebergAvoidance", {
+          promptText: "Remember the safe route and avoid the iceberg tiles.",
+          hintText: "The safe route is the glowing water path.",
+        });
+      },
+      compassRoute(config, gradeLevel) {
+        const round = createBridgeRound(config, gradeLevel, "compassRoute", {
+          promptText: "Remember the route with north, south, east, and west clues.",
+          hintText: "Use the compass words to follow the path.",
+        });
+        round.promptText = describeBridgeRoute(round, "directions");
+        round.ttsText = "Watch the radar. " + round.promptText;
+        return round;
+      },
+      coordinateRoute(config, gradeLevel) {
+        const round = createBridgeRound(config, gradeLevel, "coordinateRoute", {
+          promptText: "Remember the coordinate route.",
+          hintText: "Use the letter and number labels on the radar.",
+        });
+        round.promptText = describeBridgeRoute(round, "coordinates");
+        round.ttsText = "Watch the radar. " + round.promptText;
+        return round;
+      },
+      fogMemory(config, gradeLevel) {
+        const round = createBridgeRound(config, gradeLevel, "fogMemory", {
+          promptText: "Fog is drifting across the bridge radar. Remember the safe path.",
+          hintText: "Fog tiles are obstacles. Stay on the glowing route.",
+        });
+        round.ttsText = round.promptText;
+        return round;
+      },
+      mixedNavigation(config, gradeLevel) {
+        const round = createBridgeRound(config, gradeLevel, "mixedNavigation", {
+          promptText: "Use coordinates and compass clues to remember the route.",
+          hintText: "Start with the coordinate, then follow each compass move.",
+        });
+        round.promptText = describeBridgeRoute(round, "mixed");
+        round.ttsText = "Watch the radar. " + round.promptText;
+        return round;
+      },
+    };
+
+    function buildBridgeRound(gradeLevel, roundIndex) {
+      const config = bridgeGradeConfigs[gradeLevel] || bridgeGradeConfigs.kindergarten;
+      if (roundIndex === 0) return bridgeRoundBuilders.practiceNavigation(config, gradeLevel);
+      const type = config.types[(roundIndex - 1) % config.types.length];
+      const builder = bridgeRoundBuilders[type] || bridgeRoundBuilders.safePathMemory;
+      return builder(config, gradeLevel);
+    }
+
+    function buildBridgeRounds() {
+      // Add 4th/5th grade later by extending bridgeGradeConfigs and adding a
+      // matching builder in bridgeRoundBuilders; the memory engine consumes
+      // the same gridSize, icebergTiles, safePathTiles, and prompt fields.
+      return Array.from({ length: roundsPerGame }, (_, index) => buildBridgeRound(selectedCabinGrade, index));
+    }
+
+    function updateBridgeHud() {
+      roundCountEl.textContent = String(Math.min(bridgeRound + 1, roundsPerGame));
+      scoreEl.textContent = String(bridgeStars);
+      bridgeStarDisplay.textContent = Array.from({ length: roundsPerGame }, (_, index) => index < bridgeStars ? "★" : "☆").join("");
+      const pathLength = currentBridgeRound ? currentBridgeRound.safePathTiles.length : 1;
+      bridgeFill.style.width = Math.round((bridgePathIndex / pathLength) * 100) + "%";
+      if (!currentBridgeRound) {
+        bridgeReplayButton.textContent = "Replay Radar";
+        bridgeReplayButton.disabled = true;
+        return;
+      }
+      const remaining = currentBridgeRound.maxReplays >= 90 ? "Anytime" : Math.max(0, currentBridgeRound.maxReplays - bridgeReplaysUsed);
+      bridgeReplayButton.textContent = currentBridgeRound.maxReplays >= 90 ? "Replay Radar" : "Replay Radar (" + remaining + ")";
+      bridgeReplayButton.disabled = bridgeRevealing || acceptingBridgeTiles === false || bridgeReplaysUsed >= currentBridgeRound.maxReplays;
+    }
+
+    function prepareBridgeGame() {
+      const config = bridgeGradeConfigs[selectedCabinGrade] || bridgeGradeConfigs.kindergarten;
+      clearTimeout(bridgeRevealTimer);
+      clearTimeout(bridgeReminderTimer);
+      bridgeRound = 0;
+      bridgeStars = 0;
+      bridgeRounds = buildBridgeRounds();
+      currentBridgeRound = null;
+      bridgePathIndex = 0;
+      bridgeRevealStep = 0;
+      bridgeRevealing = false;
+      acceptingBridgeTiles = false;
+      bridgeReplaysUsed = 0;
+      bridgeGradeBadge.textContent = config.label;
+      bridgeSpeech.textContent = "Tap Start Navigation to begin " + config.label + " bridge training.";
+      bridgeStartText.textContent = config.intro + " Watch the radar, remember the safe ocean tiles, and guide the ship.";
+      bridgeClue.textContent = "Watch the radar, then tap the safe route.";
+      bridgeFeedback.textContent = "";
+      bridgeStartScreen.hidden = false;
+      bridgeEndScreen.hidden = true;
+      bridgeStartButton.disabled = true;
+      bridgeStartButton.textContent = "Getting Voice Ready...";
+      renderBridgeGrid();
+      updateBridgeHud();
+      bridgeFirstPromptPromise = preloadBridgePrompts();
+      bridgeFirstPromptPromise.finally(() => {
+        bridgeStartButton.disabled = false;
+        bridgeStartButton.textContent = "Start Navigation";
+      });
+    }
+
+    function preloadBridgePrompts() {
+      const firstRound = bridgeRounds[0];
+      return preloadTextList([
+        firstRound ? firstRound.ttsText : "",
+        "Remember the safe path!",
+        "Tap the safe ocean tiles.",
+        "Careful, Captain! Try again.",
+        "Careful, Captain! Start from the ship and tap the next safe tile.",
+        "Great navigation, Captain!",
+      ]);
+    }
+
+    function preloadRemainingBridgePrompts() {
+      preloadTextListInBackground([
+        ...bridgeRounds.slice(1).map((round) => round.ttsText),
+        "Careful, Captain! Try again.",
+        "Careful, Captain! Start from the ship and tap the next safe tile.",
+        "Great navigation, Captain!",
+      ]);
+    }
+
+    async function sayCurrentBridgePrompt() {
+      if (!currentBridgeRound) return;
+      bridgeSpeech.textContent = currentBridgeRound.promptText;
+      await speakText(currentBridgeRound.ttsText, bridgeSpeech);
+    }
+
+    function renderBridgeGrid() {
+      bridgeGrid.innerHTML = "";
+      const round = currentBridgeRound;
+      const gridSize = round ? round.gridSize : (bridgeGradeConfigs[selectedCabinGrade] || bridgeGradeConfigs.kindergarten).gridSize;
+      bridgeGrid.style.setProperty("--grid-size", String(gridSize));
+      const safeSet = new Set(round ? round.safePathTiles : []);
+      const visibleSafeSet = new Set(round && (bridgeRevealing || round.isPractice) ? round.safePathTiles.slice(0, bridgeRevealing ? bridgeRevealStep : round.safePathTiles.length) : []);
+      const icebergSet = new Set(round ? round.icebergTiles : []);
+      const fogSet = new Set(round ? round.fogTiles || [] : []);
+      const visitedSet = new Set(round ? round.safePathTiles.slice(0, bridgePathIndex) : []);
+      const shipTile = round && bridgePathIndex > 0 ? round.safePathTiles[bridgePathIndex - 1] : "";
+      const nextTile = round && acceptingBridgeTiles ? round.safePathTiles[bridgePathIndex] : "";
+      const showCoords = selectedCabinGrade === "second" || selectedCabinGrade === "third";
+
+      for (let row = 0; row < gridSize; row += 1) {
+        for (let col = 0; col < gridSize; col += 1) {
+          const tileId = bridgeTileId(row, col);
+          const button = document.createElement("button");
+          button.className = "ocean-tile";
+          button.type = "button";
+          button.dataset.tileId = tileId;
+          button.disabled = !acceptingBridgeTiles || bridgeRevealing;
+          if (visibleSafeSet.has(tileId)) button.classList.add("is-safe");
+          if (bridgeRevealing && icebergSet.has(tileId)) button.classList.add("is-iceberg");
+          if (bridgeRevealing && fogSet.has(tileId)) button.classList.add("is-fog");
+          if (visitedSet.has(tileId)) button.classList.add("is-visited");
+          if (shipTile === tileId) button.classList.add("is-ship");
+          if (nextTile === tileId && (selectedCabinGrade === "kindergarten" || selectedCabinGrade === "first" || bridgePathIndex === 0 || currentBridgeRound.isPractice)) button.classList.add("is-next");
+          const pathNumber = visibleSafeSet.has(tileId) ? String(currentBridgeRound.safePathTiles.indexOf(tileId) + 1) : "";
+          const icon = shipTile === tileId ? "🚢" : bridgeRevealing && icebergSet.has(tileId) ? "🧊" : bridgeRevealing && fogSet.has(tileId) ? "☁" : pathNumber || "";
+          button.innerHTML = '<span class="tile-label">' + (showCoords ? bridgeCoordinate(tileId) : "") + '</span><span class="tile-icon">' + icon + '</span>';
+          button.setAttribute("aria-label", "Ocean tile " + bridgeCoordinate(tileId));
+          button.addEventListener("click", () => chooseBridgeTile(tileId, button));
+          bridgeGrid.appendChild(button);
+        }
+      }
+    }
+
+    async function revealBridgeRoute(shouldCountReplay) {
+      if (!currentBridgeRound || bridgeRevealing) return;
+      if (shouldCountReplay && bridgeReplaysUsed >= currentBridgeRound.maxReplays) {
+        bridgeFeedback.textContent = "Use the clue and keep navigating, Captain.";
+        return;
+      }
+      if (shouldCountReplay) bridgeReplaysUsed += 1;
+      clearTimeout(bridgeRevealTimer);
+      clearTimeout(bridgeReminderTimer);
+      acceptingBridgeTiles = false;
+      bridgeRevealing = true;
+      bridgeRevealStep = 0;
+      bridgeFeedback.textContent = "";
+      bridgeClue.textContent = currentBridgeRound.isPractice ? "Practice round: watch the route light up in order." : currentBridgeRound.hintText;
+      renderBridgeGrid();
+      updateBridgeHud();
+      speakText(currentBridgeRound.ttsText, bridgeSpeech);
+
+      const stepDelay = Math.max(440, Math.min(760, Math.floor(currentBridgeRound.revealTimeMs / Math.max(1, currentBridgeRound.safePathTiles.length))));
+      const finalHold = currentBridgeRound.isPractice ? 1600 : Math.max(520, currentBridgeRound.revealTimeMs - stepDelay * currentBridgeRound.safePathTiles.length);
+
+      function showNextRadarStep() {
+        if (!currentBridgeRound || !bridgeRevealing) return;
+        bridgeRevealStep += 1;
+        bridgeClue.textContent = bridgeRevealStep <= currentBridgeRound.safePathTiles.length
+          ? "Radar step " + bridgeRevealStep + " of " + currentBridgeRound.safePathTiles.length + "."
+          : currentBridgeRound.hintText;
+        renderBridgeGrid();
+        updateBridgeHud();
+        if (bridgeRevealStep < currentBridgeRound.safePathTiles.length) {
+          bridgeRevealTimer = setTimeout(showNextRadarStep, stepDelay);
+          return;
+        }
+        bridgeRevealTimer = setTimeout(startBridgeInputPhase, finalHold);
+      }
+
+      function startBridgeInputPhase() {
+        bridgeRevealing = false;
+        acceptingBridgeTiles = true;
+        bridgePathIndex = 0;
+        bridgeRevealStep = currentBridgeRound.safePathTiles.length;
+        bridgeSpeech.textContent = "Remember the safe path!";
+        bridgeClue.textContent = currentBridgeRound.isPractice
+          ? "Practice: tap number 1, then number 2."
+          : "Tap the route in order. Start with " + bridgeCoordinate(currentBridgeRound.safePathTiles[0]) + ".";
+        bridgeFeedback.textContent = currentBridgeRound.isPractice ? "Tap number 1 to start the ship." : "Tap the first safe ocean tile.";
+        renderBridgeGrid();
+        updateBridgeHud();
+        bridgeReminderTimer = setTimeout(() => {
+          speakText(currentBridgeRound.isPractice ? "Practice round. Tap number 1, then number 2." : "Remember the safe path! Tap the first safe ocean tile.", bridgeSpeech);
+        }, 250);
+      }
+
+      bridgeRevealTimer = setTimeout(showNextRadarStep, 250);
+    }
+
+    function nextBridgeRound() {
+      if (bridgeRound >= roundsPerGame) {
+        endBridgeGame();
+        return;
+      }
+      clearTimeout(bridgeRevealTimer);
+      clearTimeout(bridgeReminderTimer);
+      currentBridgeRound = bridgeRounds[bridgeRound];
+      bridgePathIndex = 0;
+      bridgeRevealStep = 0;
+      bridgeReplaysUsed = 0;
+      bridgeRevealing = false;
+      acceptingBridgeTiles = false;
+      bridgeFeedback.textContent = "";
+      bridgeSpeech.textContent = currentBridgeRound.promptText;
+      bridgeClue.textContent = currentBridgeRound.hintText;
+      renderBridgeGrid();
+      updateBridgeHud();
+      revealBridgeRoute(false);
+    }
+
+    async function startBridgeGame() {
+      bridgeStartScreen.hidden = true;
+      bridgeEndScreen.hidden = true;
+      bridgeFeedback.textContent = "";
+      await Promise.all([
+        timebox(unlockAudioContext(), 700),
+        timebox(unlockVoiceAudio(), 700),
+        timebox(bridgeFirstPromptPromise || preloadBridgePrompts(), 8000),
+      ]);
+      preloadRemainingBridgePrompts();
+      nextBridgeRound();
+    }
+
+    function showBridgeBlip(button) {
+      const radarRect = radarScreen.getBoundingClientRect();
+      const rect = button.getBoundingClientRect();
+      const blip = document.createElement("span");
+      blip.className = "radar-blip";
+      blip.style.left = rect.left - radarRect.left + rect.width / 2 - 9 + "px";
+      blip.style.top = rect.top - radarRect.top + rect.height / 2 - 9 + "px";
+      radarScreen.appendChild(blip);
+      setTimeout(() => blip.remove(), 560);
+    }
+
+    function chooseBridgeTile(tileId, button) {
+      if (!acceptingBridgeTiles || !currentBridgeRound) return;
+      if (currentBridgeRound.safePathTiles.slice(0, bridgePathIndex).includes(tileId)) return;
+      const expectedTile = currentBridgeRound.safePathTiles[bridgePathIndex];
+      if (tileId !== expectedTile) {
+        button.classList.remove("is-wrong");
+        void button.offsetWidth;
+        button.classList.add("is-wrong");
+        button.querySelector(".tile-icon").textContent = "🧊";
+        const wrongText = bridgePathIndex === 0 ? "Careful, Captain! Tap the first safe tile to start." : "Careful, Captain! Start from the ship and tap the next safe tile.";
+        bridgeFeedback.textContent = wrongText;
+        speakText(wrongText, bridgeFeedback);
+        playTone(180, 0.12, "sine");
+        setTimeout(() => {
+          button.classList.remove("is-wrong");
+          renderBridgeGrid();
+        }, 430);
+        return;
+      }
+
+      bridgePathIndex += 1;
+      bridgeFeedback.textContent = "Great navigation, Captain!";
+      showBridgeBlip(button);
+      playTone(620, 0.12, "triangle");
+      renderBridgeGrid();
+      updateBridgeHud();
+      if (bridgePathIndex >= currentBridgeRound.safePathTiles.length) finishBridgeRound();
+    }
+
+    function finishBridgeRound() {
+      acceptingBridgeTiles = false;
+      bridgeStars += 1;
+      bridgeRound += 1;
+      saveBridgeRoundProgress();
+      showStars(bridgeConfetti);
+      playBoatHorn();
+      updateBridgeHud();
+      if (bridgeRounds[bridgeRound]) getTextToSpeechAudio(bridgeRounds[bridgeRound].ttsText).catch(() => {});
+      setTimeout(nextBridgeRound, 1050);
+    }
+
+    function endBridgeGame() {
+      clearTimeout(bridgeRevealTimer);
+      acceptingBridgeTiles = false;
+      completeBridgeGrade(bridgeStars);
+      bridgeFinalStars.textContent = String(bridgeStars);
+      bridgeEndScreen.hidden = false;
+      speakText("Great navigation, Captain! You earned " + bridgeStars + " stars in " + bridgeGradeConfigs[selectedCabinGrade].label + " Bridge Navigation.", bridgeSpeech);
+    }
+
+    levelSelectButton.addEventListener("click", () => showLevel("select"));
+    document.querySelectorAll(".js-level-select").forEach((button) => {
+      button.addEventListener("click", () => showLevel("select"));
+    });
     startButton.addEventListener("click", startGame);
     playAgainButton.addEventListener("click", () => {
       prepareNewGame();
       startGame();
     });
     repeatButton.addEventListener("click", sayCurrentTicket);
-    prepareNewGame();
+    coalStartButton.addEventListener("click", startCoalGame);
+    coalPlayAgainButton.addEventListener("click", () => {
+      prepareCoalGame();
+      startCoalGame();
+    });
+    coalRepeatButton.addEventListener("click", sayCurrentCoalPrompt);
+    cargoStartButton.addEventListener("click", startCargoGame);
+    cargoPlayAgainButton.addEventListener("click", () => {
+      prepareCargoGame();
+      startCargoGame();
+    });
+    cargoRepeatButton.addEventListener("click", sayCurrentCargoPrompt);
+    cargoHintButton.addEventListener("click", sayCargoHint);
+    bridgeStartButton.addEventListener("click", startBridgeGame);
+    bridgePlayAgainButton.addEventListener("click", () => {
+      prepareBridgeGame();
+      startBridgeGame();
+    });
+    bridgeRepeatButton.addEventListener("click", sayCurrentBridgePrompt);
+    bridgeReplayButton.addEventListener("click", () => revealBridgeRoute(true));
+
+    renderLevelSelect();
   </script>
 </body>
 </html>

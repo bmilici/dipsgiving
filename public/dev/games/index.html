@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dipsgiving Dev Games</title>
+  <style>
+    :root {
+      --ink: #14253c;
+      --gold: #ffd44d;
+      --green: #2f8f5b;
+      --blue: #2f78bf;
+      --red: #e85e52;
+      --cream: #fff8df;
+      --line: rgba(20, 37, 60, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 34%),
+        linear-gradient(180deg, #9bdcff 0%, #dff8ff 34%, #f6e1a6 35%, #74b46d 100%);
+    }
+
+    a,
+    button { touch-action: manipulation; }
+
+    .page {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #12353b;
+      font-size: clamp(2rem, 5.6vw, 4.5rem);
+      line-height: 1;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .home-link,
+    .launch-button,
+    .tool-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #10213d;
+      background: var(--gold);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .tool-button { background: white; }
+
+    .intro {
+      max-width: 820px;
+      margin: 0 0 18px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(255, 248, 223, 0.86);
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      display: grid;
+      gap: 12px;
+      min-height: 300px;
+      border: 4px solid rgba(255, 255, 255, 0.84);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(255, 248, 223, 0.94);
+      box-shadow: 0 16px 36px rgba(21, 64, 59, 0.22);
+    }
+
+    .preview {
+      position: relative;
+      min-height: 150px;
+      overflow: hidden;
+      border-radius: 8px;
+      color: white;
+      background: var(--blue);
+      box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
+
+    .preview::after {
+      content: attr(data-title);
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      text-align: center;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 900;
+      line-height: 0.95;
+      text-shadow: 0 5px 0 rgba(0, 0, 0, 0.28);
+    }
+
+    .preview::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 25, 31, 0.18);
+      z-index: 1;
+    }
+
+    .titanic {
+      background:
+        linear-gradient(180deg, rgba(8, 25, 31, 0.02) 0%, rgba(8, 25, 31, 0.24) 58%, rgba(8, 25, 31, 0.56) 100%),
+        url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+    }
+
+    .roach {
+      background:
+        radial-gradient(ellipse at 50% 78%, #6d3e28 0 44px, transparent 45px),
+        linear-gradient(180deg, #9bdcff 0 38%, #54a84f 39% 100%);
+    }
+
+    .math {
+      background:
+        radial-gradient(circle at 20% 20%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 72% 18%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 76% 78%, #798fe0 0 54px, transparent 55px),
+        linear-gradient(180deg, #101834 0%, #24447d 72%, #2e738e 100%);
+    }
+
+    .safari {
+      background:
+        radial-gradient(circle at 78% 16%, #ffd44d 0 44px, transparent 46px),
+        linear-gradient(180deg, #82d8ff 0%, #d8f5ff 43%, #f4c45a 44%, #e3a04a 100%);
+    }
+
+    .space {
+      background:
+        radial-gradient(circle at 16% 18%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 54% 22%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 84% 14%, white 0 2px, transparent 3px),
+        linear-gradient(180deg, #13244d 0%, #244f83 76%, #286c6a 77%, #14372d 100%);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      line-height: 1.05;
+    }
+
+    .card p {
+      margin: 0;
+      color: #294057;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .button-row,
+    .grade-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .grade-button {
+      min-height: 40px;
+      border: 2px solid rgba(20, 37, 60, 0.18);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: white;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 900;
+    }
+
+    .grade-button:hover,
+    .grade-button:focus-visible,
+    .launch-button:hover,
+    .launch-button:focus-visible,
+    .tool-button:hover,
+    .tool-button:focus-visible,
+    .home-link:hover,
+    .home-link:focus-visible {
+      outline: 3px solid rgba(47, 120, 191, 0.38);
+      transform: translateY(-1px);
+    }
+
+    .dev-note {
+      margin-top: auto;
+      border-top: 2px solid var(--line);
+      padding-top: 10px;
+      color: #425466;
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    @media (max-width: 680px) {
+      .page { padding: 10px; }
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .card { min-height: 0; }
+      .preview { min-height: 132px; }
+      .launch-button,
+      .tool-button,
+      .grade-button {
+        flex: 1 1 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <h1>Dev Games</h1>
+      <a class="home-link" href="/games">Main Games</a>
+    </div>
+
+    <p class="intro">
+      This page is for testing game updates before they are promoted on the main games page. Titanic grade buttons set the same localStorage grade used by the adventure.
+    </p>
+
+    <section class="grid" aria-label="Development game links">
+      <article class="card">
+        <div class="preview titanic" data-title="Titanic Adventure"></div>
+        <h2>Titanic Adventure</h2>
+        <p>Test Cabin Match, Engine Room Coal Count, and Cargo Crew Challenge with the shared K-3 grade selector.</p>
+        <div class="button-row">
+          <a class="launch-button" href="/TitanicAdventureAcademy">Open Adventure</a>
+          <button class="tool-button" type="button" data-action="reset-titanic">Reset Progress</button>
+        </div>
+        <div class="grade-row" aria-label="Quick Titanic grade launch buttons">
+          <button class="grade-button" type="button" data-grade="kindergarten">Kindergarten</button>
+          <button class="grade-button" type="button" data-grade="first">1st Grade</button>
+          <button class="grade-button" type="button" data-grade="second">2nd Grade</button>
+          <button class="grade-button" type="button" data-grade="third">3rd Grade</button>
+        </div>
+        <div class="dev-note">Storage keys: titanicAdventureGrade, titanicCabinMatchProgress, titanicCoalCountProgress, titanicCargoCrewProgress.</div>
+      </article>
+
+      <article class="card">
+        <div class="preview roach" data-title="Letter Roach"></div>
+        <h2>Letter Roach</h2>
+        <p>Kindergarten letter game.</p>
+        <div class="button-row">
+          <a class="launch-button" href="/desmondgame">Open Game</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="preview math" data-title="Math Rocket Rescue"></div>
+        <h2>Math Rocket Rescue</h2>
+        <p>First grade math game.</p>
+        <div class="button-row">
+          <a class="launch-button" href="/FirstGradeMath">Open Game</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="preview safari" data-title="Safari Adventure"></div>
+        <h2>Cheetah Safari Adventure</h2>
+        <p>Safari reading game.</p>
+        <div class="button-row">
+          <a class="launch-button" href="/CheetahSafariAdventure">Open Game</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="preview space" data-title="Space Flyer"></div>
+        <h2>Space Flyer</h2>
+        <p>Nico's flying game.</p>
+        <div class="button-row">
+          <a class="launch-button" href="/NicoGames">Open Game</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const gradeButtons = document.querySelectorAll("[data-grade]");
+    const resetButton = document.querySelector("[data-action='reset-titanic']");
+    const titanicKeys = [
+      "titanicAdventureGrade",
+      "titanicCabinMatchGrade",
+      "titanicCabinMatchProgress",
+      "titanicCoalCountProgress",
+      "titanicCargoCrewProgress",
+      "titanicAdventureProgress",
+    ];
+
+    gradeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const grade = button.dataset.grade;
+        localStorage.setItem("titanicAdventureGrade", grade);
+        localStorage.setItem("titanicCabinMatchGrade", grade);
+        window.location.href = "/TitanicAdventureAcademy";
+      });
+    });
+
+    resetButton.addEventListener("click", () => {
+      titanicKeys.forEach((key) => localStorage.removeItem(key));
+      resetButton.textContent = "Progress Reset";
+      setTimeout(() => {
+        resetButton.textContent = "Reset Progress";
+      }, 1200);
+    });
+  </script>
+</body>
+</html>

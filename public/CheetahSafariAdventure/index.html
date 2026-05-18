@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cheetah Safari Adventure</title>
+  <style>
+    :root {
+      --ink: #18342f;
+      --leaf: #2f8a54;
+      --deep-leaf: #176448;
+      --grass: #6fbd45;
+      --sky: #80d7ff;
+      --sun: #ffd64f;
+      --sand: #f6c75a;
+      --panel: #fff8df;
+      --orange: #f28c28;
+      --red: #e45757;
+      --blue: #2364aa;
+      --shadow: rgba(35, 43, 32, 0.24);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 34%),
+        linear-gradient(180deg, #84d9ff 0%, #d9f5ff 42%, #f4c75a 42%, #e5a84a 100%);
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1180px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .home-link,
+    .small-button,
+    .big-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #10213d;
+      background: var(--sun);
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .small-button {
+      background: white;
+    }
+
+    .big-button {
+      min-width: 154px;
+      min-height: 58px;
+      padding: 14px 18px;
+      font-size: 1.08rem;
+    }
+
+    .big-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.56;
+      box-shadow: none;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    .level-select {
+      position: relative;
+      overflow: hidden;
+      min-height: calc(100vh - 96px);
+      border: 4px solid rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      padding: clamp(16px, 3vw, 28px);
+      background:
+        radial-gradient(circle at 80% 12%, #ffd64f 0 62px, transparent 64px),
+        linear-gradient(180deg, #86dcff 0%, #dcf7ff 46%, #f5c45a 47%, #e9a84a 100%);
+      box-shadow: 0 18px 44px var(--shadow);
+    }
+
+    .level-select::before,
+    .level-select::after,
+    .game-shell::before,
+    .game-shell::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .level-select::before,
+    .game-shell::before {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 22%;
+      background:
+        repeating-linear-gradient(94deg, transparent 0 22px, rgba(47, 138, 84, 0.24) 23px 27px),
+        linear-gradient(180deg, rgba(111, 189, 69, 0.15), rgba(47, 138, 84, 0.46));
+    }
+
+    .level-select::after,
+    .game-shell::after {
+      left: 6%;
+      bottom: 16%;
+      width: 96px;
+      height: 150px;
+      border-radius: 52% 48% 10% 10%;
+      background:
+        radial-gradient(circle at 50% 16%, #2c8d52 0 42px, transparent 43px),
+        linear-gradient(90deg, transparent 0 42px, #6d4c2f 43px 54px, transparent 55px);
+    }
+
+    .hero-row {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .kicker {
+      color: #795018;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .level-select h1 {
+      max-width: 760px;
+      font-size: clamp(2.45rem, 6.5vw, 5.6rem);
+      line-height: 0.94;
+      color: #16392f;
+      text-shadow: 0 4px 0 rgba(255, 255, 255, 0.42);
+    }
+
+    .hero-subtitle {
+      max-width: 720px;
+      margin-top: 10px;
+      color: #21483e;
+      font-size: clamp(1.02rem, 2.2vw, 1.35rem);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .scout-badge {
+      justify-self: end;
+      display: grid;
+      place-items: center;
+      width: min(260px, 100%);
+      aspect-ratio: 1;
+      border: 6px solid #fff3b0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 36%, #ffd64f 0 28%, transparent 29%),
+        radial-gradient(circle at 42% 45%, #1d1b18 0 4px, transparent 5px),
+        radial-gradient(circle at 58% 45%, #1d1b18 0 4px, transparent 5px),
+        linear-gradient(135deg, #f28c28, #f6c75a);
+      box-shadow: 0 14px 24px rgba(80, 63, 28, 0.24);
+      font-size: clamp(4rem, 11vw, 7rem);
+      font-weight: 900;
+    }
+
+    .level-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+      gap: 14px;
+    }
+
+    .level-card {
+      min-height: 245px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.82);
+      border-radius: 8px;
+      background: rgba(255, 248, 223, 0.94);
+      box-shadow: 0 12px 26px rgba(100, 66, 25, 0.18);
+    }
+
+    .level-card.is-coming {
+      filter: saturate(0.72);
+      opacity: 0.78;
+    }
+
+    .level-number {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      color: white;
+      background: var(--deep-leaf);
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .level-card h2 {
+      font-size: 1.45rem;
+      line-height: 1.05;
+    }
+
+    .level-card p {
+      flex: 1;
+      color: #315248;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .level-status {
+      align-self: flex-start;
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: white;
+      background: var(--blue);
+      font-weight: 900;
+    }
+
+    .is-coming .level-status {
+      background: #876b4a;
+    }
+
+    .game-shell {
+      position: relative;
+      overflow: hidden;
+      min-height: calc(100vh - 96px);
+      border: 4px solid rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 78% 12%, #ffd64f 0 58px, transparent 60px),
+        linear-gradient(180deg, #79d7ff 0%, #dcf7ff 48%, #f6c75a 49%, #e7a14b 100%);
+      box-shadow: 0 18px 44px var(--shadow);
+    }
+
+    .game-hud {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .hud-card {
+      min-height: 70px;
+      border: 3px solid rgba(255, 255, 255, 0.82);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 248, 223, 0.92);
+      box-shadow: 0 8px 16px rgba(100, 66, 25, 0.14);
+      font-weight: 900;
+    }
+
+    .hud-label {
+      display: block;
+      color: #6d5538;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+    }
+
+    .hud-value {
+      display: block;
+      margin-top: 4px;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      line-height: 1;
+    }
+
+    .meter-track {
+      height: 18px;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(35, 52, 47, 0.16);
+    }
+
+    .meter-fill {
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2f8a54, #ffd64f, #f28c28);
+      transition: width 280ms ease;
+    }
+
+    .stage {
+      position: relative;
+      z-index: 1;
+      min-height: 310px;
+      margin: 0 12px;
+    }
+
+    .cloud {
+      position: absolute;
+      top: 28px;
+      width: 132px;
+      height: 48px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .cloud::before,
+    .cloud::after {
+      content: "";
+      position: absolute;
+      bottom: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .cloud::before {
+      left: 18px;
+      width: 56px;
+      height: 56px;
+    }
+
+    .cloud::after {
+      right: 16px;
+      width: 42px;
+      height: 42px;
+    }
+
+    .cloud.one {
+      left: 11%;
+    }
+
+    .cloud.two {
+      right: 10%;
+      top: 72px;
+      transform: scale(0.82);
+    }
+
+    .animal-friends {
+      position: absolute;
+      right: 5%;
+      bottom: 42px;
+      display: flex;
+      gap: 12px;
+      font-size: clamp(2.4rem, 7vw, 4.1rem);
+      filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.14));
+    }
+
+    .bottom-animals {
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      bottom: 0;
+      z-index: 3;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      pointer-events: none;
+      font-size: clamp(2rem, 5.4vw, 3.4rem);
+      filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.16));
+    }
+
+    .bottom-animals span:nth-child(2n) {
+      transform: translateY(-8px);
+    }
+
+    .bottom-animals span:nth-child(3n) {
+      transform: translateY(-15px);
+    }
+
+    .track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 4px;
+      height: 92px;
+      border-radius: 999px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255, 248, 223, 0.42) 0 34px, transparent 35px 76px),
+        linear-gradient(180deg, #d98b40, #c87934);
+      box-shadow: inset 0 8px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    .cheetah-runner {
+      --runner-x: 4%;
+      position: absolute;
+      left: var(--runner-x);
+      bottom: 54px;
+      width: min(300px, 44vw);
+      height: 130px;
+      transition: left 360ms ease;
+      filter: drop-shadow(0 8px 0 rgba(72, 53, 28, 0.18));
+    }
+
+    .cheetah-runner.is-boosting {
+      animation: boost 520ms ease;
+    }
+
+    .cheetah-runner.is-paused {
+      animation: pauseBob 320ms ease;
+    }
+
+    .dust {
+      position: absolute;
+      left: -18px;
+      bottom: 6px;
+      width: 70px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 248, 223, 0.48);
+      opacity: 0;
+    }
+
+    .is-boosting .dust {
+      animation: dust 520ms ease;
+    }
+
+    .cheetah-body {
+      position: absolute;
+      left: 70px;
+      top: 42px;
+      width: 142px;
+      height: 44px;
+      border-radius: 52% 45% 48% 50%;
+      background:
+        radial-gradient(circle at 16% 38%, #342013 0 3px, transparent 4px),
+        radial-gradient(circle at 30% 62%, #342013 0 3px, transparent 4px),
+        radial-gradient(circle at 43% 32%, #342013 0 3px, transparent 4px),
+        radial-gradient(circle at 58% 58%, #342013 0 3px, transparent 4px),
+        radial-gradient(circle at 72% 35%, #342013 0 3px, transparent 4px),
+        radial-gradient(circle at 86% 56%, #342013 0 3px, transparent 4px),
+        #f6b548;
+    }
+
+    .cheetah-body::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 12px;
+      bottom: 0;
+      height: 15px;
+      border-radius: 999px;
+      background: rgba(255, 239, 186, 0.72);
+    }
+
+    .cheetah-body::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: 8px;
+      width: 24px;
+      height: 30px;
+      border-radius: 45%;
+      background: #f0a33c;
+    }
+
+    .cheetah-head {
+      position: absolute;
+      left: 204px;
+      top: 24px;
+      width: 64px;
+      height: 48px;
+      border-radius: 52% 44% 46% 54%;
+      background:
+        radial-gradient(circle at 68% 42%, #15110d 0 4px, transparent 5px),
+        radial-gradient(circle at 88% 58%, #1d140f 0 5px, transparent 6px),
+        linear-gradient(90deg, #f6b548, #f0a33c);
+    }
+
+    .cheetah-head::before,
+    .cheetah-head::after {
+      content: "";
+      position: absolute;
+      top: -9px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50% 50% 42% 42%;
+      background: #d98232;
+    }
+
+    .cheetah-head::before {
+      left: 12px;
+    }
+
+    .cheetah-head::after {
+      right: 16px;
+    }
+
+    .cheetah-face-mark {
+      position: absolute;
+      left: 244px;
+      top: 44px;
+      width: 4px;
+      height: 27px;
+      border-radius: 999px;
+      background: #2a1b12;
+      transform: rotate(12deg);
+    }
+
+    .cheetah-tail {
+      position: absolute;
+      left: 26px;
+      top: 42px;
+      width: 76px;
+      height: 22px;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, #1d140f 0 16px, #f6b548 17px 100%);
+      transform: rotate(-18deg);
+      transform-origin: right center;
+    }
+
+    .leg {
+      position: absolute;
+      top: 78px;
+      width: 11px;
+      height: 48px;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, #ce772c 0 74%, #332014 75% 100%);
+      transform-origin: top center;
+      animation: stride 520ms linear infinite;
+    }
+
+    .leg::after {
+      content: "";
+      position: absolute;
+      left: -11px;
+      bottom: -3px;
+      width: 26px;
+      height: 8px;
+      border-radius: 999px;
+      background: #332014;
+    }
+
+    .leg.one { left: 98px; }
+    .leg.two { left: 132px; animation-delay: 130ms; }
+    .leg.three { left: 176px; animation-delay: 260ms; }
+    .leg.four { left: 204px; animation-delay: 390ms; }
+
+    .prompt-panel {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: 12px;
+      width: min(900px, calc(100% - 24px));
+      margin: 0 auto 16px;
+      padding: 14px;
+      border: 3px solid rgba(255, 255, 255, 0.86);
+      border-radius: 8px;
+      background: rgba(255, 248, 223, 0.96);
+      box-shadow: 0 12px 24px rgba(100, 66, 25, 0.18);
+    }
+
+    .prompt-text {
+      min-height: 68px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-size: clamp(1.45rem, 4.4vw, 2.55rem);
+      font-weight: 900;
+      line-height: 1.12;
+    }
+
+    .prompt-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .answer-button {
+      min-height: 76px;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 10px;
+      color: white;
+      background: var(--deep-leaf);
+      font-size: clamp(1.25rem, 3.5vw, 2rem);
+      font-weight: 900;
+      box-shadow: 0 7px 0 rgba(0, 0, 0, 0.18);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .answer-button:nth-child(2) {
+      background: var(--blue);
+    }
+
+    .answer-button:nth-child(3) {
+      background: #9b5e25;
+    }
+
+    .answer-button:nth-child(4) {
+      background: #8b3d6b;
+    }
+
+    .answer-button.is-correct {
+      animation: correctPop 520ms ease;
+      background: #238f43;
+    }
+
+    .answer-button.is-wrong {
+      animation: wrongWiggle 320ms ease;
+      background: var(--red);
+    }
+
+    .feedback {
+      min-height: 34px;
+      text-align: center;
+      color: #21483e;
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(42, 92, 71, 0.62);
+    }
+
+    .overlay[hidden] {
+      display: none;
+    }
+
+    .dialog {
+      width: min(620px, 100%);
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+      border: 4px solid rgba(255, 255, 255, 0.88);
+      border-radius: 8px;
+      padding: clamp(18px, 4vw, 28px);
+      text-align: center;
+      background: var(--panel);
+      box-shadow: 0 18px 36px rgba(33, 47, 39, 0.28);
+    }
+
+    .dialog h1 {
+      color: #17392f;
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 0.98;
+    }
+
+    .dialog p {
+      color: #315248;
+      font-size: 1.1rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .final-badge {
+      display: grid;
+      place-items: center;
+      width: 136px;
+      aspect-ratio: 1;
+      border: 6px solid #fff3b0;
+      border-radius: 50%;
+      color: #17392f;
+      background: linear-gradient(135deg, #ffd64f, #f28c28);
+      font-size: 3.8rem;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .confetti {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .spark {
+      position: absolute;
+      top: 48%;
+      color: #ffd64f;
+      font-size: 1.8rem;
+      animation: spark 900ms ease forwards;
+    }
+
+    @keyframes stride {
+      0%, 100% { transform: rotate(22deg); }
+      50% { transform: rotate(-28deg); }
+    }
+
+    @keyframes boost {
+      0%, 100% { transform: translateX(0); }
+      45% { transform: translateX(20px) scale(1.04); }
+    }
+
+    @keyframes pauseBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    @keyframes dust {
+      0% { opacity: 0; transform: translateX(12px) scale(0.5); }
+      35% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-62px) scale(1.55); }
+    }
+
+    @keyframes correctPop {
+      0%, 100% { transform: scale(1); }
+      45% { transform: scale(1.08); }
+    }
+
+    @keyframes wrongWiggle {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      75% { transform: translateX(7px); }
+    }
+
+    @keyframes spark {
+      0% { opacity: 0; transform: translateY(0) scale(0.6); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-150px) translateX(var(--spark-x)) scale(1.1); }
+    }
+
+    @media (max-width: 820px) {
+      .hero-row {
+        grid-template-columns: 1fr;
+      }
+
+      .scout-badge {
+        justify-self: start;
+        width: 156px;
+      }
+
+      .game-hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .answers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stage {
+        min-height: 250px;
+      }
+
+      .animal-friends {
+        right: 3%;
+        bottom: 28px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        padding: 10px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .game-hud {
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .hud-card {
+        min-height: 62px;
+        padding: 7px 8px;
+      }
+
+      .stage {
+        min-height: 220px;
+        margin-inline: 8px;
+      }
+
+      .cheetah-runner {
+        width: 190px;
+        bottom: 44px;
+      }
+
+      .animal-friends {
+        font-size: 2.2rem;
+      }
+
+      .answer-button {
+        min-height: 66px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a class="home-link" href="/games">Games</a>
+    </div>
+
+    <section id="levelSelect" class="screen level-select" aria-labelledby="adventureTitle">
+      <div class="hero-row">
+        <div>
+          <p class="kicker">1st Grade Animal Adventure</p>
+          <h1 id="adventureTitle">Cheetah Safari Adventure</h1>
+          <p class="hero-subtitle">Race across the savannah, help animal friends, earn explorer stars, and unlock wildlife badges.</p>
+        </div>
+        <div class="scout-badge" aria-hidden="true">★</div>
+      </div>
+      <div id="levelGrid" class="level-grid" aria-label="Safari adventure levels"></div>
+    </section>
+
+    <section id="savannahGame" class="screen game-shell" aria-labelledby="gameTitle" hidden>
+      <div class="game-hud" aria-label="Game progress">
+        <div class="hud-card">
+          <span class="hud-label">Round</span>
+          <span id="roundValue" class="hud-value">1 of 10</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">Stars</span>
+          <span id="starsValue" class="hud-value">0 ★</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">Badge</span>
+          <span id="badgeValue" class="hud-value">0/10</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">Speed</span>
+          <span id="speedValue" class="hud-value">Ready</span>
+          <div class="meter-track" aria-hidden="true"><div id="speedFill" class="meter-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <span class="cloud one"></span>
+        <span class="cloud two"></span>
+        <div class="animal-friends">🦒 🦓 🐘</div>
+        <div class="track"></div>
+        <div class="bottom-animals">
+          <span>🦁</span>
+          <span>🦓</span>
+          <span>🦒</span>
+          <span>🐘</span>
+          <span>🦏</span>
+        </div>
+        <div id="cheetahRunner" class="cheetah-runner">
+          <span class="dust"></span>
+          <span class="cheetah-tail"></span>
+          <span class="cheetah-body"></span>
+          <span class="cheetah-head"></span>
+          <span class="cheetah-face-mark"></span>
+          <span class="leg one"></span>
+          <span class="leg two"></span>
+          <span class="leg three"></span>
+          <span class="leg four"></span>
+        </div>
+      </div>
+
+      <div class="prompt-panel">
+        <h1 id="gameTitle" class="prompt-text">Savannah Sprint</h1>
+        <div class="prompt-actions">
+          <button id="repeatButton" class="big-button" type="button">🔊 Repeat</button>
+        </div>
+        <div id="answers" class="answers" aria-label="Answer choices"></div>
+        <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+      </div>
+
+      <div id="startOverlay" class="overlay">
+        <div class="dialog">
+          <h1>Savannah Sprint</h1>
+          <p>Help the cheetah sprint by choosing the correct answer. Every correct answer earns a star for your safari badge.</p>
+          <button id="startButton" class="big-button" type="button">Start Sprint</button>
+        </div>
+      </div>
+
+      <div id="endOverlay" class="overlay" hidden>
+        <div class="dialog">
+          <h1>Great job, Safari Explorer!</h1>
+          <div class="final-badge" aria-hidden="true">★</div>
+          <p id="finalSummary">You earned 0 stars and a Savannah Sprint badge.</p>
+          <div class="button-row">
+            <button id="playAgainButton" class="big-button" type="button">Play Again</button>
+            <button id="backButton" class="big-button" type="button">Back to Level Select</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="confetti" class="confetti" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <script>
+    const progressKey = "cheetahSafariAdventureProgress";
+    const roundsPerGame = 10;
+    const earlyRounds = 5;
+
+    const levelSelect = document.getElementById("levelSelect");
+    const savannahGame = document.getElementById("savannahGame");
+    const levelGrid = document.getElementById("levelGrid");
+    const roundValue = document.getElementById("roundValue");
+    const starsValue = document.getElementById("starsValue");
+    const badgeValue = document.getElementById("badgeValue");
+    const speedValue = document.getElementById("speedValue");
+    const speedFill = document.getElementById("speedFill");
+    const promptText = document.getElementById("gameTitle");
+    const answersEl = document.getElementById("answers");
+    const feedbackEl = document.getElementById("feedback");
+    const repeatButton = document.getElementById("repeatButton");
+    const startOverlay = document.getElementById("startOverlay");
+    const endOverlay = document.getElementById("endOverlay");
+    const startButton = document.getElementById("startButton");
+    const playAgainButton = document.getElementById("playAgainButton");
+    const backButton = document.getElementById("backButton");
+    const finalSummary = document.getElementById("finalSummary");
+    const cheetahRunner = document.getElementById("cheetahRunner");
+    const confetti = document.getElementById("confetti");
+
+    let progress = loadProgress();
+    let voiceAudio = null;
+    let audioContext = null;
+    const ttsAudioCache = new Map();
+    const ttsAudioPromises = new Map();
+    let rounds = [];
+    let currentRound = 0;
+    let stars = 0;
+    let speed = 42;
+    let acceptingAnswers = false;
+    let currentQuestion = null;
+    let firstPromptPromise = null;
+    let firstPromptAudioAsset = null;
+
+    const levels = [
+      {
+        id: "savannah-sprint",
+        number: 1,
+        title: "Savannah Sprint",
+        subtitle: "Race across the savannah and find the correct answers",
+        available: true,
+      },
+      {
+        id: "waterhole-words",
+        number: 2,
+        title: "Waterhole Words",
+        subtitle: "Find helpful words near the watering hole",
+        available: false,
+      },
+      {
+        id: "jungle-rescue",
+        number: 3,
+        title: "Jungle Rescue",
+        subtitle: "Solve clues to help animal friends",
+        available: false,
+      },
+      {
+        id: "mountain-climb",
+        number: 4,
+        title: "Mountain Climb",
+        subtitle: "Read trail words to climb higher",
+        available: false,
+      },
+      {
+        id: "night-safari",
+        number: 5,
+        title: "Night Safari",
+        subtitle: "Read clues to find glowing animals",
+        available: false,
+      },
+    ];
+
+    const easySightWords = [
+      "the",
+      "and",
+      "you",
+      "said",
+      "was",
+      "for",
+      "are",
+      "with",
+      "they",
+      "have",
+      "this",
+      "from",
+    ];
+
+    const safariSightWords = [
+      "because",
+      "before",
+      "between",
+      "after",
+      "again",
+      "could",
+      "every",
+      "where",
+      "friend",
+      "little",
+      "around",
+      "another",
+      "follow",
+      "together",
+    ];
+
+    const sentenceQuestions = [
+      { prompt: "The cheetah can blank fast.", display: "The cheetah can ___ fast.", answer: "run", choices: ["run", "blue", "chair", "sleep"] },
+      { prompt: "The sun is blank in the sky.", display: "The sun is ___ in the sky.", answer: "bright", choices: ["bright", "table", "slow", "paper"] },
+      { prompt: "A zebra has black and white blank.", display: "A zebra has black and white ___.", answer: "stripes", choices: ["stripes", "wheels", "cups", "songs"] },
+      { prompt: "The explorer wears a blank.", display: "The explorer wears a ___.", answer: "hat", choices: ["hat", "river", "jump", "green"] },
+    ];
+
+    const animalQuestions = [
+      { prompt: "Which animal is the fastest land animal?", answer: "cheetah", choices: ["cheetah", "turtle", "elephant", "snail"] },
+      { prompt: "Which animal has a long neck?", answer: "giraffe", choices: ["giraffe", "frog", "crab", "rabbit"] },
+      { prompt: "Which animal has black and white stripes?", answer: "zebra", choices: ["zebra", "lion", "duck", "goat"] },
+      { prompt: "Which animal has a trunk?", answer: "elephant", choices: ["elephant", "cheetah", "bird", "fish"] },
+    ];
+
+    const animalWordQuestions = [
+      { prompt: "Find the animal word cheetah.", answer: "cheetah", choices: ["cheetah", "chair", "cloud", "cookie"] },
+      { prompt: "Find the animal word zebra.", answer: "zebra", choices: ["zebra", "zero", "zipper", "zoom"] },
+      { prompt: "Find the animal word lion.", answer: "lion", choices: ["lion", "line", "light", "leaf"] },
+      { prompt: "Find the animal word giraffe.", answer: "giraffe", choices: ["giraffe", "garden", "gift", "green"] },
+    ];
+
+    const firstSoundQuestions = [
+      { prompt: "Find the word that starts like cheetah.", display: "Find the word that starts like cheetah.", answer: "chair", choices: ["chair", "run", "sun", "tree"] },
+      { prompt: "Find the word that starts like zebra.", display: "Find the word that starts like zebra.", answer: "zip", choices: ["zip", "hat", "map", "dog"] },
+      { prompt: "Find the word that starts like safari.", display: "Find the word that starts like safari.", answer: "sun", choices: ["sun", "bug", "fox", "log"] },
+      { prompt: "Find the word that starts like grass.", display: "Find the word that starts like grass.", answer: "go", choices: ["go", "see", "top", "red"] },
+    ];
+
+    const rhymingQuestions = [
+      { prompt: "Find the word that rhymes with cat.", display: "Find the word that rhymes with cat.", answer: "hat", choices: ["hat", "hen", "hop", "hug"] },
+      { prompt: "Find the word that rhymes with run.", display: "Find the word that rhymes with run.", answer: "sun", choices: ["sun", "sit", "sad", "map"] },
+      { prompt: "Find the word that rhymes with tree.", display: "Find the word that rhymes with tree.", answer: "see", choices: ["see", "sat", "top", "mud"] },
+      { prompt: "Find the word that rhymes with big.", display: "Find the word that rhymes with big.", answer: "dig", choices: ["dig", "dog", "day", "den"] },
+    ];
+
+    function loadProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(progressKey) || "{}");
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveProgress() {
+      localStorage.setItem(progressKey, JSON.stringify(progress));
+    }
+
+    function completeLevel(levelId, earnedStars) {
+      const current = progress[levelId] || { complete: false, stars: 0 };
+      progress[levelId] = {
+        complete: true,
+        stars: Math.max(current.stars || 0, earnedStars),
+      };
+      saveProgress();
+    }
+
+    function getVoiceAudio() {
+      if (!voiceAudio) {
+        voiceAudio = new Audio();
+        voiceAudio.preload = "auto";
+        voiceAudio.playsInline = true;
+        voiceAudio.setAttribute("playsinline", "");
+      }
+      return voiceAudio;
+    }
+
+    function getAudioContext() {
+      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      return audioContext;
+    }
+
+    function waitFor(milliseconds) {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    }
+
+    async function timebox(promise, milliseconds) {
+      return Promise.race([promise, waitFor(milliseconds)]);
+    }
+
+    async function unlockVoiceAudio() {
+      try {
+        const audio = getVoiceAudio();
+        audio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";
+        audio.volume = 0;
+        await timebox(audio.play(), 500);
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+      } catch (error) {
+        if (voiceAudio) voiceAudio.volume = 1;
+      }
+    }
+
+    async function unlockAudioContext() {
+      try {
+        const context = getAudioContext();
+        if (context.state === "suspended") await timebox(context.resume(), 500);
+      } catch (error) {
+        // Google TTS playback uses the reusable HTML audio element.
+      }
+    }
+
+    function ttsCacheKey(text) {
+      return text.toLowerCase().replace(/\s+/g, " ").trim();
+    }
+
+    async function getTextToSpeechAudio(text) {
+      const cacheKey = ttsCacheKey(text);
+      if (ttsAudioCache.has(cacheKey)) return ttsAudioCache.get(cacheKey);
+      if (ttsAudioPromises.has(cacheKey)) return ttsAudioPromises.get(cacheKey);
+
+      const audioPromise = (async () => {
+        const query = new URLSearchParams({ text });
+        const response = await fetch("/api/text-to-speech?" + query.toString());
+        if (!response.ok) throw new Error("Text-to-speech request failed");
+        const audioData = await response.arrayBuffer();
+        const audioBlob = new Blob([audioData.slice(0)], { type: "audio/mpeg" });
+        const audioAsset = { url: URL.createObjectURL(audioBlob) };
+        ttsAudioCache.set(cacheKey, audioAsset);
+        return audioAsset;
+      })();
+
+      ttsAudioPromises.set(cacheKey, audioPromise);
+      try {
+        return await audioPromise;
+      } catch (error) {
+        ttsAudioPromises.delete(cacheKey);
+        throw error;
+      }
+    }
+
+    function stopVoiceAudio() {
+      const audio = getVoiceAudio();
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    async function playReusableVoiceAudio(audioUrl) {
+      const audio = getVoiceAudio();
+      audio.pause();
+      audio.currentTime = 0;
+
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Voice audio did not start")), 1800);
+        const cleanup = () => {
+          clearTimeout(timeout);
+          audio.removeEventListener("playing", handlePlaying);
+          audio.removeEventListener("error", handleError);
+        };
+        const handlePlaying = () => {
+          cleanup();
+          resolve();
+        };
+        const handleError = () => {
+          cleanup();
+          reject(new Error("Voice audio failed"));
+        };
+
+        audio.addEventListener("playing", handlePlaying);
+        audio.addEventListener("error", handleError);
+        audio.src = audioUrl;
+        audio.load();
+        audio.play().then(handlePlaying).catch(handleError);
+      });
+    }
+
+    async function speakText(text, visibleElement) {
+      if (visibleElement) visibleElement.textContent = text;
+      try {
+        const audioAsset = await getTextToSpeechAudio(text);
+        await playReusableVoiceAudio(audioAsset.url);
+      } catch (error) {
+        // On-screen text remains the fallback when Google audio cannot play.
+      }
+    }
+
+    function playTone(frequency, duration, type) {
+      try {
+        const context = getAudioContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = type || "triangle";
+        oscillator.frequency.value = frequency;
+        gain.gain.setValueAtTime(0.05, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + duration);
+      } catch (error) {
+        // Sound effects are optional.
+      }
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffled(values) {
+      return values.slice().sort(() => Math.random() - 0.5);
+    }
+
+    function makeChoices(answer, count, options) {
+      const choices = new Set([String(answer)]);
+      const pool = shuffled((options || []).map(String));
+      pool.forEach((item) => {
+        if (choices.size < count) choices.add(item);
+      });
+      return shuffled(Array.from(choices)).slice(0, count);
+    }
+
+    function buildSightWordQuestion(choiceCount, harder) {
+      const words = harder ? safariSightWords : easySightWords;
+      const answer = words[randomInt(0, words.length - 1)];
+      const choices = makeChoices(answer, choiceCount, words.filter((word) => word !== answer));
+      return {
+        type: "sight-word",
+        prompt: "Find the word " + answer + ".",
+        display: "Find the word...",
+        answer,
+        choices,
+      };
+    }
+
+    function buildSentenceQuestion(choiceCount) {
+      const item = sentenceQuestions[randomInt(0, sentenceQuestions.length - 1)];
+      return {
+        type: "sentence",
+        prompt: item.prompt,
+        display: item.display,
+        answer: item.answer,
+        choices: makeChoices(item.answer, choiceCount, item.choices.filter((choice) => choice !== item.answer)),
+      };
+    }
+
+    function buildAnimalQuestion(choiceCount) {
+      const item = animalQuestions[randomInt(0, animalQuestions.length - 1)];
+      return {
+        type: "animal",
+        prompt: item.prompt,
+        display: item.prompt,
+        answer: item.answer,
+        choices: makeChoices(item.answer, choiceCount, item.choices.filter((choice) => choice !== item.answer)),
+      };
+    }
+
+    function buildAnimalWordQuestion(choiceCount) {
+      const item = animalWordQuestions[randomInt(0, animalWordQuestions.length - 1)];
+      return {
+        type: "animal-word",
+        prompt: item.prompt,
+        display: "Find the animal word...",
+        answer: item.answer,
+        choices: makeChoices(item.answer, choiceCount, item.choices.filter((choice) => choice !== item.answer)),
+      };
+    }
+
+    function buildFirstSoundQuestion(choiceCount) {
+      const item = firstSoundQuestions[randomInt(0, firstSoundQuestions.length - 1)];
+      return {
+        type: "first-sound",
+        prompt: item.prompt,
+        display: item.display,
+        answer: item.answer,
+        choices: makeChoices(item.answer, choiceCount, item.choices.filter((choice) => choice !== item.answer)),
+      };
+    }
+
+    function buildRhymingQuestion(choiceCount) {
+      const item = rhymingQuestions[randomInt(0, rhymingQuestions.length - 1)];
+      return {
+        type: "rhyming",
+        prompt: item.prompt,
+        display: item.display,
+        answer: item.answer,
+        choices: makeChoices(item.answer, choiceCount, item.choices.filter((choice) => choice !== item.answer)),
+      };
+    }
+
+    function buildQuestion(roundIndex) {
+      const easy = roundIndex < earlyRounds;
+      const choiceCount = easy ? 3 : 4;
+      const easyBuilders = [
+        () => buildSightWordQuestion(choiceCount, false),
+        () => buildSightWordQuestion(choiceCount, false),
+        () => buildSentenceQuestion(choiceCount),
+        () => buildAnimalWordQuestion(choiceCount),
+        () => buildFirstSoundQuestion(choiceCount),
+      ];
+      const hardBuilders = [
+        () => buildSightWordQuestion(choiceCount, true),
+        () => buildSightWordQuestion(choiceCount, true),
+        () => buildSentenceQuestion(choiceCount),
+        () => buildAnimalWordQuestion(choiceCount),
+        () => buildFirstSoundQuestion(choiceCount),
+        () => buildRhymingQuestion(choiceCount),
+        () => buildAnimalQuestion(choiceCount),
+      ];
+      const builders = easy ? easyBuilders : hardBuilders;
+      return builders[randomInt(0, builders.length - 1)]();
+    }
+
+    function buildRounds() {
+      return Array.from({ length: roundsPerGame }, (_, index) => buildQuestion(index));
+    }
+
+    function renderLevelSelect() {
+      levelGrid.innerHTML = "";
+      levels.forEach((level) => {
+        const saved = progress[level.id];
+        const card = document.createElement("article");
+        card.className = "level-card" + (!level.available ? " is-coming" : "");
+        const status = !level.available ? "Coming Soon" : saved && saved.complete ? "Complete: " + saved.stars + " stars" : "Available";
+        card.innerHTML =
+          '<div class="level-number">' + level.number + '</div>' +
+          '<h2>' + level.title + '</h2>' +
+          '<p>' + level.subtitle + '</p>' +
+          '<span class="level-status">' + status + '</span>';
+        if (level.available) {
+          const button = document.createElement("button");
+          button.className = "big-button";
+          button.type = "button";
+          button.textContent = "Play";
+          button.addEventListener("click", showSavannahSprint);
+          card.appendChild(button);
+        }
+        levelGrid.appendChild(card);
+      });
+    }
+
+    function showLevelSelect() {
+      levelSelect.hidden = false;
+      savannahGame.hidden = true;
+      renderLevelSelect();
+    }
+
+    function showSavannahSprint() {
+      levelSelect.hidden = true;
+      savannahGame.hidden = false;
+      prepareGame();
+    }
+
+    function prepareGame() {
+      rounds = buildRounds();
+      currentRound = 0;
+      stars = 0;
+      speed = 42;
+      acceptingAnswers = false;
+      currentQuestion = null;
+      feedbackEl.textContent = "";
+      promptText.textContent = "Savannah Sprint";
+      answersEl.innerHTML = "";
+      startButton.disabled = true;
+      startButton.textContent = "Getting Voice Ready...";
+      startOverlay.hidden = false;
+      endOverlay.hidden = true;
+      updateHud();
+      moveCheetah();
+      preloadFirstPrompt();
+    }
+
+    function preloadFirstPrompt() {
+      firstPromptAudioAsset = null;
+      firstPromptPromise = rounds[0] ? getTextToSpeechAudio(rounds[0].prompt).then((audioAsset) => {
+        firstPromptAudioAsset = audioAsset;
+        startButton.disabled = false;
+        startButton.textContent = "Start Sprint";
+        return audioAsset;
+      }).catch(() => {
+        startButton.disabled = false;
+        startButton.textContent = "Start Sprint";
+        return null;
+      }) : null;
+    }
+
+    function preloadPrompt(index) {
+      if (rounds[index]) getTextToSpeechAudio(rounds[index].prompt).catch(() => {});
+    }
+
+    function updateHud() {
+      roundValue.textContent = Math.min(currentRound + 1, roundsPerGame) + " of " + roundsPerGame;
+      starsValue.textContent = stars + " ★";
+      badgeValue.textContent = stars + "/" + roundsPerGame;
+      speedValue.textContent = speed >= 72 ? "Zoom!" : speed >= 55 ? "Fast" : "Ready";
+      speedFill.style.width = speed + "%";
+    }
+
+    function moveCheetah() {
+      const progressPercent = Math.min(76, 4 + stars * 7.2);
+      cheetahRunner.style.setProperty("--runner-x", progressPercent + "%");
+    }
+
+    function renderAnswers(question) {
+      answersEl.innerHTML = "";
+      question.choices.forEach((choice) => {
+        const button = document.createElement("button");
+        button.className = "answer-button";
+        button.type = "button";
+        button.textContent = choice;
+        button.setAttribute("aria-label", "Answer " + choice);
+        button.addEventListener("click", () => chooseAnswer(choice, button));
+        answersEl.appendChild(button);
+      });
+    }
+
+    async function sayCurrentPrompt() {
+      if (!currentQuestion) return;
+      stopVoiceAudio();
+      promptText.textContent = currentQuestion.display;
+      await speakText(currentQuestion.prompt);
+    }
+
+    async function playQuestionPrompt(question) {
+      stopVoiceAudio();
+      promptText.textContent = question.display;
+      try {
+        const audioAsset = await getTextToSpeechAudio(question.prompt);
+        await playReusableVoiceAudio(audioAsset.url);
+      } catch (error) {
+        // Text stays visible if Google audio cannot play.
+      }
+    }
+
+    function nextRound(playPrompt) {
+      if (currentRound >= roundsPerGame) {
+        endGame();
+        return;
+      }
+      currentQuestion = rounds[currentRound];
+      acceptingAnswers = true;
+      feedbackEl.textContent = "";
+      promptText.textContent = currentQuestion.display;
+      renderAnswers(currentQuestion);
+      updateHud();
+      if (playPrompt !== false) playQuestionPrompt(currentQuestion);
+      preloadPrompt(currentRound + 1);
+    }
+
+    function startGame() {
+      if (startButton.disabled) return;
+      startButton.disabled = true;
+      startOverlay.hidden = true;
+      nextRound(false);
+      if (currentQuestion) {
+        stopVoiceAudio();
+        promptText.textContent = currentQuestion.display;
+        if (firstPromptAudioAsset && firstPromptAudioAsset.url) {
+          playReusableVoiceAudio(firstPromptAudioAsset.url).catch(() => speakText(currentQuestion.prompt));
+        } else {
+          speakText(currentQuestion.prompt);
+        }
+      }
+      timebox(unlockAudioContext(), 700);
+    }
+
+    function animateCheetah(className) {
+      cheetahRunner.classList.remove(className);
+      void cheetahRunner.offsetWidth;
+      cheetahRunner.classList.add(className);
+      setTimeout(() => cheetahRunner.classList.remove(className), 560);
+    }
+
+    function showStars() {
+      confetti.innerHTML = "";
+      for (let i = 0; i < 18; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "spark";
+        spark.textContent = "★";
+        spark.style.left = randomInt(10, 88) + "%";
+        spark.style.setProperty("--spark-x", randomInt(-90, 90) + "px");
+        spark.style.animationDelay = randomInt(0, 150) + "ms";
+        confetti.appendChild(spark);
+      }
+      setTimeout(() => {
+        confetti.innerHTML = "";
+      }, 1050);
+    }
+
+    async function chooseAnswer(choice, button) {
+      if (!acceptingAnswers || !currentQuestion) return;
+      const isCorrect = String(choice) === String(currentQuestion.answer);
+      if (!isCorrect) {
+        button.classList.remove("is-wrong");
+        void button.offsetWidth;
+        button.classList.add("is-wrong");
+        speed = Math.max(28, speed - 5);
+        updateHud();
+        animateCheetah("is-paused");
+        feedbackEl.textContent = "Try again, Explorer!";
+        speakText("Try again, Explorer!", feedbackEl);
+        playTone(180, 0.12, "sine");
+        setTimeout(() => button.classList.remove("is-wrong"), 380);
+        return;
+      }
+
+      acceptingAnswers = false;
+      button.classList.add("is-correct");
+      stars += 1;
+      speed = Math.min(100, speed + 8);
+      feedbackEl.textContent = "Correct! Speed boost!";
+      updateHud();
+      moveCheetah();
+      animateCheetah("is-boosting");
+      showStars();
+      playTone(680, 0.08, "triangle");
+      setTimeout(() => playTone(900, 0.11, "triangle"), 90);
+      stopVoiceAudio();
+      currentRound += 1;
+      setTimeout(nextRound, 380);
+    }
+
+    function endGame() {
+      acceptingAnswers = false;
+      completeLevel("savannah-sprint", stars);
+      finalSummary.textContent = "You earned " + stars + " stars and the Savannah Sprint badge.";
+      endOverlay.hidden = false;
+      speakText("Great job, Safari Explorer!", promptText);
+    }
+
+    backButton.addEventListener("click", showLevelSelect);
+    startButton.addEventListener("click", startGame);
+    playAgainButton.addEventListener("click", () => {
+      prepareGame();
+    });
+    repeatButton.addEventListener("click", sayCurrentPrompt);
+
+    renderLevelSelect();
+  </script>
+</body>
+</html>
