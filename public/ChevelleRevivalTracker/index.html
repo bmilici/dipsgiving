@@ -1,0 +1,3642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chevelle Revival Tracker</title>
+  <style>
+    :root {
+      --ink: #241f1a;
+      --muted: #6f665c;
+      --paper: #fffaf1;
+      --panel: #ffffff;
+      --line: #ddd2c2;
+      --red: #b7312c;
+      --red-dark: #7f211e;
+      --steel: #53616b;
+      --green: #28744a;
+      --amber: #b96d10;
+      --blue: #265c86;
+      --shadow: 0 12px 34px rgba(36, 31, 26, 0.13);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,255,255,0.3) 260px),
+        repeating-linear-gradient(90deg, rgba(36,31,26,0.035) 0 1px, transparent 1px 74px),
+        #eee5d7;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      background: var(--red);
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #eadcc7;
+      border: 1px solid var(--line);
+    }
+
+    button.ghost {
+      color: var(--red-dark);
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+
+    button.danger {
+      background: var(--red-dark);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(183,49,44,0.28);
+      outline-offset: 2px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: white;
+    }
+
+    textarea {
+      min-height: 98px;
+      resize: vertical;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 16px;
+      margin: 0 0 16px;
+      padding: 18px;
+      border: 1px solid rgba(36,31,26,0.14);
+      border-radius: 8px;
+      color: white;
+      background:
+        linear-gradient(120deg, rgba(36,31,26,0.88), rgba(127,33,30,0.78)),
+        linear-gradient(90deg, #2a2c2d 0 20%, #c1c6c8 20% 25%, #8d1715 25% 70%, #e9d8bd 70% 73%, #24201d 73% 100%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 9vw, 4.8rem);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: #f8ead8;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .hero-actions,
+    .toolbar,
+    .button-row,
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 16px;
+    }
+
+    .stat {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 8px 22px rgba(36,31,26,0.08);
+    }
+
+    .stat b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: clamp(1.45rem, 7vw, 2.8rem);
+      line-height: 1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .progress-shell {
+      height: 18px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #dfd1bf;
+      border: 1px solid rgba(36,31,26,0.12);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--red), var(--amber), var(--green));
+      transition: width 180ms ease;
+    }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 8px 0;
+      background: rgba(238,229,215,0.96);
+      backdrop-filter: blur(8px);
+    }
+
+    .tabs button {
+      min-height: 46px;
+      padding: 8px 6px;
+      color: var(--ink);
+      background: #fff8eb;
+      border: 1px solid var(--line);
+      font-size: 0.85rem;
+    }
+
+    .tabs button.active {
+      color: white;
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .safety-strip {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0;
+      padding: 12px;
+      border: 2px solid #f0c36b;
+      border-radius: 8px;
+      background: #fff5d9;
+    }
+
+    .safety-strip strong {
+      color: var(--red-dark);
+    }
+
+    .access-banner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin: 14px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8eb;
+      font-weight: 800;
+    }
+
+    .access-banner.editor {
+      border-color: rgba(40,116,74,0.45);
+      background: #eaf7ee;
+      color: #17482c;
+    }
+
+    .access-banner.readonly {
+      border-color: rgba(185,109,16,0.46);
+      background: #fff4cf;
+      color: #65440a;
+    }
+
+    body.readonly .editor-only {
+      display: none !important;
+    }
+
+    .phase-list {
+      display: grid;
+      gap: 12px;
+      margin: 14px 0 72px;
+    }
+
+    .phase-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: 0 8px 20px rgba(36,31,26,0.08);
+    }
+
+    .phase-card > summary {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .phase-card > summary::-webkit-details-marker,
+    .step-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .phase-title {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .phase-title h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.15;
+    }
+
+    .phase-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    .phase-percent {
+      min-width: 66px;
+      padding: 8px;
+      border-radius: 8px;
+      color: white;
+      background: var(--steel);
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .phase-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 12px 12px;
+    }
+
+    .step-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+      overflow: hidden;
+    }
+
+    .step-card.needs-help {
+      border-color: rgba(183,49,44,0.62);
+      box-shadow: inset 4px 0 0 var(--red);
+    }
+
+    .step-card > summary {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .step-title {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .step-title h3 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.2;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: var(--muted);
+      background: #efe5d8;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .pill.done { color: white; background: var(--green); }
+    .pill.progress { color: white; background: var(--blue); }
+    .pill.help { color: white; background: var(--red); }
+    .pill.waiting { color: white; background: var(--steel); }
+    .pill.beginner { color: white; background: var(--green); }
+    .pill.moderate { color: white; background: var(--blue); }
+    .pill.advanced { color: white; background: var(--amber); }
+    .pill.professional { color: white; background: var(--red); }
+
+    .step-body {
+      display: grid;
+      gap: 14px;
+      padding: 0 12px 14px;
+    }
+
+    .grid-two {
+      display: grid;
+      gap: 10px;
+    }
+
+    .section-box {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .section-box h4 {
+      margin: 0;
+      color: var(--red-dark);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .check-row {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 8px;
+      align-items: start;
+      color: var(--ink);
+      text-transform: none;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .check-row input {
+      width: 24px;
+      height: 24px;
+      min-height: 24px;
+      margin: 0;
+      accent-color: var(--green);
+    }
+
+    .tool-row,
+    .photo-need-row {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 9px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+    }
+
+    .tool-row input {
+      width: 24px;
+      height: 24px;
+      min-height: 24px;
+      margin: 0;
+      accent-color: var(--green);
+    }
+
+    .photo-need-row {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .photo-need-head {
+      display: grid;
+      gap: 8px;
+    }
+
+    .photo-need-head strong {
+      line-height: 1.25;
+    }
+
+    .photo-actions {
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .photo-need-row.choosing .photo-actions {
+      display: grid;
+    }
+
+    .photo-actions label {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: white;
+      background: var(--red);
+      font-size: 0.92rem;
+      text-align: center;
+      text-transform: none;
+      cursor: pointer;
+    }
+
+    .photo-section {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+    }
+
+    .photo-section-title {
+      margin: 0;
+      color: var(--red-dark);
+      font-size: 0.92rem;
+      text-transform: uppercase;
+    }
+
+    .damage-form {
+      display: none;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+    }
+
+    .damage-form.active {
+      display: grid;
+    }
+
+    .photo-caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 5px 6px;
+      color: white;
+      background: rgba(36, 31, 26, 0.72);
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .chip {
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8eb;
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .warning {
+      padding: 10px;
+      border-left: 5px solid var(--red);
+      border-radius: 8px;
+      background: #fff0e8;
+      color: #64211e;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .callout {
+      display: grid;
+      gap: 7px;
+      padding: 11px;
+      border-radius: 8px;
+      border: 2px solid var(--line);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .callout h4,
+    .callout strong {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .callout.stop {
+      border-color: var(--red);
+      background: #ffe9e5;
+      color: #651b18;
+    }
+
+    .callout.caution {
+      border-color: #e0ac42;
+      background: #fff4cf;
+      color: #65440a;
+    }
+
+    .callout.ok {
+      border-color: var(--green);
+      background: #e9f7ee;
+      color: #17482c;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .parts-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .part-card {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffaf1;
+    }
+
+    .cost-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .cost-summary div {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8eb;
+      font-weight: 900;
+    }
+
+    .cost-summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+      gap: 8px;
+    }
+
+    .photo-tile {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f2eadf;
+      aspect-ratio: 1;
+    }
+
+    .photo-tile img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-tile button {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      min-height: 30px;
+      width: 30px;
+      padding: 0;
+      border-radius: 8px;
+      background: rgba(127,33,30,0.92);
+    }
+
+    .help-links {
+      display: grid;
+      gap: 8px;
+    }
+
+    .help-links a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--blue);
+      background: #eef6fb;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .empty {
+      padding: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.52);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .list-view {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 72px;
+    }
+
+    .list-card {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 7px 18px rgba(36,31,26,0.07);
+    }
+
+    .list-card h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .print-summary {
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 72px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: end center;
+      padding: 12px;
+      background: rgba(36,31,26,0.56);
+    }
+
+    .modal-backdrop.active {
+      display: grid;
+    }
+
+    .modal {
+      width: min(620px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .modal h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .hidden-file {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .footer-space {
+      height: 48px;
+    }
+
+    @media (min-width: 760px) {
+      .app { padding: 24px; }
+      .hero {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        padding: 28px;
+      }
+      .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .tabs { grid-template-columns: repeat(8, auto); justify-content: start; }
+      .modal-backdrop { place-items: center; }
+      .phase-card > summary { padding: 18px; }
+      .phase-body { padding: 0 18px 18px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .hero-actions,
+      .tabs,
+      .toolbar,
+      .phase-list,
+      .modal-backdrop,
+      #galleryView,
+      #shoppingView,
+      #timelineView,
+      #backupView {
+        display: none !important;
+      }
+      .app { width: 100%; padding: 0; }
+      .hero {
+        color: #111;
+        background: white;
+        box-shadow: none;
+        border: 0;
+        padding: 0 0 12px;
+      }
+      .hero p { color: #333; }
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+      .stat, .list-card { box-shadow: none; break-inside: avoid; }
+      #summaryView { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <h1>Chevelle Revival Tracker</h1>
+        <p>1969 Chevrolet Chevelle Malibu convertible restoration log. Local-first, phone-friendly, and ready for the garage.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="editor-only" id="addStepTop">Add Step</button>
+        <button class="secondary" id="printTop">Print / PDF</button>
+      </div>
+    </section>
+
+    <section class="stats-grid" aria-label="Project dashboard">
+      <div class="stat">
+        <b id="overallPercent">0%</b>
+        <span>Overall Progress</span>
+        <div class="progress-shell" aria-hidden="true"><div class="progress-bar" id="overallBar"></div></div>
+      </div>
+      <div class="stat"><b id="doneCount">0</b><span>Steps Done</span></div>
+      <div class="stat"><b id="totalCost">$0</b><span>Total Project Cost</span></div>
+      <div class="stat"><b id="purchasedCost">$0</b><span>Purchased Total</span></div>
+      <div class="stat"><b id="plannedCost">$0</b><span>Planned Remaining</span></div>
+      <div class="stat"><b id="transportStatus">Not Ready</b><span>Transport Readiness</span></div>
+      <div class="stat"><b id="engineStatus">Unknown</b><span>Engine Status</span></div>
+      <div class="stat"><b id="fuelStatus">Unknown</b><span>Fuel System Status</span></div>
+      <div class="stat"><b id="electricalStatus">Unknown</b><span>Electrical Status</span></div>
+      <div class="stat"><b id="coolingStatus">Unknown</b><span>Cooling Status</span></div>
+      <div class="stat"><b id="brakeStatus">Unsafe</b><span>Brake Safety Status</span></div>
+      <div class="stat"><b id="roadworthyStatus">Not Yet</b><span>Roadworthy Status</span></div>
+      <div class="stat"><b id="helpCount">0</b><span>Need Help</span></div>
+    </section>
+
+    <nav class="tabs" aria-label="Tracker sections">
+      <button class="active" data-view="phasesView">Phases</button>
+      <button data-view="galleryView">Gallery</button>
+      <button data-view="shoppingView">Tools</button>
+      <button data-view="vehicleView">Vehicle</button>
+      <button data-view="timelineView">Timeline</button>
+      <button data-view="milestonesView">Milestones</button>
+      <button class="editor-only" data-view="backupView">Backup</button>
+      <button data-view="summaryView">Summary</button>
+    </nav>
+
+    <section class="access-banner readonly" id="accessBanner">
+      <span id="accessModeText">Read-only view.</span>
+      <div class="button-row">
+        <button id="loginButton">Editor login</button>
+        <button class="secondary editor-only" id="logoutButton">Logout</button>
+      </div>
+    </section>
+
+    <section class="safety-strip">
+      <strong>Garage safety reminders</strong>
+      <span>Do not crank before checking cylinders. Do not use old fuel. Do not drive on old tires or before brakes are inspected. Keep a fire extinguisher nearby. Use jack stands, never just a jack.</span>
+    </section>
+
+    <section id="phasesView" class="view active">
+      <div class="toolbar">
+        <button id="generateShopping">Open tools checklist</button>
+        <button class="secondary editor-only" id="addPhaseToolbar">Add phase</button>
+        <button class="secondary editor-only" id="addStepToolbar">Add step</button>
+        <button class="ghost" id="expandAll">Expand all</button>
+        <button class="ghost" id="collapseAll">Collapse all</button>
+      </div>
+      <div class="phase-list" id="phaseList"></div>
+    </section>
+
+    <section id="galleryView" class="view">
+      <div class="list-view" id="galleryList"></div>
+    </section>
+
+    <section id="shoppingView" class="view">
+      <div class="toolbar">
+        <button id="copyShopping">Copy missing tools</button>
+      </div>
+      <div class="list-view" id="shoppingList"></div>
+    </section>
+
+    <section id="vehicleView" class="view">
+      <div class="list-view" id="vehicleInfo"></div>
+    </section>
+
+    <section id="timelineView" class="view">
+      <div class="list-view" id="timelineList"></div>
+    </section>
+
+    <section id="milestonesView" class="view">
+      <div class="list-view" id="milestoneList"></div>
+    </section>
+
+    <section id="backupView" class="view">
+      <div class="list-view">
+        <article class="list-card">
+          <h3>Backup and restore</h3>
+          <p>Export a JSON backup before big changes. This format is intentionally simple so Firebase, Firestore, Supabase, or another backend can be added later.</p>
+          <div class="button-row">
+            <button class="editor-only" id="exportJson">Export JSON</button>
+            <button class="secondary editor-only" id="importJsonButton">Import JSON</button>
+            <button class="ghost editor-only" id="resetSample">Reset sample data</button>
+          </div>
+          <input class="hidden-file" id="importJson" type="file" accept="application/json" />
+        </article>
+      </div>
+    </section>
+
+    <section id="summaryView" class="view">
+      <div class="print-summary" id="printSummary"></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="stepModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form class="modal" id="stepForm">
+      <h2 id="modalTitle">Edit Step</h2>
+      <input type="hidden" id="editPhaseId" />
+      <input type="hidden" id="editStepId" />
+      <label>Phase
+        <select id="editPhaseSelect"></select>
+      </label>
+      <label>Step title
+        <input id="editTitle" required />
+      </label>
+      <div class="grid-two">
+        <label>Difficulty
+          <select id="editDifficulty"></select>
+        </label>
+        <label>Estimated time
+          <input id="editEstimatedTime" placeholder="Example: 1-2 hours" />
+        </label>
+      </div>
+      <label>Checklist items, one per line
+        <textarea id="editChecklist"></textarea>
+      </label>
+      <label>Tools, comma separated
+        <textarea id="editTools"></textarea>
+      </label>
+      <label>Parts and supplies, comma separated
+        <textarea id="editParts"></textarea>
+      </label>
+      <label>Safety warnings, one per line
+        <textarea id="editWarnings"></textarea>
+      </label>
+      <label>Stop conditions, one per line
+        <textarea id="editStopConditions"></textarea>
+      </label>
+      <label>Likely outcomes, one per line as Label | Text
+        <textarea id="editOutcomes"></textarea>
+      </label>
+      <label>Photos to take, one per line
+        <textarea id="editPhotos"></textarea>
+      </label>
+      <label>Additional help links, one per line as Label | URL
+        <textarea id="editVideos"></textarea>
+      </label>
+      <div class="button-row">
+        <button type="submit">Save step</button>
+        <button type="button" class="secondary" id="cancelEdit">Cancel</button>
+        <button type="button" class="danger" id="deleteStep">Delete</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "chevelleRevivalTracker.v1";
+    const EDITOR_SESSION_KEY = "chevelleRevivalTracker.editorUnlocked";
+    const ADMIN_PASSWORD = "chevelle1969";
+    /*
+      Security note:
+      This is a frontend-only static app, so the single admin password is for casual/private editing control only.
+      It keeps family/friends in a read-only experience, but it is not true security because all frontend code ships to the browser.
+      Real security requires a backend/auth provider. Future upgrade options include Supabase, Firebase, Auth0, or server-side login.
+      Change ADMIN_PASSWORD before publishing if you use this lightweight mode.
+    */
+    const TOOL_RESOURCE_SCHEMA_VERSION = 3;
+    const PHOTO_SCHEMA_VERSION = 7;
+    const PHASE_SCHEMA_VERSION = 9;
+    const PHOTO_DOC_STEP_TITLE = "Complete before-transport photo documentation.";
+    const DAMAGE_STEP_TITLE = "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.";
+    const TRANSPORT_ADMIN_STEP_TITLE = "Arrange transport paperwork, keys, and requirements.";
+    const VEHICLE_LOAD_PREP_STEP_TITLE = "Prepare the car for safe loading and transport.";
+    const PICKUP_HANDOFF_STEP_TITLE = "Complete pickup handoff with the driver.";
+    const AFTER_TRANSPORT_DOC_STEP_TITLE = "After Transport Photo Documentation";
+    const STATUS_OPTIONS = ["Not Started", "In Progress", "Done", "Needs Help"];
+    const COST_CATEGORIES = ["Tool", "Part", "Supply", "Service", "Transport", "Other"];
+    const DIFFICULTY_OPTIONS = ["Beginner", "Moderate", "Advanced", "Professional Recommended"];
+    const CONFIDENCE_OPTIONS = ["Confident", "Unsure", "Need help"];
+    const GATE_OPTIONS = ["Yes", "Yes, with caution", "No, professional help recommended"];
+    const VEHICLE_FIELDS = [
+      ["vin", "VIN"],
+      ["titleStatus", "Title status"],
+      ["yearMakeModel", "Year/make/model"],
+      ["bodyStyle", "Body style"],
+      ["engineCastingNumber", "Engine casting number"],
+      ["transmissionType", "Transmission type"],
+      ["rearAxleInfo", "Rear axle info"],
+      ["paintCode", "Paint code"],
+      ["interiorCode", "Interior code"],
+      ["cowlDataTag", "Cowl/data tag"],
+      ["mileage", "Mileage"],
+      ["ownershipHistory", "Ownership history"],
+      ["notes", "Notes"]
+    ];
+    const MILESTONE_FIELDS = [
+      ["transportBooked", "Transport booked"],
+      ["carDelivered", "Car delivered"],
+      ["firstInspectionCompleted", "First inspection completed"],
+      ["engineTurnedByHand", "Engine turned by hand"],
+      ["firstCrank", "First crank"],
+      ["firstStartup", "First startup"],
+      ["firstMovement", "First movement"],
+      ["brakeSystemVerified", "Brake system verified"],
+      ["firstTestDrive", "First test drive"],
+      ["firstReliableDrive", "First reliable drive"]
+    ];
+    const GLOBAL_WARNINGS = [
+      "Do not crank engine before checking cylinders.",
+      "Do not use 15-year-old fuel.",
+      "Do not drive on old tires.",
+      "Do not drive before brakes are inspected.",
+      "Keep fire extinguisher nearby.",
+      "Use jack stands, never just a jack."
+    ];
+
+    const beforeTransportPhotos = [
+      "BEFORE - Front straight-on",
+      "BEFORE - Rear straight-on",
+      "BEFORE - Driver side full length",
+      "BEFORE - Passenger side full length",
+      "BEFORE - Front driver 45-degree angle",
+      "BEFORE - Front passenger 45-degree angle",
+      "BEFORE - Rear driver 45-degree angle",
+      "BEFORE - Rear passenger 45-degree angle",
+      "BEFORE - Roof/convertible top",
+      "BEFORE - Convertible rear window",
+      "BEFORE - Hood closed",
+      "BEFORE - Trunk closed",
+      "BEFORE - Headlights close-up",
+      "BEFORE - Taillights close-up",
+      "BEFORE - Grille close-up",
+      "BEFORE - Bumpers close-up",
+      "BEFORE - Trim/chrome close-up",
+      "BEFORE - Badges/emblems close-up",
+      "BEFORE - Door handles close-up",
+      "BEFORE - Mirrors close-up",
+      "BEFORE - Fuel door close-up",
+      "BEFORE - License plate area",
+      "BEFORE - Wheels",
+      "BEFORE - Tires",
+      "BEFORE - Tire sidewalls",
+      "BEFORE - Tire date codes if visible",
+      "BEFORE - Every scratch",
+      "BEFORE - Every dent",
+      "BEFORE - Paint chips",
+      "BEFORE - Rust spots",
+      "BEFORE - Surface rust",
+      "BEFORE - Cracked trim",
+      "BEFORE - Broken lights",
+      "BEFORE - Faded paint",
+      "BEFORE - Top damage",
+      "BEFORE - Cracked weatherstripping",
+      "BEFORE - Slow full walkaround video",
+      "BEFORE - Driver seat",
+      "BEFORE - Passenger seat",
+      "BEFORE - Rear seat",
+      "BEFORE - Dashboard",
+      "BEFORE - Steering wheel",
+      "BEFORE - Center area",
+      "BEFORE - Door panels",
+      "BEFORE - Headliner/top interior",
+      "BEFORE - Carpet/floor",
+      "BEFORE - Pedals",
+      "BEFORE - Trunk access area",
+      "BEFORE - Odometer close-up",
+      "BEFORE - Gauges close-up",
+      "BEFORE - Radio close-up",
+      "BEFORE - Climate controls close-up",
+      "BEFORE - Ignition close-up",
+      "BEFORE - Steering wheel cracks",
+      "BEFORE - Seat tears",
+      "BEFORE - Door handles/window cranks",
+      "BEFORE - Console/shifter if applicable",
+      "BEFORE - Keys",
+      "BEFORE - Title separately",
+      "BEFORE - Glovebox contents",
+      "BEFORE - Slow interior walkthrough video",
+      "BEFORE - Entire engine bay from front",
+      "BEFORE - Driver side engine bay",
+      "BEFORE - Passenger side engine bay",
+      "BEFORE - Firewall",
+      "BEFORE - Hood underside",
+      "BEFORE - Carburetor",
+      "BEFORE - Distributor",
+      "BEFORE - Battery area",
+      "BEFORE - Radiator",
+      "BEFORE - Hoses",
+      "BEFORE - Belts",
+      "BEFORE - Air cleaner",
+      "BEFORE - Valve covers",
+      "BEFORE - Engine stampings/numbers",
+      "BEFORE - Wiring condition",
+      "BEFORE - Fluid leaks",
+      "BEFORE - Rust/corrosion areas",
+      "BEFORE - Engine casting numbers if visible",
+      "BEFORE - VIN plate",
+      "BEFORE - Cowl/data tag",
+      "BEFORE - Slow engine bay walkthrough video",
+      "BEFORE - Entire trunk open",
+      "BEFORE - Spare tire area",
+      "BEFORE - Trunk lid underside",
+      "BEFORE - Trunk rust spots",
+      "BEFORE - Trunk floor",
+      "BEFORE - Jack/tools",
+      "BEFORE - Convertible top components",
+      "BEFORE - Stored parts/items",
+      "BEFORE - Trunk weatherstripping",
+      "BEFORE - Slow trunk walkthrough video",
+      "BEFORE - Front underside",
+      "BEFORE - Rear underside",
+      "BEFORE - Driver side underside",
+      "BEFORE - Passenger side underside",
+      "BEFORE - Frame rails",
+      "BEFORE - Floor pans",
+      "BEFORE - Rocker panels",
+      "BEFORE - Suspension mounts",
+      "BEFORE - Brake lines",
+      "BEFORE - Fuel lines",
+      "BEFORE - Exhaust",
+      "BEFORE - Rear differential",
+      "BEFORE - Transmission pan",
+      "BEFORE - Undercarriage rust areas",
+      "BEFORE - Undercarriage leaks",
+      "BEFORE - Slow underside sweep video if safely possible",
+      "BEFORE - Tire pressures if checked",
+      "BEFORE - Car in neutral if applicable",
+      "BEFORE - Parking brake released",
+      "BEFORE - Battery disconnected",
+      "BEFORE - Loose items removed",
+      "BEFORE - Empty trunk/interior",
+      "BEFORE - Odometer before shipment",
+      "BEFORE - Loading process video",
+      "BEFORE - Winching/loading angles",
+      "BEFORE - Condition immediately after loading"
+    ];
+
+    const afterTransportPhotos = [
+      "AFTER - Front",
+      "AFTER - Rear",
+      "AFTER - Driver side",
+      "AFTER - Passenger side",
+      "AFTER - Front driver 45-degree angle",
+      "AFTER - Front passenger 45-degree angle",
+      "AFTER - Rear driver 45-degree angle",
+      "AFTER - Rear passenger 45-degree angle",
+      "AFTER - Roof/top",
+      "AFTER - Check for new dents",
+      "AFTER - Check for scratches",
+      "AFTER - Check for trim damage",
+      "AFTER - Check for broken lights",
+      "AFTER - Check for wheel damage",
+      "AFTER - Check for tire damage",
+      "AFTER - Check for glass cracks",
+      "AFTER - Full delivery walkaround video before unloading if possible",
+      "AFTER - Seats",
+      "AFTER - Dash",
+      "AFTER - Steering wheel",
+      "AFTER - Door panels",
+      "AFTER - Carpet",
+      "AFTER - Odometer",
+      "AFTER - Check for new tears",
+      "AFTER - Check for dirt/oil from transport",
+      "AFTER - Check for missing items",
+      "AFTER - Check for loading damage",
+      "AFTER - Battery area",
+      "AFTER - Radiator",
+      "AFTER - Air cleaner",
+      "AFTER - Hoses",
+      "AFTER - Wiring",
+      "AFTER - Check for fluid leaks",
+      "AFTER - Check for loose wires",
+      "AFTER - Check for damaged hoses",
+      "AFTER - Check for shifted components",
+      "AFTER - Frame rails",
+      "AFTER - Exhaust",
+      "AFTER - Suspension",
+      "AFTER - Transmission",
+      "AFTER - Differential",
+      "AFTER - Check for scraping damage",
+      "AFTER - Check for bent components",
+      "AFTER - Car in final storage spot",
+      "AFTER - Final odometer photo",
+      "AFTER - Transport paperwork",
+      "AFTER - Transport insurance info screenshot/save",
+      "AFTER - Final arrival walkaround video",
+      "AFTER - First garage placement video"
+    ];
+
+    const beforeExteriorPhotos = beforeTransportPhotos.filter((item) =>
+      item.includes("straight-on") ||
+      item.includes("full length") ||
+      item.includes("45-degree") ||
+      item.includes("Roof/convertible") ||
+      item.includes("Convertible rear window") ||
+      item.includes("Hood closed") ||
+      item.includes("Trunk closed") ||
+      item.includes("Headlights") ||
+      item.includes("Taillights") ||
+      item.includes("Grille") ||
+      item.includes("Bumpers") ||
+      item.includes("Trim/chrome") ||
+      item.includes("Badges") ||
+      item.includes("Door handles") ||
+      item.includes("Mirrors") ||
+      item.includes("Fuel door") ||
+      item.includes("License plate") ||
+      item.includes("Wheels") ||
+      item.includes("Tires") ||
+      item.includes("Tire sidewalls") ||
+      item.includes("Tire date codes") ||
+      item.includes("Slow full walkaround")
+    );
+
+    const beforeEngineTrunkPhotos = beforeTransportPhotos.filter((item) =>
+      item.includes("engine") ||
+      item.includes("Engine") ||
+      item.includes("Carburetor") ||
+      item.includes("Distributor") ||
+      item.includes("Battery area") ||
+      item.includes("Radiator") ||
+      item.includes("Hoses") ||
+      item.includes("Belts") ||
+      item.includes("Air cleaner") ||
+      item.includes("Valve covers") ||
+      item.includes("Firewall") ||
+      item.includes("Hood underside") ||
+      item.includes("trunk") ||
+      item.includes("Trunk") ||
+      item.includes("Spare tire") ||
+      item.includes("Jack/tools") ||
+      item.includes("Stored parts") ||
+      item.includes("Convertible top components")
+    );
+
+    const beforeInteriorPhotos = beforeTransportPhotos.filter((item) =>
+      item.includes("Driver seat") ||
+      item.includes("Passenger seat") ||
+      item.includes("Rear seat") ||
+      item.includes("Dashboard") ||
+      item.includes("Steering wheel") ||
+      item.includes("Center area") ||
+      item.includes("Door panels") ||
+      item.includes("Headliner") ||
+      item.includes("Carpet") ||
+      item.includes("Pedals") ||
+      item.includes("Trunk access") ||
+      item.includes("Odometer close-up") ||
+      item.includes("Gauges") ||
+      item.includes("Radio") ||
+      item.includes("Climate controls") ||
+      item.includes("Ignition") ||
+      item.includes("Seat tears") ||
+      item.includes("Door handles/window cranks") ||
+      item.includes("Console/shifter") ||
+      item.includes("Keys") ||
+      item.includes("Title separately") ||
+      item.includes("Glovebox") ||
+      item.includes("interior walkthrough")
+    );
+
+    const beforeUndercarriagePhotos = beforeTransportPhotos.filter((item) =>
+      item.includes("underside") ||
+      item.includes("Undercarriage") ||
+      item.includes("Frame rails") ||
+      item.includes("Floor pans") ||
+      item.includes("Rocker panels") ||
+      item.includes("Suspension mounts") ||
+      item.includes("Brake lines") ||
+      item.includes("Fuel lines") ||
+      item.includes("Exhaust") ||
+      item.includes("Rear differential") ||
+      item.includes("Transmission pan")
+    );
+
+    const beforeTransportPrepPhotos = beforeTransportPhotos.filter((item) =>
+      item.includes("Tire pressures") ||
+      item.includes("neutral") ||
+      item.includes("Parking brake") ||
+      item.includes("Battery disconnected") ||
+      item.includes("Loose items") ||
+      item.includes("Empty trunk") ||
+      item.includes("Odometer before shipment") ||
+      item.includes("Loading process") ||
+      item.includes("Winching") ||
+      item.includes("Condition immediately after loading")
+    );
+
+    const phase0PhotoSections = [
+      { title: "Full exterior walkaround", items: beforeExteriorPhotos },
+      { title: "Damage documentation", damage: true, items: [] },
+      { title: "Interior", items: beforeInteriorPhotos },
+      { title: "Engine bay and trunk", items: beforeEngineTrunkPhotos },
+      { title: "Undercarriage", items: beforeUndercarriagePhotos },
+      { title: "Transport prep and loading", items: beforeTransportPrepPhotos }
+    ];
+
+    const afterTransportDetailedPhotos = beforeTransportPhotos.map((item) =>
+      item.replace(/^BEFORE - /, "AFTER TRANSPORT - ")
+        .replace("Odometer before shipment", "Odometer after delivery")
+        .replace("Loading process video", "Delivery/loading/unloading video")
+        .replace("Condition immediately after loading", "Condition immediately after unloading")
+    );
+
+    const afterTransportPhotoSections = phase0PhotoSections.map((section) => ({
+      title: `After transport - ${section.title}`,
+      damage: section.damage,
+      items: section.items.map((item) =>
+        item.replace(/^BEFORE - /, "AFTER TRANSPORT - ")
+          .replace("Odometer before shipment", "Odometer after delivery")
+          .replace("Loading process video", "Delivery/loading/unloading video")
+          .replace("Condition immediately after loading", "Condition immediately after unloading")
+      )
+    }));
+
+    const phase0PhotoNeedsByStep = {
+      [PHOTO_DOC_STEP_TITLE]: beforeTransportPhotos
+    };
+
+    const phase0ChecklistByStep = {
+      [TRANSPORT_ADMIN_STEP_TITLE]: [
+        "Verify title is secure and transported separately from the car.",
+        "Remove or secure valuable paperwork/items.",
+        "Make spare key if possible.",
+        "Confirm insurance coverage with transporter.",
+        "Confirm pickup and delivery addresses/contact info.",
+        "Confirm transporter can winch-load non-running vehicle.",
+        "Inform transporter car is NON-RUNNING.",
+        "Inform transporter car is a CLASSIC CONVERTIBLE.",
+        "Confirm transporter has winch capability.",
+        "Confirm low-clearance loading capability if needed.",
+        "Confirm any non-running vehicle loading fee.",
+        "Keep title/paperwork separate from the car.",
+        "Save transporter photos and inspection forms."
+      ],
+      [PHOTO_DOC_STEP_TITLE]: phase0PhotoSections.map((section) => section.title),
+      [VEHICLE_LOAD_PREP_STEP_TITLE]: [
+        "Remove all loose items from interior and trunk.",
+        "Check if tires hold air.",
+        "Inflate tires enough for loading/unloading.",
+        "Verify wheels rotate freely.",
+        "Verify steering wheel turns.",
+        "Release parking brake.",
+        "Verify car can roll in neutral.",
+        "Verify battery is disconnected or secured.",
+        "Check for active fluid leaks.",
+        "Place absorbent pad/cardboard under car if leaking.",
+        "Place wheel chocks while parked before pickup.",
+        "Secure or latch hood, doors, trunk, and convertible top.",
+        "Ensure windows are fully up if possible.",
+        "Label any unusual switches or quirks for transporter."
+      ],
+      [PICKUP_HANDOFF_STEP_TITLE]: [
+        "Walk around car with driver during pickup inspection.",
+        "Record mileage before shipping.",
+        "Take photos before signing pickup paperwork.",
+        "Take photos after delivery before signing final paperwork.",
+        "Take before-loading video.",
+        "Take video during loading if possible.",
+        "Upload all photos/videos to cloud storage immediately."
+      ]
+    };
+
+    const afterExteriorPhotos = afterTransportPhotos.filter((item) =>
+      item.includes("AFTER - Front") ||
+      item.includes("AFTER - Rear") ||
+      item.includes("Driver side") ||
+      item.includes("Passenger side") ||
+      item.includes("45-degree") ||
+      item.includes("Roof/top") ||
+      item.includes("new dents") ||
+      item.includes("scratches") ||
+      item.includes("trim damage") ||
+      item.includes("broken lights") ||
+      item.includes("wheel damage") ||
+      item.includes("tire damage") ||
+      item.includes("glass cracks") ||
+      item.includes("delivery walkaround")
+    );
+
+    const phase1PhotoNeedsByStep = {
+      "Take full exterior photos: front, rear, both sides, roof/top, wheels, badges.": afterExteriorPhotos,
+      "Take interior photos: dash, seats, door panels, pedals, steering wheel, floor.": afterTransportPhotos.filter((item) => item.includes("Seats") || item.includes("Dash") || item.includes("Steering wheel") || item.includes("Door panels") || item.includes("Carpet") || item.includes("Odometer") || item.includes("new tears") || item.includes("dirt/oil") || item.includes("missing items") || item.includes("loading damage")),
+      "Take engine bay photos from all angles.": afterTransportPhotos.filter((item) => item.includes("Battery area") || item.includes("Radiator") || item.includes("Air cleaner") || item.includes("Hoses") || item.includes("Wiring") || item.includes("fluid leaks") || item.includes("loose wires") || item.includes("damaged hoses") || item.includes("shifted components")),
+      "Take trunk photos, spare tire well, trunk floor, rear panel.": ["AFTER - Car in final storage spot"],
+      "Take undercarriage photos: frame rails, floors, rockers, suspension mounts.": afterTransportPhotos.filter((item) => item.includes("Frame rails") || item.includes("Exhaust") || item.includes("Suspension") || item.includes("Transmission") || item.includes("Differential") || item.includes("scraping damage") || item.includes("bent components")),
+      "Photograph VIN plate, title, cowl/data tag, engine numbers if visible.": ["AFTER - Final odometer photo", "AFTER - Transport paperwork", "AFTER - Transport insurance info screenshot/save"]
+    };
+
+    const groupedPhasePlans = {
+      "PHASE 0 - Transportation Preparation": [
+        { title: TRANSPORT_ADMIN_STEP_TITLE, checklist: phase0ChecklistByStep[TRANSPORT_ADMIN_STEP_TITLE] },
+        { title: PHOTO_DOC_STEP_TITLE, checklist: phase0ChecklistByStep[PHOTO_DOC_STEP_TITLE], photos: beforeTransportPhotos, photoSections: phase0PhotoSections },
+        { title: VEHICLE_LOAD_PREP_STEP_TITLE, checklist: phase0ChecklistByStep[VEHICLE_LOAD_PREP_STEP_TITLE] },
+        { title: PICKUP_HANDOFF_STEP_TITLE, checklist: phase0ChecklistByStep[PICKUP_HANDOFF_STEP_TITLE] }
+      ],
+      "PHASE 1 - Arrival & Documentation": [
+        { title: "Document arrival condition and identity records.", checklist: ["Create cloud backup of all photos/videos.", "Photograph VIN/title/cowl tag.", "Photograph odometer.", "Photograph engine bay before touching anything.", "Photograph trunk, floors, underside, interior, and convertible top.", "Inspect car before signing delivery paperwork.", "Compare against Phase 0 photos.", "Photograph any new damage immediately.", "Take full delivery walkaround video.", "Save bill of lading / delivery paperwork.", "Create folders by category: Exterior, Interior, Engine Bay, Trunk, Undercarriage, VIN/Title, Transport, Parts."], photos: afterTransportDetailedPhotos, photoSections: afterTransportPhotoSections },
+        { title: "Clean out and secure arrival records.", checklist: ["Remove loose debris and personal items.", "Store paperwork safely."] }
+      ],
+      "PHASE 2 - Safe Storage & Basic Setup": [
+        { title: AFTER_TRANSPORT_DOC_STEP_TITLE, checklist: ["Inspect car before signing delivery paperwork.", "Compare against Phase 0 photos.", "Photograph any new damage immediately.", "Take full delivery walkaround video.", "Confirm car rolls after unloading.", "Confirm hood/trunk/doors/top are still secure.", "Check for new fluid leaks.", "Save bill of lading / delivery paperwork."], photos: afterTransportDetailedPhotos, photoSections: afterTransportPhotoSections },
+        { title: "Set up safe storage and confirm basic condition.", checklist: ["Disconnect/remove old battery.", "Check tires hold air.", "Confirm parking brake is released.", "Confirm car rolls.", "Place wheel chocks.", "Set up fire extinguisher nearby.", "Inspect for rodents, nests, chewed wiring.", "Check for fluid leaks after sitting overnight.", "Check for rodent nests under seats/dash/trunk.", "Verify convertible top is secured.", "Check trunk moisture.", "Check floor pans for soft spots.", "Do not crank engine yet."], photos: ["Battery area", "Tire condition", "Rodent evidence", "Wiring condition", "Fluid leaks after overnight sitting", "Under seats/dash/trunk rodent check", "Convertible top secured", "Trunk moisture", "Floor pan soft spots"] }
+      ],
+      "PHASE 3 - Engine Pre-Start Safety": [
+        { title: "Label, remove, and inspect spark plugs.", checklist: ["Photograph spark plug wire routing before removal.", "Label spark plug wires.", "Remove spark plugs and lay them out by cylinder.", "Inspect spark plugs for rust, oil, coolant, fouling."], photos: ["Spark plug wire routing before removal", "Spark plugs laid out by cylinder", "Plug condition close-ups"] },
+        { title: "Soak cylinders and rotate engine by hand.", checklist: ["Add Marvel Mystery Oil or ATF to cylinders.", "Let soak overnight.", "Put socket and breaker bar on crank bolt.", "Rotate engine by hand only.", "Record whether engine turns freely, sticks, or does not move.", "Optional borescope inspection.", "Compression test after engine rotates freely."], photos: ["Crank pulley/bolt", "Any leaks under engine", "Optional borescope findings", "Compression test readings"] }
+      ],
+      "PHASE 4 - Fluid Inspection & Change": [
+        { title: "Inspect all fluids and leaks.", checklist: ["Check engine oil condition.", "Inspect coolant for rust/sludge.", "Inspect transmission fluid.", "Inspect differential fluid.", "Inspect power steering fluid.", "Inspect brake fluid.", "Do not trust old brake fluid.", "Look underneath for leaks."], photos: ["Old oil condition", "Coolant condition", "Transmission fluid dipstick", "Differential fluid", "Power steering fluid", "Brake fluid", "Any leaks"] },
+        { title: "Change oil and prepare lubrication before startup.", checklist: ["Drain oil.", "Replace oil filter.", "Refill with fresh oil.", "Replace engine oil and filter before startup.", "Prime oil system if possible."], photos: ["Oil filter", "Fresh oil filled", "Oil priming setup if used"] }
+      ],
+      "PHASE 5 - Fuel System Safety": [
+        { title: "Inspect and isolate old fuel system.", checklist: ["Do not use old fuel from tank.", "Inspect fuel tank internally if possible.", "Inspect rubber fuel lines near tank and engine bay.", "Inspect fuel lines.", "Replace fuel filter.", "Disconnect fuel feed if needed.", "Inspect carburetor for leaks or stuck linkage."], photos: ["Fuel lines", "Fuel filter", "Carburetor", "Fuel tank area if accessible", "Any cracked hoses"] },
+        { title: "Prepare safe fresh-fuel startup feed.", checklist: ["Use temporary external fresh fuel source for first start.", "Add temporary inline fuel filter.", "Check for fuel leaks before and during startup."], photos: ["Temporary external fresh fuel source", "Temporary inline fuel filter", "Fuel leak check"] }
+      ],
+      "PHASE 6 - Ignition & Electrical": [
+        { title: "Make electrical system safe.", checklist: ["Install fresh battery.", "Inspect fuse box.", "Inspect bulkhead connector.", "Clean battery terminals.", "Clean engine/body/frame grounds.", "Inspect wiring for damage."], photos: ["Battery tray", "Fuse box", "Bulkhead connector", "Grounds", "Any damaged wiring"] },
+        { title: "Inspect ignition and check spark.", checklist: ["Photograph distributor orientation before changes.", "Inspect cap, rotor, plug wires.", "Replace spark plugs if needed.", "Check for spark.", "Add starter voltage drop test if cranking is weak.", "Do not crank for long periods."], photos: ["Distributor orientation before changes", "Distributor", "Plug wires routing", "Spark test", "Voltage drop test if needed"] }
+      ],
+      "PHASE 7 - First Crank / Oil Pressure": [
+        { title: "Build oil pressure with short cranks.", checklist: ["Disable ignition clearly by removing coil wire or disabling spark.", "Crank in 10-second intervals max.", "Allow starter to cool between attempts.", "Watch oil pressure light/gauge.", "Optional advanced step: prime oil pump with drill through distributor opening.", "Listen for abnormal noises.", "Stop immediately if grinding, knocking, smoke, or fuel leak occurs."], photos: ["Short video of first crank", "Gauge cluster during crank", "Engine bay during crank", "Oil pressure reading"] }
+      ],
+      "PHASE 8 - First Startup Attempt": [
+        { title: "Verify first-start prerequisites.", checklist: ["Confirm engine turns freely.", "Confirm fresh oil.", "Confirm fresh fuel source.", "Confirm no fuel leaks.", "Confirm fire extinguisher nearby.", "Keep helper nearby if possible."] },
+        { title: "Attempt short first startup.", checklist: ["Re-enable ignition.", "Prime carb carefully.", "Attempt short startup.", "First run should be short, 30-60 seconds.", "Watch oil pressure, leaks, smoke, overheating, and knocking.", "Shut down quickly if anything seems unsafe."], photos: ["First start video", "Exhaust smoke", "Engine bay while running", "Leak check underneath"] }
+      ],
+      "PHASE 9 - Cooling System": [
+        { title: "Refresh cooling system for testing.", checklist: ["Inspect radiator.", "Replace cracked hoses.", "Inspect belts.", "Check thermostat.", "Inspect water pump.", "Check fan/fan clutch.", "Inspect heater core for leaks.", "Use water for initial testing before final coolant.", "Fill with water/coolant for testing.", "Monitor temperature closely."], photos: ["Radiator", "Hoses", "Belt condition", "Water pump", "Fan/fan clutch", "Heater core leak check", "Coolant leaks"] }
+      ],
+      "PHASE 10 - Brakes": [
+        { title: "Inspect complete brake system before any road test.", checklist: ["Do not road test until brakes are inspected.", "Inspect brake fluid.", "Inspect steel brake lines for rust.", "Inspect rubber brake hoses.", "Inspect master cylinder.", "Inspect wheel cylinders/calipers.", "Inspect drums/shoes/pads.", "Check parking brake cables."], photos: ["Brake lines", "Steel brake line rust", "Rubber brake hoses", "Master cylinder", "Each wheel/brake assembly", "Parking brake cables", "Any leaks"] },
+        { title: "Service brakes and test pedal feel.", checklist: ["Replace old rubber brake hoses.", "Bleed brakes.", "Test pedal feel.", "Recommend professional help if brake lines are rusted or pedal sinks."] }
+      ],
+      "PHASE 11 - Tires, Wheels, Steering, Suspension": [
+        { title: "Inspect rolling safety items.", checklist: ["Replace old tires before road driving.", "Inspect tire date codes.", "Inspect wheels.", "Inspect shocks.", "Inspect bushings.", "Inspect ball joints.", "Inspect tie rods.", "Inspect wheel bearings.", "Inspect steering box leaks/play.", "Inspect frame near suspension/control arm mounts.", "Recommend alignment before highway driving."], photos: ["Tire date codes", "Tire sidewalls", "Wheels", "Suspension joints", "Shocks", "Wheel bearings", "Steering linkage", "Frame near suspension mounts"] },
+        { title: "Lubricate front suspension.", checklist: ["Grease front suspension if fittings exist."] }
+      ],
+      "PHASE 12 - Transmission & Drivetrain": [
+        { title: "Inspect drivetrain before movement.", checklist: ["Check transmission fluid.", "Inspect transmission pan leaks.", "Inspect transmission mount.", "Inspect driveshaft.", "Check U-joints.", "Inspect rear differential leaks.", "Inspect rear axle seals.", "Do not drive if U-joints are loose."], photos: ["Transmission pan", "Transmission mount", "Driveshaft", "U-joints", "Rear differential", "Rear axle seals"] },
+        { title: "Test controlled movement only after brakes.", checklist: ["Only test gear engagement after brakes are verified.", "Do short driveway movement only at first."], photos: ["First movement video"] }
+      ],
+      "PHASE 13 - Short Test Drives": [
+        { title: "Perform staged shakedown drives.", checklist: ["Start with driveway movement only.", "Then short neighborhood test.", "Then short local drive.", "Stay within tow distance at first.", "Bring phone, tools, fire extinguisher, and tire inflator.", "Monitor temperature, oil pressure, brakes, steering, and transmission.", "Recheck fluids after every drive.", "Recheck for leaks after every drive.", "Retorque lug nuts after initial movement.", "Log issues after each drive."], photos: ["First driveway move", "First neighborhood drive", "Gauge readings", "Any leaks after drive", "Fluid recheck after drive", "Lug nut retorque"] }
+      ],
+      "PHASE 14 - Reliability & Preservation": [
+        { title: "Improve reliability and fix remaining issues.", checklist: ["Replace remaining old rubber.", "Fix leaks.", "Tune carburetor.", "Set timing.", "Create ongoing maintenance schedule."], photos: ["Parts replaced", "Receipts", "Final running condition"] },
+        { title: "Clean and preserve original character.", checklist: ["Detail engine bay.", "Clean interior carefully.", "Preserve original parts where possible.", "Label and save removed original parts.", "Preserve original documentation."], photos: ["Before/after cleaning"] },
+        { title: "Optional future upgrades.", checklist: ["Optional: Electronic ignition.", "Optional: Aluminum radiator.", "Optional: Front disc brake conversion.", "Optional: Dual master cylinder upgrade.", "Optional: Modern tires."], photos: ["Optional upgrade ideas or parts"] }
+      ]
+    };
+
+    const phaseSeeds = [
+      {
+        title: "PHASE 0 - Transportation Preparation",
+        goal: "Safely prepare the 1969 Chevrolet Chevelle Malibu convertible for transport from Pennsylvania to Florida.",
+        tools: ["Tire inflator or air compressor", "Flashlight", "Battery wrench", "Gloves", "Camera/phone", "Shop towels", "Zip ties", "Tape/labels", "Wheel chocks", "Portable jump pack if needed for steering/neutral"],
+        parts: ["Tire pressure gauge", "Plastic bags for loose parts", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork"],
+        photos: beforeTransportPhotos,
+        videos: ["how to prepare classic car for transport", "shipping non running classic car", "classic car transport checklist", "how to load non running car onto trailer", "enclosed transport classic muscle car"],
+        warnings: ["Do not drive vehicle before brakes are inspected.", "Do not attempt to start engine just for transport.", "Verify parking brake is released before loading.", "Never stand directly behind vehicle during winching/loading.", "Use wheel chocks when parked before pickup.", "Prefer enclosed transport if budget allows.", "Open transport is acceptable for project/survivor condition.", "Non-running vehicles may require additional loading fee.", "Confirm transporter has winch capability.", "Confirm low-clearance loading capability if needed."],
+        steps: [
+          TRANSPORT_ADMIN_STEP_TITLE,
+          PHOTO_DOC_STEP_TITLE,
+          VEHICLE_LOAD_PREP_STEP_TITLE,
+          PICKUP_HANDOFF_STEP_TITLE
+        ]
+      },
+      {
+        title: "PHASE 1 - Arrival & Documentation",
+        goal: "Document arrival condition after transport and preserve the car before mechanical work.",
+        tools: ["Phone/camera", "Flashlight", "Gloves", "Shop vac", "Ziplock bags", "Labels", "Plastic bins"],
+        parts: [],
+        photos: afterTransportPhotos,
+        videos: ["1969 Chevelle barn find inspection", "classic car pre restoration inspection", "Chevelle cowl tag location"],
+        warnings: ["Preserve evidence before cleaning or disassembly."],
+        steps: [
+          "Take full exterior photos: front, rear, both sides, roof/top, wheels, badges.",
+          "Take interior photos: dash, seats, door panels, pedals, steering wheel, floor.",
+          "Take engine bay photos from all angles.",
+          "Take trunk photos, spare tire well, trunk floor, rear panel.",
+          "Take undercarriage photos: frame rails, floors, rockers, suspension mounts.",
+          "Photograph VIN plate, title, cowl/data tag, engine numbers if visible.",
+          "Remove loose debris and personal items.",
+          "Store paperwork safely."
+        ]
+      },
+      {
+        title: "PHASE 2 - Safe Storage & Basic Setup",
+        goal: "Make the car safe to work around.",
+        tools: ["Gloves", "Safety glasses", "Battery wrench", "Tire inflator", "Air compressor", "Wheel chocks", "Fire extinguisher", "Flashlight"],
+        parts: [],
+        photos: ["Battery area", "Tire condition", "Rodent evidence", "Wiring condition"],
+        videos: ["how to safely inspect a barn find car", "classic car battery removal", "checking if old car rolls after sitting"],
+        warnings: ["Do not crank engine yet.", "Keep fire extinguisher nearby."],
+        steps: ["Disconnect/remove old battery.", "Check tires hold air.", "Confirm parking brake is released.", "Confirm car rolls.", "Place wheel chocks.", "Set up fire extinguisher nearby.", "Inspect for rodents, nests, chewed wiring.", "Do not crank engine yet."]
+      },
+      {
+        title: "PHASE 3 - Engine Pre-Start Safety",
+        goal: "Determine if the engine can safely rotate.",
+        tools: ["SAE socket set", "Spark plug socket", "Breaker bar", "Extensions", "Marvel Mystery Oil or ATF", "Shop towels", "Flashlight"],
+        parts: ["Marvel Mystery Oil or ATF"],
+        photos: ["Spark plugs laid out by cylinder", "Plug condition close-ups", "Crank pulley/bolt", "Any leaks under engine"],
+        videos: ["how to turn over small block Chevy by hand", "first start old car after sitting years", "Marvel Mystery Oil cylinders old engine"],
+        warnings: ["Do not crank engine before checking cylinders."],
+        steps: ["Remove all spark plugs.", "Inspect spark plugs for rust, oil, coolant, fouling.", "Add Marvel Mystery Oil or ATF into each cylinder.", "Let cylinders soak overnight.", "Put socket and breaker bar on crank bolt.", "Slowly rotate engine by hand.", "Record whether engine turns freely, sticks, or does not move."]
+      },
+      {
+        title: "PHASE 4 - Fluid Inspection & Change",
+        goal: "Replace bad fluids before startup.",
+        tools: ["Oil drain pan", "Oil filter wrench", "Funnels", "SAE wrenches", "Shop towels", "Gloves", "Flashlight"],
+        parts: ["Engine oil", "Oil filter", "Coolant/water for testing", "Brake fluid later if servicing brakes"],
+        photos: ["Old oil condition", "Oil filter", "Coolant condition", "Transmission fluid dipstick", "Any leaks"],
+        videos: ["small block Chevy oil change classic car", "checking fluids on old car before start", "classic car first start fluid checklist"],
+        warnings: ["Dispose of old fluids safely."],
+        steps: ["Check engine oil condition.", "Drain oil.", "Replace oil filter.", "Refill with fresh oil.", "Inspect coolant condition.", "Inspect transmission fluid.", "Inspect brake fluid.", "Look underneath for leaks."]
+      },
+      {
+        title: "PHASE 5 - Fuel System Safety",
+        goal: "Prevent old gas from damaging the engine.",
+        tools: ["Screwdrivers", "Hose clamp pliers", "Wrenches", "Fuel-safe container", "Fire extinguisher", "Carb cleaner"],
+        parts: ["Fresh fuel", "Fuel hose", "Hose clamps", "Fuel filter", "Carb cleaner"],
+        photos: ["Fuel lines", "Fuel filter", "Carburetor", "Fuel tank area if accessible", "Any cracked hoses"],
+        videos: ["start old carbureted car with external fuel tank", "Chevy small block fuel pump old car", "classic car old gas tank cleanup"],
+        warnings: ["Do not use 15-year-old fuel.", "Check for fuel leaks before and during startup."],
+        steps: ["Do not use old fuel from tank.", "Inspect fuel lines.", "Replace fuel filter.", "Disconnect fuel feed if needed.", "Use temporary external fresh fuel source for first start.", "Inspect carburetor.", "Check for fuel leaks before and during startup."]
+      },
+      {
+        title: "PHASE 6 - Ignition & Electrical",
+        goal: "Make sure spark and electrical systems are safe.",
+        tools: ["Battery charger", "Multimeter", "Test light", "Screwdrivers", "SAE wrenches", "Spark plug socket", "Feeler gauge"],
+        parts: ["Battery", "Spark plugs", "Plug wires if needed", "Distributor cap/rotor if needed", "Points/condenser if equipped", "Dielectric grease"],
+        photos: ["Battery tray", "Grounds", "Distributor", "Plug wires routing", "Any damaged wiring"],
+        videos: ["classic Chevy points ignition basics", "how to check spark on carbureted engine", "small block Chevy distributor cap rotor replacement"],
+        warnings: ["Do not crank for long periods."],
+        steps: ["Install fresh battery.", "Clean battery terminals.", "Clean engine/body grounds.", "Inspect wiring for damage.", "Inspect distributor cap, rotor, plug wires.", "Replace spark plugs if needed.", "Check for spark.", "Do not crank for long periods."]
+      },
+      {
+        title: "PHASE 7 - First Crank / Oil Pressure",
+        goal: "Build oil pressure before trying to start.",
+        tools: ["Battery", "Test light/multimeter", "Fire extinguisher", "Helper if possible"],
+        parts: [],
+        photos: ["Short video of first crank", "Gauge cluster during crank", "Engine bay during crank"],
+        videos: ["first crank after engine sitting for years", "classic car oil pressure first start", "small block Chevy first start checklist"],
+        warnings: ["Disable ignition.", "Stop immediately if grinding, knocking, smoke, or fuel leak occurs."],
+        steps: ["Disable ignition.", "Crank briefly in short intervals.", "Watch oil pressure light/gauge if available.", "Listen for abnormal noises.", "Stop immediately if grinding, knocking, smoke, or fuel leak occurs."]
+      },
+      {
+        title: "PHASE 8 - First Startup Attempt",
+        goal: "Start the engine safely for a short test.",
+        tools: ["Fire extinguisher", "Timing light later", "Screwdrivers", "Wrenches", "Helper", "Phone for video"],
+        parts: [],
+        photos: ["First start video", "Exhaust smoke", "Engine bay while running", "Leak check underneath"],
+        videos: ["first start barn find Chevelle", "small block Chevy first start after rebuild", "carbureted engine first start after sitting"],
+        warnings: ["Shut down quickly if anything seems unsafe.", "Keep fire extinguisher nearby."],
+        steps: ["Confirm engine turns freely.", "Confirm fresh oil.", "Confirm fresh fuel source.", "Confirm no fuel leaks.", "Re-enable ignition.", "Prime carb carefully.", "Attempt short startup.", "Watch for leaks, smoke, overheating, bad noises.", "Shut down quickly if anything seems unsafe."]
+      },
+      {
+        title: "PHASE 9 - Cooling System",
+        goal: "Prevent overheating.",
+        tools: ["Hose clamp pliers", "Screwdrivers", "Wrenches", "Drain pan", "Funnel"],
+        parts: ["Upper radiator hose", "Lower radiator hose", "Heater hoses", "Coolant", "Thermostat", "Belts if cracked"],
+        photos: ["Radiator", "Hoses", "Belt condition", "Water pump", "Coolant leaks"],
+        videos: ["classic car cooling system refresh", "small block Chevy radiator hose replacement", "Chevelle overheating troubleshooting"],
+        warnings: ["Never open a hot cooling system."],
+        steps: ["Inspect radiator.", "Replace cracked hoses.", "Inspect belts.", "Check thermostat.", "Inspect water pump for leaks.", "Fill with water/coolant for testing.", "Monitor temperature during running."]
+      },
+      {
+        title: "PHASE 10 - Brakes",
+        goal: "Make the car safe to stop before driving.",
+        tools: ["Jack", "Jack stands", "Brake line wrenches", "Brake bleeder kit", "Lug wrench", "Brake cleaner", "Gloves/safety glasses"],
+        parts: ["Brake fluid", "Rubber brake hoses", "Wheel cylinders/calipers as needed", "Shoes/pads as needed", "Master cylinder if needed"],
+        photos: ["Brake lines", "Master cylinder", "Each wheel/brake assembly", "Any leaks", "Old rubber hoses"],
+        videos: ["1969 Chevelle brake system rebuild", "classic car brake inspection after sitting", "drum brake rebuild Chevy A body"],
+        warnings: ["Do not road test until brakes are inspected.", "Use jack stands, never just a jack."],
+        steps: ["Do not road test until brakes are inspected.", "Inspect brake fluid.", "Inspect lines and hoses.", "Inspect master cylinder.", "Inspect drums/calipers/wheel cylinders.", "Replace old rubber brake hoses.", "Bleed brakes.", "Test pedal feel."]
+      },
+      {
+        title: "PHASE 11 - Tires, Wheels, Steering, Suspension",
+        goal: "Make the car safe to move and eventually drive.",
+        tools: ["Jack", "Jack stands", "Lug wrench", "Grease gun", "Pry bar", "Flashlight"],
+        parts: ["Tires", "Shocks if needed", "Grease", "Bushings/steering parts as needed"],
+        photos: ["Tire date codes", "Tire sidewalls", "Suspension joints", "Shocks", "Steering linkage"],
+        videos: ["classic Chevelle front suspension inspection", "how to read tire date code", "old car steering play inspection"],
+        warnings: ["Do not drive on old tires.", "Use jack stands, never just a jack."],
+        steps: ["Replace old tires before road driving.", "Inspect wheels.", "Inspect shocks.", "Inspect bushings.", "Inspect ball joints/tie rods.", "Grease front suspension if fittings exist.", "Check steering play."]
+      },
+      {
+        title: "PHASE 12 - Transmission & Drivetrain",
+        goal: "Confirm the car can move under its own power.",
+        tools: ["Flashlight", "Jack stands", "Wrenches", "Drain pan"],
+        parts: ["Transmission fluid", "Differential fluid later", "U-joints if needed"],
+        photos: ["Transmission pan", "Driveshaft", "Rear differential", "First movement video"],
+        videos: ["classic Chevy automatic transmission fluid check", "Chevelle TH350 TH400 identification", "classic car first drive after sitting"],
+        warnings: ["Only test gear engagement after brakes are verified."],
+        steps: ["Check transmission fluid.", "Inspect driveshaft.", "Inspect rear differential leaks.", "Check U-joints.", "Only test gear engagement after brakes are verified.", "Do short driveway movement only at first."]
+      },
+      {
+        title: "PHASE 13 - Short Test Drives",
+        goal: "Gradually test reliability.",
+        tools: ["Basic roadside tool kit", "Fire extinguisher", "Flashlight", "Phone", "Tire inflator"],
+        parts: [],
+        photos: ["First driveway move", "First neighborhood drive", "Gauge readings", "Any leaks after drive"],
+        videos: ["first drive barn find classic car", "classic car shakedown checklist", "what to check after first drive old car"],
+        warnings: ["Bring tools and fire extinguisher.", "Do not drive before brakes and tires are safe."],
+        steps: ["Start with driveway movement.", "Then neighborhood test.", "Then short local drive.", "Monitor temperature, oil pressure, brakes, steering, transmission.", "Bring tools and fire extinguisher.", "Log issues after each drive."]
+      },
+      {
+        title: "PHASE 14 - Reliability & Preservation",
+        goal: "Make it enjoyable and dependable.",
+        tools: ["Timing light", "Vacuum gauge", "Carb tools", "Cleaning supplies", "Torque wrench"],
+        parts: ["Vacuum hoses", "Belts", "Gaskets", "Fluids", "Detail supplies"],
+        photos: ["Before/after cleaning", "Parts replaced", "Receipts", "Final running condition"],
+        videos: ["carb tuning small block Chevy", "timing small block Chevy with timing light", "classic car preservation not restoration"],
+        warnings: ["Preserve original parts where possible."],
+        steps: ["Replace remaining old rubber.", "Fix leaks.", "Tune carburetor.", "Set timing.", "Detail engine bay.", "Clean interior carefully.", "Preserve original parts where possible.", "Create ongoing maintenance log."]
+      }
+    ];
+
+    const phasePartsLikelyNeeded = {
+      "PHASE 0 - Transportation Preparation": ["Tire pressure gauge", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork"],
+      "PHASE 1 - Arrival & Documentation": ["Cloud storage folder", "Plastic bins", "Ziplock bags", "Labels"],
+      "PHASE 2 - Safe Storage & Basic Setup": ["Fire extinguisher", "Wheel chocks", "Battery terminal covers", "Absorbent pads"],
+      "PHASE 3 - Engine Pre-Start Safety": ["Marvel Mystery Oil or ATF", "Spark plugs", "Borescope access if needed"],
+      "PHASE 4 - Fluid Inspection & Change": ["Engine oil", "Oil filter", "Coolant/water for testing", "Gear oil", "Power steering fluid"],
+      "PHASE 5 - Fuel System Safety": ["Fresh fuel", "Fuel hose", "Hose clamps", "Fuel filter", "Temporary inline fuel filter", "Carb cleaner"],
+      "PHASE 6 - Ignition & Electrical": ["Battery", "Spark plugs", "Plug wires if needed", "Distributor cap/rotor if needed", "Points/condenser if equipped", "Dielectric grease", "Fuses"],
+      "PHASE 7 - First Crank / Oil Pressure": ["Battery", "Oil pressure gauge if needed", "Coil wire boot if damaged"],
+      "PHASE 8 - First Startup Attempt": ["Fresh fuel", "Fire extinguisher", "Shop towels", "Starter fluid only if used carefully"],
+      "PHASE 9 - Cooling System": ["Upper radiator hose", "Lower radiator hose", "Heater hoses", "Coolant", "Thermostat", "Belts if cracked"],
+      "PHASE 10 - Brakes": ["Brake fluid", "Rubber brake hoses", "Wheel cylinders/calipers as needed", "Shoes/pads as needed", "Master cylinder if needed", "Steel brake lines if rusted"],
+      "PHASE 11 - Tires, Wheels, Steering, Suspension": ["Tires", "Shocks if needed", "Grease", "Bushings/steering parts as needed", "Wheel bearings if needed"],
+      "PHASE 12 - Transmission & Drivetrain": ["Transmission fluid", "Differential fluid later", "U-joints if needed", "Transmission mount if needed"],
+      "PHASE 13 - Short Test Drives": ["Roadside fluids", "Tire inflator", "Spare fuses", "Shop towels"],
+      "PHASE 14 - Reliability & Preservation": ["Vacuum hoses", "Belts", "Gaskets", "Fluids", "Detail supplies", "Storage bags for original parts"]
+    };
+
+    const stopConditionMap = {
+      "Soak cylinders and rotate engine by hand.": ["Stop if engine will not rotate.", "Stop if grinding occurs.", "Stop if coolant or fuel comes from spark plug holes."],
+      "Inspect and isolate old fuel system.": ["Stop if any fuel leak appears.", "Stop if fuel hose is cracked or brittle.", "Stop if carb linkage sticks open."],
+      "Prepare safe fresh-fuel startup feed.": ["Stop if any fuel leak appears.", "Stop if fuel smell becomes strong.", "Stop if fuel source cannot be secured safely."],
+      "Build oil pressure with short cranks.": ["Stop if no oil pressure after repeated attempts.", "Stop if grinding occurs.", "Stop if wiring smokes.", "Stop if starter overheats."],
+      "Attempt short first startup.": ["Stop if no oil pressure after 10 seconds.", "Stop if fuel leaks.", "Stop if wiring smokes.", "Stop if heavy knocking occurs.", "Stop if temperature rises rapidly."],
+      "Inspect complete brake system before any road test.": ["Stop if brake fluid leaks.", "Stop if steel lines are badly rusted.", "Stop if rubber hoses are cracked or swollen."],
+      "Service brakes and test pedal feel.": ["Stop if pedal goes to floor.", "Stop if brake fluid leaks.", "Stop if wheels lock unexpectedly.", "Stop if pedal sinks under steady pressure."],
+      "Inspect rolling safety items.": ["Stop if tires are cracked or too old for road driving.", "Stop if ball joints or tie rods have major play.", "Stop if wheel bearings feel loose."],
+      "Inspect drivetrain before movement.": ["Stop if U-joints are loose.", "Stop if transmission mount is broken.", "Stop if differential or transmission leaks heavily."],
+      "Perform staged shakedown drives.": ["Stop if brakes fade or pull hard.", "Stop if temperature rises rapidly.", "Stop if oil pressure drops.", "Stop if steering feels unsafe."]
+    };
+
+    const outcomeMap = {
+      "Soak cylinders and rotate engine by hand.": {
+        "Best case": "Engine rotates smoothly by hand.",
+        "Common case": "Engine moves after soaking and careful pressure.",
+        "Worst case": "Engine is stuck or shows signs of internal damage.",
+        "What to do next": "Only move toward cranking after it rotates freely and fluids are checked."
+      },
+      "Prepare safe fresh-fuel startup feed.": {
+        "Best case": "Fresh fuel reaches carb with no leaks.",
+        "Common case": "Old hoses or filter need replacement.",
+        "Worst case": "Tank, lines, pump, or carb need major service.",
+        "What to do next": "Use only a secure fresh fuel source for first-start work."
+      },
+      "Build oil pressure with short cranks.": {
+        "Best case": "Oil pressure appears quickly.",
+        "Common case": "Several short cranks or priming are needed.",
+        "Worst case": "No pressure appears and lubrication system needs diagnosis.",
+        "What to do next": "Do not attempt startup until oil pressure is proven."
+      },
+      "Attempt short first startup.": {
+        "Best case": "Engine starts and runs briefly without leaks or bad noises.",
+        "Common case": "Ignition, carb, or timing needs adjustment.",
+        "Worst case": "Leaks, no oil pressure, overheating, smoke, or knocking stop the test.",
+        "What to do next": "Log what happened, fix safety issues, and repeat only when safe."
+      },
+      "Service brakes and test pedal feel.": {
+        "Best case": "Pedal is firm and system holds pressure.",
+        "Common case": "Bleeding or rubber parts need more work.",
+        "Worst case": "Rusted lines, leaking cylinders, or master cylinder failure require repair.",
+        "What to do next": "Do not road test until pedal feel and leak checks pass."
+      },
+      "Perform staged shakedown drives.": {
+        "Best case": "Car completes short drives with stable gauges and no leaks.",
+        "Common case": "Small leaks, tuning, brake adjustment, or cooling fixes appear.",
+        "Worst case": "Unsafe braking, overheating, steering, or drivetrain issues stop testing.",
+        "What to do next": "Fix issues after each drive before expanding the route."
+      }
+    };
+
+    const phase0Resources = {
+      [TRANSPORT_ADMIN_STEP_TITLE]: {
+        tools: ["Camera/phone"],
+        parts: ["Binder/folder for paperwork", "Plastic bags for loose parts"]
+      },
+      [PHOTO_DOC_STEP_TITLE]: {
+        tools: ["Camera/phone", "Flashlight", "Gloves"],
+        parts: []
+      },
+      [VEHICLE_LOAD_PREP_STEP_TITLE]: {
+        tools: ["Tire inflator or air compressor", "Wheel chocks", "Portable jump pack if needed for steering/neutral", "Battery wrench", "Flashlight", "Shop towels", "Gloves", "Zip ties", "Tape/labels"],
+        parts: ["Tire pressure gauge", "Plastic bags for loose parts", "Absorbent pads/cardboard", "Painter's tape for labeling"]
+      },
+      [PICKUP_HANDOFF_STEP_TITLE]: {
+        tools: ["Camera/phone", "Flashlight", "Wheel chocks"],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Verify title is secure and transported separately from the car.": {
+        tools: [],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Photograph entire vehicle before transport.": {
+        tools: ["Camera/phone", "Flashlight"],
+        parts: []
+      },
+      "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.": {
+        tools: ["Camera/phone", "Flashlight"],
+        parts: []
+      },
+      "Photograph VIN plate and odometer.": {
+        tools: ["Camera/phone", "Flashlight"],
+        parts: []
+      },
+      "Photograph engine bay and trunk contents.": {
+        tools: ["Camera/phone", "Flashlight", "Gloves"],
+        parts: []
+      },
+      "Remove all loose items from interior and trunk.": {
+        tools: ["Gloves"],
+        parts: ["Plastic bags for loose parts"]
+      },
+      "Remove or secure valuable paperwork/items.": {
+        tools: ["Gloves"],
+        parts: ["Plastic bags for loose parts", "Binder/folder for paperwork"]
+      },
+      "Check if tires hold air.": {
+        tools: ["Tire inflator or air compressor"],
+        parts: ["Tire pressure gauge"]
+      },
+      "Inflate tires enough for loading/unloading.": {
+        tools: ["Tire inflator or air compressor"],
+        parts: ["Tire pressure gauge"]
+      },
+      "Verify wheels rotate freely.": {
+        tools: ["Gloves", "Wheel chocks"],
+        parts: []
+      },
+      "Verify steering wheel turns.": {
+        tools: ["Portable jump pack if needed for steering/neutral"],
+        parts: []
+      },
+      "Release parking brake.": {
+        tools: ["Wheel chocks"],
+        parts: []
+      },
+      "Confirm transporter can winch-load non-running vehicle.": {
+        tools: [],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Inform transporter car is NON-RUNNING.": {
+        tools: [],
+        parts: []
+      },
+      "Inform transporter car is a CLASSIC CONVERTIBLE.": {
+        tools: [],
+        parts: []
+      },
+      "Verify battery is disconnected or secured.": {
+        tools: ["Battery wrench", "Gloves"],
+        parts: []
+      },
+      "Check for active fluid leaks.": {
+        tools: ["Flashlight", "Shop towels", "Gloves"],
+        parts: ["Absorbent pads/cardboard"]
+      },
+      "Place absorbent pad/cardboard under car if leaking.": {
+        tools: ["Gloves"],
+        parts: ["Absorbent pads/cardboard"]
+      },
+      "Secure or latch hood, doors, trunk, and convertible top.": {
+        tools: ["Zip ties", "Tape/labels"],
+        parts: ["Painter's tape for labeling"]
+      },
+      "Ensure windows are fully up if possible.": {
+        tools: [],
+        parts: []
+      },
+      "Verify car can roll in neutral.": {
+        tools: ["Wheel chocks", "Portable jump pack if needed for steering/neutral"],
+        parts: []
+      },
+      "Make spare key if possible.": {
+        tools: [],
+        parts: []
+      },
+      "Label any unusual switches or quirks for transporter.": {
+        tools: ["Tape/labels"],
+        parts: ["Painter's tape for labeling"]
+      },
+      "Confirm insurance coverage with transporter.": {
+        tools: [],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Confirm pickup and delivery addresses/contact info.": {
+        tools: [],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Save transporter photos and inspection forms.": {
+        tools: ["Camera/phone"],
+        parts: ["Binder/folder for paperwork"]
+      },
+      "Walk around car with driver during pickup inspection.": {
+        tools: ["Camera/phone", "Flashlight"],
+        parts: []
+      },
+      "Record mileage before shipping.": {
+        tools: ["Camera/phone"],
+        parts: []
+      },
+      "Take video during loading if possible.": {
+        tools: ["Camera/phone", "Wheel chocks"],
+        parts: []
+      }
+    };
+
+    function stepResources(phase, title) {
+      if (phase.title.startsWith("PHASE 0") && phase0Resources[title]) {
+        return phase0Resources[title];
+      }
+      return inferStepResources(phase, title);
+    }
+
+    function stepPhotoNeeds(phase, title) {
+      if (title === DAMAGE_STEP_TITLE) return [];
+      if (title === PHOTO_DOC_STEP_TITLE) return phase0PhotoSections.flatMap((section) => section.items);
+      const plan = groupedPhasePlans[phase.title] && groupedPhasePlans[phase.title].find((item) => item.title === title);
+      if (plan && plan.photos) return plan.photos;
+      if (phase.title.startsWith("PHASE 0")) return phase0PhotoNeedsByStep[title] || [];
+      if (phase.title.startsWith("PHASE 1")) return phase1PhotoNeedsByStep[title] || [];
+      return phase.photos;
+    }
+
+    function stepPhotoSections(phase, title) {
+      if (title === PHOTO_DOC_STEP_TITLE) return phase0PhotoSections;
+      const plan = groupedPhasePlans[phase.title] && groupedPhasePlans[phase.title].find((item) => item.title === title);
+      if (plan && plan.photoSections) return plan.photoSections;
+      return [];
+    }
+
+    function stepChecklistItems(phase, title, photoSections) {
+      if (phase.title.startsWith("PHASE 0") && phase0ChecklistByStep[title]) {
+        return phase0ChecklistByStep[title];
+      }
+      const plan = groupedPhasePlans[phase.title] && groupedPhasePlans[phase.title].find((item) => item.title === title);
+      if (plan && plan.checklist) return plan.checklist;
+      if (photoSections.length) return photoSections.map((section) => section.title);
+      return [title];
+    }
+
+    function combinedResources(phase, title, checklist) {
+      const direct = stepResources(phase, title);
+      const tools = [...direct.tools];
+      const parts = [...direct.parts];
+      checklist.forEach((item) => {
+        const resources = stepResources(phase, item);
+        resources.tools.forEach((tool) => { if (!tools.includes(tool)) tools.push(tool); });
+        resources.parts.forEach((part) => { if (!parts.includes(part)) parts.push(part); });
+      });
+      return { tools, parts };
+    }
+
+    function inferStepResources(phase, title) {
+      const text = title.toLowerCase();
+      const tools = [];
+      const parts = [];
+      const addTool = (...names) => names.forEach((name) => {
+        if (phase.tools.includes(name) && !tools.includes(name)) tools.push(name);
+      });
+      const addPart = (...names) => names.forEach((name) => {
+        if (phase.parts.includes(name) && !parts.includes(name)) parts.push(name);
+      });
+      const has = (...words) => words.some((word) => text.includes(word));
+
+      if (has("photo", "photograph", "video", "record")) addTool("Phone/camera", "Camera/phone", "Phone", "Phone for video", "Flashlight");
+      if (has("inspect", "check", "look", "confirm", "verify", "monitor", "listen")) addTool("Flashlight", "Gloves", "Safety glasses", "Multimeter", "Test light", "Test light/multimeter", "Pry bar");
+      if (has("remove", "debris", "personal items")) addTool("Gloves", "Shop vac", "Ziplock bags", "Labels", "Plastic bins");
+      if (has("paperwork", "title")) addTool("Labels", "Plastic bins");
+      if (has("battery", "terminal")) {
+        addTool("Battery wrench", "Battery charger", "SAE wrenches", "Multimeter", "Test light");
+        addPart("Battery");
+      }
+      if (has("tire", "tires", "air", "inflate")) {
+        addTool("Tire inflator", "Air compressor", "Lug wrench", "Jack", "Jack stands", "Flashlight");
+        addPart("Tires");
+      }
+      if (has("rolls", "roll", "neutral", "parking brake", "wheel chocks")) addTool("Wheel chocks", "Gloves", "Flashlight");
+      if (has("spark plug", "spark plugs", "plug")) {
+        addTool("Spark plug socket", "SAE socket set", "Extensions", "Shop towels", "Flashlight", "Feeler gauge");
+        addPart("Spark plugs", "Plug wires if needed", "Dielectric grease");
+      }
+      if (has("marvel", "atf", "cylinder", "cylinders", "soak")) {
+        addTool("Marvel Mystery Oil or ATF", "Shop towels", "Flashlight");
+        addPart("Marvel Mystery Oil or ATF");
+      }
+      if (has("crank bolt", "breaker bar", "rotate engine", "turns freely", "turn over")) addTool("Breaker bar", "SAE socket set", "Extensions", "Flashlight");
+      if (has("oil", "filter")) {
+        addTool("Oil drain pan", "Oil filter wrench", "Funnels", "SAE wrenches", "Shop towels", "Gloves", "Flashlight");
+        addPart("Engine oil", "Oil filter");
+      }
+      if (has("coolant", "radiator", "thermostat", "water pump")) {
+        addTool("Drain pan", "Funnel", "Funnels", "Hose clamp pliers", "Screwdrivers", "Wrenches", "Flashlight");
+        addPart("Coolant/water for testing", "Coolant", "Thermostat", "Upper radiator hose", "Lower radiator hose", "Heater hoses");
+      }
+      if (has("transmission")) {
+        addTool("Flashlight", "Jack stands", "Wrenches", "Drain pan");
+        addPart("Transmission fluid");
+      }
+      if (has("brake", "brakes", "pedal", "master cylinder", "bleed")) {
+        addTool("Jack", "Jack stands", "Brake line wrenches", "Brake bleeder kit", "Lug wrench", "Brake cleaner", "Gloves/safety glasses", "Flashlight");
+        addPart("Brake fluid", "Rubber brake hoses", "Wheel cylinders/calipers as needed", "Shoes/pads as needed", "Master cylinder if needed", "Brake fluid later if servicing brakes");
+      }
+      if (has("fuel", "gas", "carb", "carburetor", "hose", "hoses", "filter", "leak")) {
+        addTool("Screwdrivers", "Hose clamp pliers", "Wrenches", "Fuel-safe container", "Fire extinguisher", "Carb cleaner", "Flashlight", "Shop towels", "Gloves");
+        addPart("Fresh fuel", "Fuel hose", "Hose clamps", "Fuel filter", "Carb cleaner");
+      }
+      if (has("distributor", "rotor", "cap", "wiring", "grounds", "spark")) {
+        addTool("Multimeter", "Test light", "Screwdrivers", "SAE wrenches", "Spark plug socket", "Feeler gauge", "Flashlight");
+        addPart("Distributor cap/rotor if needed", "Points/condenser if equipped", "Plug wires if needed", "Dielectric grease");
+      }
+      if (has("disable ignition", "oil pressure", "crank briefly", "first crank")) addTool("Battery", "Test light/multimeter", "Fire extinguisher", "Helper if possible");
+      if (has("startup", "start", "prime carb", "running", "smoke", "overheating", "bad noises")) addTool("Fire extinguisher", "Screwdrivers", "Wrenches", "Helper", "Phone for video", "Timing light later");
+      if (has("belt", "belts")) addTool("Wrenches", "Flashlight"), addPart("Belts if cracked", "Belts");
+      if (has("shocks", "bushings", "ball joints", "tie rods", "steering", "suspension", "grease")) {
+        addTool("Jack", "Jack stands", "Lug wrench", "Grease gun", "Pry bar", "Flashlight");
+        addPart("Shocks if needed", "Grease", "Bushings/steering parts as needed");
+      }
+      if (has("driveshaft", "differential", "u-joints", "movement", "gear")) {
+        addTool("Flashlight", "Jack stands", "Wrenches", "Drain pan");
+        addPart("Differential fluid later", "U-joints if needed");
+      }
+      if (has("drive", "driveway", "neighborhood", "local", "roadside")) addTool("Basic roadside tool kit", "Fire extinguisher", "Flashlight", "Phone", "Tire inflator");
+      if (has("tune", "timing", "vacuum", "carb")) addTool("Timing light", "Vacuum gauge", "Carb tools", "Torque wrench");
+      if (has("clean", "detail", "interior")) {
+        addTool("Cleaning supplies", "Gloves", "Shop towels");
+        addPart("Detail supplies");
+      }
+      if (has("rubber", "leaks", "gaskets", "fluids")) addPart("Vacuum hoses", "Belts", "Gaskets", "Fluids");
+      if (has("receipts", "maintenance log", "preserve original")) addTool("Phone/camera", "Camera/phone");
+
+      return { tools, parts };
+    }
+
+    function inferDifficulty(title) {
+      const text = title.toLowerCase();
+      if (text.includes("brake") || text.includes("startup") || text.includes("oil pressure") || text.includes("rotate engine") || text.includes("fuel") || text.includes("drivetrain")) return "Advanced";
+      if (text.includes("electrical") || text.includes("ignition") || text.includes("cooling") || text.includes("suspension") || text.includes("fluid")) return "Moderate";
+      if (text.includes("professional")) return "Professional Recommended";
+      return "Beginner";
+    }
+
+    function inferEstimatedTime(title) {
+      const text = title.toLowerCase();
+      if (text.includes("photo") || text.includes("paperwork") || text.includes("records")) return "30-60 min";
+      if (text.includes("spark plug") || text.includes("fuel") || text.includes("electrical") || text.includes("fluid")) return "1-2 hours";
+      if (text.includes("brake") || text.includes("cooling") || text.includes("suspension") || text.includes("drivetrain")) return "Half day";
+      if (text.includes("reliability") || text.includes("preserve")) return "Weekend project";
+      return "15-30 min";
+    }
+
+    function likelyOutcomesFor(title) {
+      if (outcomeMap[title]) return outcomeMap[title];
+      return {
+        "Best case": "Task checks out with no new parts or repairs needed.",
+        "Common case": "You find a few notes, photos, or small follow-up items.",
+        "Worst case": "A safety issue or missing part pauses the phase.",
+        "What to do next": "Update notes, costs, photos, and the Can Continue decision before moving on."
+      };
+    }
+
+    function phaseDoNotDoYet(title) {
+      if (title.startsWith("PHASE 0")) return "Do not start, drive, wash, or clean the car just for transport.";
+      if (title.startsWith("PHASE 1")) return "Do not clean or disassemble before arrival photos are backed up.";
+      if (title.startsWith("PHASE 2")) return "Do not crank the engine yet.";
+      if (title.startsWith("PHASE 3")) return "Do not use the starter until the engine rotates by hand.";
+      if (title.startsWith("PHASE 4")) return "Do not attempt startup on old or unknown fluids.";
+      if (title.startsWith("PHASE 5")) return "Do not use old fuel from the tank.";
+      if (title.startsWith("PHASE 6")) return "Do not crank for long periods or ignore smoking wiring.";
+      if (title.startsWith("PHASE 7")) return "Do not start the engine until oil pressure is confirmed.";
+      if (title.startsWith("PHASE 8")) return "Do not keep it running if oil pressure, fuel leaks, smoke, knocking, or heat look wrong.";
+      if (title.startsWith("PHASE 9")) return "Do not run long without stable temperature control.";
+      if (title.startsWith("PHASE 10")) return "Do not road test until brakes are inspected and verified.";
+      if (title.startsWith("PHASE 11")) return "Do not road drive on old tires or loose steering/suspension.";
+      if (title.startsWith("PHASE 12")) return "Do not test gear engagement until brakes are verified.";
+      if (title.startsWith("PHASE 13")) return "Do not leave tow distance until short tests are reliable.";
+      return "Do not discard original parts or documentation before labeling and saving them.";
+    }
+
+    function makeStep(phase, title, index) {
+      const safeNeedle = title.toLowerCase();
+      const warnings = phase.warnings.filter(Boolean);
+      const photoSections = stepPhotoSections(phase, title);
+      const checklist = stepChecklistItems(phase, title, photoSections);
+      const resources = combinedResources(phase, title, checklist);
+      if (safeNeedle.includes("jack") || safeNeedle.includes("brake") || safeNeedle.includes("road") || safeNeedle.includes("drive")) {
+        warnings.push("Use jack stands, never just a jack.");
+      }
+      if (safeNeedle.includes("crank") || safeNeedle.includes("engine turns")) warnings.push("Do not crank engine before checking cylinders.");
+      if (safeNeedle.includes("fuel") || safeNeedle.includes("gas")) warnings.push("Do not use 15-year-old fuel.");
+      if (safeNeedle.includes("tire")) warnings.push("Do not drive on old tires.");
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        title,
+        checklist,
+        tools: resources.tools,
+        parts: resources.parts,
+        warnings: [...new Set(warnings)],
+        photosNeeded: stepPhotoNeeds(phase, title),
+        photoSections,
+        videoTerms: [],
+        videoUrl: "",
+        additionalHelp: [],
+        difficulty: inferDifficulty(title),
+        estimatedTime: inferEstimatedTime(title),
+        hoursLogged: "",
+        confidence: "Confident",
+        stopConditions: stopConditionMap[title] || [],
+        likelyOutcomes: likelyOutcomesFor(title),
+        notes: "",
+        cost: "",
+        costItems: [],
+        publicNotes: false,
+        publicPhotos: false,
+        publicCosts: false,
+        status: index === 0 ? "In Progress" : "Not Started",
+        needsHelp: false,
+        professionalHelp: { name: "", website: "", phone: "", notes: "" },
+        completedDate: "",
+        toolsOwned: {},
+        photoChecks: {},
+        photos: []
+      };
+    }
+
+    function sampleData() {
+      return {
+        version: 1,
+        car: "1969 Chevrolet Chevelle Malibu convertible",
+        updatedAt: new Date().toISOString(),
+        phaseSchemaVersion: PHASE_SCHEMA_VERSION,
+        toolResourceSchemaVersion: TOOL_RESOURCE_SCHEMA_VERSION,
+        photoSchemaVersion: PHOTO_SCHEMA_VERSION,
+        vehicleInfo: {
+          yearMakeModel: "1969 Chevrolet Chevelle Malibu",
+          bodyStyle: "Convertible"
+        },
+        milestones: {},
+        toolsOwned: {},
+        suppliesOwned: {},
+        phases: phaseSeeds.map(makePhaseFromSeed)
+      };
+    }
+
+    function phaseIdFromTitle(title) {
+      const match = title.match(/PHASE\s+(\d+)/i);
+      return match ? `phase-${match[1]}` : `phase-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+    }
+
+    function makePhaseFromSeed(phase) {
+      const grouped = groupedPhasePlans[phase.title];
+      return {
+        id: phaseIdFromTitle(phase.title),
+        title: phase.title,
+        goal: phase.goal,
+        doNotDoYet: phaseDoNotDoYet(phase.title),
+        canContinue: "",
+        partsLikelyNeeded: (phasePartsLikelyNeeded[phase.title] || phase.parts || []).map((name) => ({
+          name,
+          purchased: false,
+          partNumber: "",
+          vendor: "",
+          cost: "",
+          notes: ""
+        })),
+        steps: (grouped ? grouped.map((item) => item.title) : phase.steps).map((title, stepIndex) => makeStep(phase, title, stepIndex))
+      };
+    }
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) return normalizeState(JSON.parse(saved));
+      } catch (error) {
+        console.warn("Could not load saved tracker data", error);
+      }
+      return sampleData();
+    }
+
+    function normalizeState(data) {
+      data.toolsOwned = data.toolsOwned || {};
+      data.suppliesOwned = data.suppliesOwned || {};
+      data.vehicleInfo = data.vehicleInfo || {};
+      data.milestones = data.milestones || {};
+      migrateSeedPhases(data);
+      migratePhaseStructure(data);
+      migrateGroupedPhases(data);
+      migrateSeedStepResources(data);
+      migrateSeedPhotoNeeds(data);
+      data.phaseSchemaVersion = PHASE_SCHEMA_VERSION;
+      data.toolResourceSchemaVersion = TOOL_RESOURCE_SCHEMA_VERSION;
+      data.photoSchemaVersion = PHOTO_SCHEMA_VERSION;
+      data.phases.forEach((phase, phaseIndex) => {
+        phase.id = phase.id || phaseIdFromTitle(phase.title) || `phase-${phaseIndex}`;
+        phase.doNotDoYet = phase.doNotDoYet || phaseDoNotDoYet(phase.title);
+        phase.canContinue = GATE_OPTIONS.includes(phase.canContinue) ? phase.canContinue : "";
+        phase.partsLikelyNeeded = normalizePhaseParts(phase.partsLikelyNeeded, phase.title);
+        phase.steps.forEach((step) => {
+          step.id = step.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()));
+          step.checklist = step.checklist || [step.title];
+          step.tools = step.tools || [];
+          step.parts = step.parts || [];
+          step.warnings = step.warnings || [];
+          step.photosNeeded = step.photosNeeded || [];
+          step.photoSections = step.photoSections || [];
+          step.videoTerms = step.videoTerms || [];
+          step.videoUrl = step.videoUrl || "";
+          step.additionalHelp = step.additionalHelp || [];
+          step.additionalHelp = step.additionalHelp.filter((link) => !isDefaultHelpLink(link));
+          step.notes = step.notes || "";
+          step.cost = step.cost || "";
+          step.costItems = normalizeCostItems(step);
+          step.publicNotes = Boolean(step.publicNotes);
+          step.publicPhotos = Boolean(step.publicPhotos);
+          step.publicCosts = Boolean(step.publicCosts);
+          step.difficulty = DIFFICULTY_OPTIONS.includes(step.difficulty) ? step.difficulty : inferDifficulty(step.title);
+          step.estimatedTime = step.estimatedTime || inferEstimatedTime(step.title);
+          step.hoursLogged = step.hoursLogged || "";
+          step.confidence = CONFIDENCE_OPTIONS.includes(step.confidence) ? step.confidence : "Confident";
+          step.stopConditions = Array.isArray(step.stopConditions) && step.stopConditions.length ? step.stopConditions : (stopConditionMap[step.title] || []);
+          step.likelyOutcomes = step.likelyOutcomes || likelyOutcomesFor(step.title);
+          step.status = STATUS_OPTIONS.includes(step.status) ? step.status : "Not Started";
+          step.needsHelp = Boolean(step.needsHelp || step.status === "Needs Help");
+          step.professionalHelp = step.professionalHelp || { name: "", website: "", phone: "", notes: "" };
+          step.professionalHelp.name = step.professionalHelp.name || "";
+          step.professionalHelp.website = step.professionalHelp.website || "";
+          step.professionalHelp.phone = step.professionalHelp.phone || "";
+          step.professionalHelp.notes = step.professionalHelp.notes || "";
+          step.completedDate = step.completedDate || "";
+          step.toolsOwned = step.toolsOwned || {};
+          step.photoChecks = step.photoChecks || {};
+          step.damagePhotos = step.damagePhotos || [];
+          step.photos = step.photos || [];
+          step.photos.forEach((photo) => {
+            if (photo.need) step.photoChecks[photoNeedKey(photo.need)] = true;
+          });
+        });
+      });
+      return data;
+    }
+
+    function migrateSeedPhases(data) {
+      const existingTitles = new Set((data.phases || []).map((phase) => phase.title));
+      phaseSeeds.forEach((seed) => {
+        if (!existingTitles.has(seed.title)) data.phases.push(makePhaseFromSeed(seed));
+      });
+      data.phases.sort((a, b) => {
+        const aNumber = Number((a.title.match(/PHASE\s+(\d+)/i) || [])[1] || 999);
+        const bNumber = Number((b.title.match(/PHASE\s+(\d+)/i) || [])[1] || 999);
+        return aNumber - bNumber;
+      });
+    }
+
+    function migratePhaseStructure(data) {
+      const shouldRefreshPhase = data.phaseSchemaVersion !== PHASE_SCHEMA_VERSION;
+      const phase0Seed = phaseSeeds.find((phase) => phase.title.startsWith("PHASE 0"));
+      const phase0 = (data.phases || []).find((phase) => phase.title === "PHASE 0 - Transportation Preparation");
+      if (!phase0 || !phase0Seed) return;
+      const oldPhotoTitles = [
+        "Photograph entire vehicle before transport.",
+        DAMAGE_STEP_TITLE,
+        "Photograph VIN plate and odometer.",
+        "Photograph engine bay and trunk contents.",
+        "Walk around car with driver during pickup inspection.",
+        "Record mileage before shipping.",
+        "Take video during loading if possible."
+      ];
+      const oldToNew = {
+        "Secure paperwork, keys, and transport records.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Confirm transporter requirements and loading plan.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Verify title is secure and transported separately from the car.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Remove or secure valuable paperwork/items.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Make spare key if possible.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Confirm insurance coverage with transporter.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Confirm pickup and delivery addresses/contact info.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Save transporter photos and inspection forms.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Confirm transporter can winch-load non-running vehicle.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Inform transporter car is NON-RUNNING.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Inform transporter car is a CLASSIC CONVERTIBLE.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Remove loose items and secure the car for transport.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Prepare the car to roll for loading and unloading.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Check battery, leaks, and transport safety items.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Remove all loose items from interior and trunk.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Secure or latch hood, doors, trunk, and convertible top.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Ensure windows are fully up if possible.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Label any unusual switches or quirks for transporter.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Check if tires hold air.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Inflate tires enough for loading/unloading.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Verify wheels rotate freely.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Verify steering wheel turns.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Release parking brake.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Verify car can roll in neutral.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Verify battery is disconnected or secured.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Check for active fluid leaks.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Place absorbent pad/cardboard under car if leaking.": VEHICLE_LOAD_PREP_STEP_TITLE,
+        "Walk around car with driver during pickup inspection.": PICKUP_HANDOFF_STEP_TITLE,
+        "Record mileage before shipping.": PICKUP_HANDOFF_STEP_TITLE,
+        "Take video during loading if possible.": PICKUP_HANDOFF_STEP_TITLE
+      };
+      oldPhotoTitles.forEach((title) => oldToNew[title] = PHOTO_DOC_STEP_TITLE);
+      const oldSteps = phase0.steps || [];
+      const seedTitles = new Set(phase0Seed.steps);
+      const hasOldPhase0Steps = oldSteps.some((step) => oldToNew[step.title]);
+      const missingGroupedSteps = phase0Seed.steps.some((title) => !oldSteps.some((step) => step.title === title));
+      if (!shouldRefreshPhase && !hasOldPhase0Steps && !missingGroupedSteps) return;
+      const stepDone = (step) => step && (step.status === "Done" || normalizeChecklist(step.checklist || []).some((item) => item.done));
+      const checklistDone = (title, checklistText, existingStep) => {
+        const existingItem = normalizeChecklist(existingStep && existingStep.checklist || []).find((item) => (item.text || item) === checklistText);
+        const oldStep = oldSteps.find((step) => step.title === checklistText);
+        return Boolean((existingItem && existingItem.done) || stepDone(oldStep));
+      };
+      const newSteps = phase0Seed.steps.map((title, index) => {
+        const existing = oldSteps.find((step) => step.title === title);
+        const next = existing || makeStep(phase0Seed, title, index);
+        next.title = title;
+        next.checklist = stepChecklistItems(phase0Seed, title, stepPhotoSections(phase0Seed, title)).map((item) => ({
+          text: item,
+          done: checklistDone(title, item, existing)
+        }));
+        next.tools = stepResources(phase0Seed, title).tools;
+        next.parts = stepResources(phase0Seed, title).parts;
+        next.photosNeeded = stepPhotoNeeds(phase0Seed, title);
+        next.photoSections = stepPhotoSections(phase0Seed, title);
+        if (title === PHOTO_DOC_STEP_TITLE) {
+          const oldPhotoSteps = oldSteps.filter((step) => oldToNew[step.title] === PHOTO_DOC_STEP_TITLE);
+          next.photos = [
+            ...(next.photos || []),
+            ...oldPhotoSteps.filter((step) => step !== next).flatMap((step) => step.photos || [])
+          ];
+          next.damagePhotos = [
+            ...(next.damagePhotos || []),
+            ...oldPhotoSteps.filter((step) => step !== next).flatMap((step) => step.damagePhotos || [])
+          ];
+          next.photoChecks = oldPhotoSteps.reduce((checks, step) => ({ ...checks, ...(step.photoChecks || {}) }), next.photoChecks || {});
+        }
+        if (next.checklist.length && next.checklist.every((item) => item.done)) {
+          next.status = "Done";
+          next.completedDate = next.completedDate || new Date().toISOString().slice(0, 10);
+        } else if (next.checklist.some((item) => item.done) && next.status === "Not Started") {
+          next.status = "In Progress";
+        }
+        return next;
+      });
+      const knownTitles = new Set([...Object.keys(oldToNew), ...seedTitles]);
+      const customSteps = oldSteps.filter((step) => !knownTitles.has(step.title));
+      phase0.steps = [...newSteps, ...customSteps];
+    }
+
+    function migrateGroupedPhases(data) {
+      const shouldRefreshPhase = data.phaseSchemaVersion !== PHASE_SCHEMA_VERSION;
+      Object.entries(groupedPhasePlans).forEach(([phaseTitle, plans]) => {
+        if (phaseTitle.startsWith("PHASE 0")) return;
+        const phase = (data.phases || []).find((item) => item.title === phaseTitle);
+        const seed = phaseSeeds.find((item) => item.title === phaseTitle);
+        if (!phase || !seed) return;
+        const oldSteps = phase.steps || [];
+        const planTitles = new Set(plans.map((plan) => plan.title));
+        const seedTitles = new Set(seed.steps);
+        const needsGrouping = shouldRefreshPhase || oldSteps.some((step) => seedTitles.has(step.title)) || plans.some((plan) => !oldSteps.some((step) => step.title === plan.title));
+        if (!needsGrouping) return;
+        const stepDone = (step) => step && (step.status === "Done" || normalizeChecklist(step.checklist || []).some((item) => item.done));
+        const newSteps = plans.map((plan, index) => {
+          const existing = oldSteps.find((step) => step.title === plan.title);
+          const next = existing || makeStep(seed, plan.title, index);
+          const checklist = plan.checklist || [plan.title];
+          next.title = plan.title;
+          next.checklist = checklist.map((item) => {
+            const existingItem = normalizeChecklist(existing && existing.checklist || []).find((check) => (check.text || check) === item);
+            const oldStep = oldSteps.find((step) => step.title === item);
+            return { text: item, done: Boolean((existingItem && existingItem.done) || stepDone(oldStep)) };
+          });
+          next.tools = combinedResources(seed, plan.title, checklist).tools;
+          next.parts = combinedResources(seed, plan.title, checklist).parts;
+          next.photosNeeded = plan.photos || [];
+          next.photoSections = plan.photoSections || [];
+          const relatedOldSteps = oldSteps.filter((step) => checklist.includes(step.title) || step.title === plan.title);
+          next.photos = [
+            ...(next.photos || []),
+            ...relatedOldSteps.filter((step) => step !== next).flatMap((step) => step.photos || [])
+          ];
+          next.damagePhotos = [
+            ...(next.damagePhotos || []),
+            ...relatedOldSteps.filter((step) => step !== next).flatMap((step) => step.damagePhotos || [])
+          ];
+          next.photoChecks = relatedOldSteps.reduce((checks, step) => ({ ...checks, ...(step.photoChecks || {}) }), next.photoChecks || {});
+          if (next.checklist.length && next.checklist.every((item) => item.done)) {
+            next.status = "Done";
+            next.completedDate = next.completedDate || new Date().toISOString().slice(0, 10);
+          } else if (next.checklist.some((item) => item.done) && next.status === "Not Started") {
+            next.status = "In Progress";
+          }
+          return next;
+        });
+        const customSteps = oldSteps.filter((step) => !seedTitles.has(step.title) && !planTitles.has(step.title));
+        phase.steps = [...newSteps, ...customSteps];
+      });
+    }
+
+    function sameList(a, b) {
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+      return a.every((item, index) => String(item).trim().toLowerCase() === String(b[index]).trim().toLowerCase());
+    }
+
+    function migrateSeedStepResources(data) {
+      const shouldRefreshSeedTools = data.toolResourceSchemaVersion !== TOOL_RESOURCE_SCHEMA_VERSION;
+      phaseSeeds.forEach((seed) => {
+        const phase = (data.phases || []).find((item) => item.title === seed.title);
+        if (!phase) return;
+        seed.steps.forEach((seedTitle) => {
+          const step = phase.steps.find((item) => item.title === seedTitle);
+          if (!step) return;
+          const resources = stepResources(seed, seedTitle);
+          if (shouldRefreshSeedTools || !step.tools || sameList(step.tools, seed.tools)) step.tools = resources.tools;
+          if (shouldRefreshSeedTools || !step.parts || sameList(step.parts, seed.parts)) step.parts = resources.parts;
+        });
+      });
+    }
+
+    function migrateSeedPhotoNeeds(data) {
+      const shouldRefreshPhotos = data.photoSchemaVersion !== PHOTO_SCHEMA_VERSION;
+      if (!shouldRefreshPhotos) return;
+      phaseSeeds.forEach((seed) => {
+        const phase = (data.phases || []).find((item) => item.title === seed.title);
+        if (!phase) return;
+        seed.steps.forEach((seedTitle) => {
+          const step = phase.steps.find((item) => item.title === seedTitle);
+          if (!step) return;
+          step.photosNeeded = stepPhotoNeeds(seed, seedTitle);
+          step.photoSections = stepPhotoSections(seed, seedTitle);
+        });
+      });
+    }
+
+    function saveState() {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    function allSteps() {
+      return state.phases.flatMap((phase) => phase.steps.map((step) => ({ phase, step })));
+    }
+
+    function isEditorMode() {
+      return sessionStorage.getItem(EDITOR_SESSION_KEY) === "true";
+    }
+
+    function editDisabled() {
+      return isEditorMode() ? "" : "disabled";
+    }
+
+    function requireEditor() {
+      if (isEditorMode()) return true;
+      alert("Read-only view. Log in as editor to make changes.");
+      return false;
+    }
+
+    function renderAccessMode() {
+      const editor = isEditorMode();
+      document.body.classList.toggle("readonly", !editor);
+      document.body.classList.toggle("editor", editor);
+      const banner = document.getElementById("accessBanner");
+      banner.classList.toggle("editor", editor);
+      banner.classList.toggle("readonly", !editor);
+      document.getElementById("accessModeText").textContent = editor ? "Editor mode." : "Read-only view.";
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function money(value) {
+      const number = Number(value);
+      return Number.isFinite(number) && number > 0 ? number : 0;
+    }
+
+    function isDefaultHelpLink(link) {
+      const label = String(link && link.label || "");
+      const url = String(link && link.url || "");
+      return label.startsWith("YouTube search:") || url.includes("youtube.com/results?search_query=");
+    }
+
+    function normalizeCostItems(step) {
+      const existing = Array.isArray(step.costItems) ? step.costItems : [];
+      const items = existing.map((item) => ({
+        id: item.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
+        name: item.name || "",
+        category: COST_CATEGORIES.includes(item.category) ? item.category : "Other",
+        amount: item.amount || item.cost || "",
+        quantity: item.quantity || "1",
+        purchased: Boolean(item.purchased),
+        notes: item.notes || ""
+      }));
+      if (!items.length && money(step.cost)) {
+        items.push({
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          name: "Legacy step cost",
+          category: "Other",
+          amount: step.cost,
+          quantity: "1",
+          purchased: true,
+          notes: "Migrated from the old single cost field."
+        });
+        step.cost = "";
+      }
+      return items;
+    }
+
+    function costItemTotal(item) {
+      const qty = Number(item.quantity);
+      return money(item.amount) * (Number.isFinite(qty) && qty > 0 ? qty : 1);
+    }
+
+    function stepCostTotals(step) {
+      const items = normalizeCostItems(step);
+      return items.reduce((totals, item) => {
+        const total = costItemTotal(item);
+        totals.subtotal += total;
+        if (item.purchased) totals.purchased += total;
+        else totals.planned += total;
+        return totals;
+      }, { subtotal: 0, purchased: 0, planned: 0 });
+    }
+
+    function projectCostTotals(publicOnly = false) {
+      return allSteps().reduce((totals, { step }) => {
+        if (publicOnly && !step.publicCosts) return totals;
+        const stepTotals = stepCostTotals(step);
+        totals.subtotal += stepTotals.subtotal;
+        totals.purchased += stepTotals.purchased;
+        totals.planned += stepTotals.planned;
+        return totals;
+      }, { subtotal: 0, purchased: 0, planned: 0 });
+    }
+
+    function currency(value) {
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    }
+
+    function normalizePhaseParts(parts, phaseTitle) {
+      const existing = Array.isArray(parts) ? parts : [];
+      const normalized = existing.map((part) => typeof part === "string" ? {
+        name: part,
+        purchased: false,
+        partNumber: "",
+        vendor: "",
+        cost: "",
+        notes: ""
+      } : {
+        name: part.name || "",
+        purchased: Boolean(part.purchased),
+        partNumber: part.partNumber || "",
+        vendor: part.vendor || "",
+        cost: part.cost || "",
+        notes: part.notes || ""
+      }).filter((part) => part.name);
+      const byName = new Map(normalized.map((part) => [part.name.toLowerCase(), part]));
+      (phasePartsLikelyNeeded[phaseTitle] || []).forEach((name) => {
+        if (!byName.has(name.toLowerCase())) {
+          normalized.push({ name, purchased: false, partNumber: "", vendor: "", cost: "", notes: "" });
+        }
+      });
+      return normalized;
+    }
+
+    function difficultyClass(difficulty) {
+      if (difficulty === "Professional Recommended") return "professional";
+      return String(difficulty || "").toLowerCase();
+    }
+
+    function statusClass(status) {
+      if (status === "Done") return "done";
+      if (status === "In Progress") return "progress";
+      if (status === "Needs Help") return "help";
+      return "waiting";
+    }
+
+    function toolKey(tool) {
+      const normalized = String(tool || "").trim().toLowerCase();
+      const aliases = {
+        "phone": "camera-phone",
+        "phone/camera": "camera-phone",
+        "camera/phone": "camera-phone",
+        "phone for video": "camera-phone",
+        "tire inflator": "tire-inflation",
+        "air compressor": "tire-inflation",
+        "tire inflator or air compressor": "tire-inflation",
+        "tape/labels": "labels-tape",
+        "labels": "labels-tape"
+      };
+      return aliases[normalized] || normalized;
+    }
+
+    function legacyToolKey(tool) {
+      return String(tool || "").trim().toLowerCase();
+    }
+
+    function isToolOwned(tool) {
+      return Boolean(state.toolsOwned[toolKey(tool)] || state.toolsOwned[legacyToolKey(tool)]);
+    }
+
+    function setToolOwned(tool, owned) {
+      state.toolsOwned[toolKey(tool)] = owned;
+      state.toolsOwned[legacyToolKey(tool)] = owned;
+    }
+
+    function supplyKey(supply) {
+      return String(supply || "").trim().toLowerCase();
+    }
+
+    function isSupplyOwned(supply) {
+      return Boolean(state.suppliesOwned && state.suppliesOwned[supplyKey(supply)]);
+    }
+
+    function setSupplyOwned(supply, owned) {
+      state.suppliesOwned = state.suppliesOwned || {};
+      state.suppliesOwned[supplyKey(supply)] = owned;
+    }
+
+    function photoNeedKey(need) {
+      return String(need || "").trim();
+    }
+
+    function photosForNeed(step, need) {
+      const key = photoNeedKey(need);
+      return step.photos
+        .map((photo, index) => ({ photo, index }))
+        .filter(({ photo }) => photo.need === key);
+    }
+
+    function isPhotoNeedDone(step, need) {
+      const key = photoNeedKey(need);
+      return Boolean(step.photoChecks && step.photoChecks[key]) || photosForNeed(step, need).length > 0;
+    }
+
+    function stepPublicPhotos(step) {
+      if (!step.publicPhotos && !isEditorMode()) return [];
+      return [
+        ...(step.photos || []).map((photo, index) => ({ photo, index, damage: false })),
+        ...(step.damagePhotos || []).map((photo, index) => ({ photo, index, damage: true }))
+      ];
+    }
+
+    function isDamageStep(step) {
+      return step.title === DAMAGE_STEP_TITLE;
+    }
+
+    function photoCategory(need) {
+      const text = String(need || "").toLowerCase();
+      if (text.startsWith("before") || text.includes(" before ")) return "Before photos";
+      if (text.startsWith("after") || text.includes(" after ")) return "After photos";
+      return "During photos";
+    }
+
+    function photoNeedTemplate(step, need) {
+      return `
+        <div class="photo-need-row">
+          <div class="photo-need-head">
+            <label class="check-row">
+              <input type="checkbox" data-action="photoCheck" data-photo-need="${escapeHtml(need)}" ${isPhotoNeedDone(step, need) ? "checked" : ""} />
+              <span>${escapeHtml(need)} <span class="pill">${escapeHtml(photoCategory(need))}</span></span>
+            </label>
+            <div class="photo-actions">
+              <label>
+                Take Photo
+                <input class="hidden-file" type="file" accept="image/*" capture="environment" multiple data-action="photos" data-photo-need="${escapeHtml(need)}" />
+              </label>
+              <label>
+                Upload
+                <input class="hidden-file" type="file" accept="image/*" multiple data-action="photos" data-photo-need="${escapeHtml(need)}" />
+              </label>
+            </div>
+          </div>
+          <div class="photo-grid">
+            ${photosForNeed(step, need).map(({ photo, index }) => `
+              <figure class="photo-tile">
+                <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || need)}" />
+                <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
+              </figure>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function damagePhotoTemplate(step) {
+      return `
+        <div class="warning">Add one entry per scratch, dent, rust spot, broken trim item, wheel issue, glass issue, or interior flaw. Name the location before taking/uploading the photo.</div>
+        <button type="button" class="secondary" data-action="showDamageForm">Add damage photo</button>
+        <div class="damage-form">
+          <label>Location / damage description
+            <input data-action="damageLocation" placeholder="Example: Driver door scratch, rear passenger quarter dent" />
+          </label>
+          <div class="photo-actions" style="display:grid">
+            <label>
+              Take Photo
+              <input class="hidden-file" type="file" accept="image/*" capture="environment" multiple data-action="damagePhotos" />
+            </label>
+            <label>
+              Upload
+              <input class="hidden-file" type="file" accept="image/*" multiple data-action="damagePhotos" />
+            </label>
+          </div>
+        </div>
+        <div class="photo-grid">
+          ${(step.damagePhotos || []).map((photo, index) => `
+            <figure class="photo-tile">
+              <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
+              <figcaption class="photo-caption">${escapeHtml(photo.location || "Damage photo")}</figcaption>
+              <button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>
+            </figure>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function photoContentTemplate(step) {
+      if (!isEditorMode()) {
+        const photos = stepPublicPhotos(step);
+        return photos.length ? `
+          <div class="photo-grid">
+            ${photos.map(({ photo }) => `
+              <figure class="photo-tile">
+                <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
+                ${photo.location ? `<figcaption class="photo-caption">${escapeHtml(photo.location)}</figcaption>` : ""}
+              </figure>
+            `).join("")}
+          </div>
+        ` : '<div class="empty">No public photos for this step yet.</div>';
+      }
+      if (step.photoSections && step.photoSections.length) {
+        return step.photoSections.map((section) => `
+          <div class="photo-section">
+            <h5 class="photo-section-title">${escapeHtml(section.title)}</h5>
+            ${section.damage ? damagePhotoTemplate(step) : section.items.map((need) => photoNeedTemplate(step, need)).join("")}
+          </div>
+        `).join("");
+      }
+      if (isDamageStep(step)) return damagePhotoTemplate(step);
+      return `
+        ${step.photosNeeded.length ? step.photosNeeded.map((need) => photoNeedTemplate(step, need)).join("") : '<div class="empty">No required photos listed for this step.</div>'}
+        ${step.photos.some((photo) => !photo.need) ? `
+          <div class="photo-need-row">
+            <strong>Other uploaded photos</strong>
+            <div class="photo-grid">
+              ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => `
+                <figure class="photo-tile">
+                  <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" />
+                  <button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>
+                </figure>
+              `).join("")}
+            </div>
+          </div>
+        ` : ""}
+      `;
+    }
+
+    function phaseProgress(phase) {
+      if (!phase.steps.length) return 0;
+      return Math.round((phase.steps.filter((step) => step.status === "Done").length / phase.steps.length) * 100);
+    }
+
+    function updateDashboard() {
+      const steps = allSteps().map((item) => item.step);
+      const total = steps.length || 1;
+      const done = steps.filter((step) => step.status === "Done").length;
+      const percent = Math.round((done / total) * 100);
+      const costs = projectCostTotals(!isEditorMode());
+      const needsHelp = steps.filter((step) => step.needsHelp || step.status === "Needs Help").length;
+      document.getElementById("overallPercent").textContent = `${percent}%`;
+      document.getElementById("overallBar").style.width = `${percent}%`;
+      document.getElementById("doneCount").textContent = `${done}/${steps.length}`;
+      document.getElementById("totalCost").textContent = currency(costs.subtotal);
+      document.getElementById("purchasedCost").textContent = currency(costs.purchased);
+      document.getElementById("plannedCost").textContent = currency(costs.planned);
+      document.getElementById("helpCount").textContent = needsHelp;
+      document.getElementById("transportStatus").textContent = phaseProgressByNumber(0) === 100 ? "Ready" : phaseProgressByNumber(0) >= 50 ? "Close" : "Not Ready";
+      document.getElementById("engineStatus").textContent = phaseProgressByNumber(3) === 100 ? "Turns" : phaseProgressByNumber(3) > 0 ? "Checking" : "Unknown";
+      document.getElementById("fuelStatus").textContent = phaseProgressByNumber(5) === 100 ? "Fresh source ready" : phaseProgressByNumber(5) > 0 ? "Inspecting" : "Unknown";
+      document.getElementById("electricalStatus").textContent = phaseProgressByNumber(6) === 100 ? "Spark checked" : phaseProgressByNumber(6) > 0 ? "Inspecting" : "Unknown";
+      document.getElementById("coolingStatus").textContent = phaseProgressByNumber(9) === 100 ? "Verified" : phaseProgressByNumber(9) > 0 ? "Testing" : "Unknown";
+      document.getElementById("brakeStatus").textContent = phaseProgressByNumber(10) === 100 ? "Verified" : phaseProgressByNumber(10) > 0 ? "Inspecting" : "Unsafe";
+      document.getElementById("roadworthyStatus").textContent = phaseProgressByNumber(13) === 100 ? "Roadworthy" : phaseProgressByNumber(10) === 100 && phaseProgressByNumber(11) === 100 ? "Cautious tests" : "Not Yet";
+    }
+
+    function phaseProgressByNumber(number) {
+      const phase = state.phases.find((item) => item.title.startsWith(`PHASE ${number} `) || item.title.startsWith(`PHASE ${number} -`));
+      return phase ? phaseProgress(phase) : 0;
+    }
+
+    function renderPhases() {
+      const phaseList = document.getElementById("phaseList");
+      const openPhases = new Set([...phaseList.querySelectorAll(".phase-card[open]")].map((details) => details.dataset.phaseId));
+      const openSteps = new Set([...phaseList.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
+      const hasRenderedBefore = phaseList.children.length > 0;
+      phaseList.innerHTML = state.phases.map((phase, index) => `
+        <details class="phase-card" ${(openPhases.has(phase.id) || (!hasRenderedBefore && index === 0)) ? "open" : ""} data-phase-id="${phase.id}">
+          <summary>
+            <div class="phase-title">
+              <h2>${escapeHtml(phase.title)}</h2>
+              <p>${escapeHtml(phase.goal)}</p>
+              <div class="progress-shell"><div class="progress-bar" style="width:${phaseProgress(phase)}%"></div></div>
+            </div>
+            <div class="phase-percent">${phaseProgress(phase)}%</div>
+          </summary>
+          <div class="phase-body">
+            <div class="callout stop">
+              <strong>Do Not Do Yet</strong>
+              <span>${escapeHtml(phase.doNotDoYet)}</span>
+            </div>
+            ${phase.steps.map((step) => stepTemplate(phase, step)).join("")}
+            <div class="section-box">
+              <h4>Can Continue?</h4>
+              <select data-action="phaseCanContinue" data-phase-id="${phase.id}" ${editDisabled()}>
+                <option value="">Choose after this phase</option>
+                ${GATE_OPTIONS.map((option) => `<option value="${option}" ${phase.canContinue === option ? "selected" : ""}>${option}</option>`).join("")}
+              </select>
+              ${phase.canContinue === "Yes" ? '<div class="callout ok"><strong>OK TO CONTINUE</strong><span>This phase is cleared based on your notes.</span></div>' : ""}
+              ${phase.canContinue === "Yes, with caution" ? '<div class="callout caution"><strong>CAUTION</strong><span>Move forward slowly and keep notes on unresolved items.</span></div>' : ""}
+              ${phase.canContinue === "No, professional help recommended" ? '<div class="callout stop"><strong>STOP</strong><span>Pause this phase and get professional help before continuing.</span></div>' : ""}
+            </div>
+          </div>
+        </details>
+      `).join("");
+    }
+
+    function costItemsTemplate(step) {
+      const totals = stepCostTotals(step);
+      const editor = isEditorMode();
+      const disabled = editDisabled();
+      return `
+        <div class="cost-summary">
+          <div><span>Subtotal</span>${currency(totals.subtotal)}</div>
+          <div><span>Purchased</span>${currency(totals.purchased)}</div>
+          <div><span>Planned</span>${currency(totals.planned)}</div>
+        </div>
+        <div class="parts-table">
+          ${(step.costItems || []).map((item, index) => `
+            <div class="part-card">
+              <div class="grid-two">
+                <label>Item name
+                  <input data-action="costName" data-index="${index}" value="${escapeHtml(item.name)}" placeholder="Spark plugs" ${disabled} />
+                </label>
+                <label>Category
+                  <select data-action="costCategory" data-index="${index}" ${disabled}>
+                    ${COST_CATEGORIES.map((category) => `<option value="${category}" ${item.category === category ? "selected" : ""}>${category}</option>`).join("")}
+                  </select>
+                </label>
+                <label>Cost amount
+                  <input type="number" min="0" step="0.01" inputmode="decimal" data-action="costAmount" data-index="${index}" value="${escapeHtml(item.amount)}" placeholder="0.00" ${disabled} />
+                </label>
+                <label>Quantity
+                  <input type="number" min="0" step="1" inputmode="numeric" data-action="costQuantity" data-index="${index}" value="${escapeHtml(item.quantity)}" placeholder="1" ${disabled} />
+                </label>
+              </div>
+              <label class="tool-row">
+                <input type="checkbox" data-action="costPurchased" data-index="${index}" ${item.purchased ? "checked" : ""} ${disabled} />
+                <span>Purchased</span>
+              </label>
+              <label>Notes
+                <textarea data-action="costNotes" data-index="${index}" placeholder="Receipt, vendor, part number, fitment notes" ${disabled}>${escapeHtml(item.notes)}</textarea>
+              </label>
+              ${editor ? `<button type="button" class="ghost" data-action="removeCostItem" data-index="${index}">Remove item</button>` : ""}
+            </div>
+          `).join("") || '<div class="empty">No cost items yet.</div>'}
+        </div>
+        ${editor ? '<button type="button" class="secondary" data-action="addCostItem">Add cost item</button>' : ""}
+      `;
+    }
+
+    function stepTemplate(phase, step) {
+      const isHelp = step.needsHelp || step.status === "Needs Help";
+      const checked = step.checklist.filter((item) => item.done).length;
+      const editor = isEditorMode();
+      const disabled = editDisabled();
+      const openSteps = new Set([...document.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
+      return `
+        <details class="step-card ${isHelp ? "needs-help" : ""}" ${openSteps.has(step.id) ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
+          <summary>
+            <div class="step-title">
+              <h3>${escapeHtml(step.title)}</h3>
+              <div class="pills">
+                <span class="pill ${statusClass(step.status)}">${escapeHtml(step.status)}</span>
+                <span class="pill ${difficultyClass(step.difficulty)}">${escapeHtml(step.difficulty)}</span>
+                <span class="pill">${escapeHtml(step.estimatedTime)}</span>
+                <span class="pill">${checked}/${step.checklist.length} checklist</span>
+                ${isHelp ? '<span class="pill help">Pro help</span>' : ""}
+              </div>
+            </div>
+            <span aria-hidden="true">Open</span>
+          </summary>
+          <div class="step-body">
+            <div class="grid-two">
+              <label>Status
+                <select data-action="status" ${disabled}>
+                  ${STATUS_OPTIONS.map((option) => `<option ${option === step.status ? "selected" : ""}>${option}</option>`).join("")}
+                </select>
+              </label>
+              <label>Date completed
+                <input type="date" data-action="completedDate" value="${escapeHtml(step.completedDate)}" ${disabled} />
+              </label>
+            </div>
+
+            <div class="section-box">
+              <h4>Checklist</h4>
+              ${step.checklist.map((item, index) => `
+                <label class="check-row">
+                  <input type="checkbox" data-action="checklist" data-index="${index}" ${item.done ? "checked" : ""} ${disabled} />
+                  <span>${escapeHtml(item.text || item)}</span>
+                </label>
+              `).join("")}
+            </div>
+
+            <div class="grid-two">
+              <div class="section-box">
+                <h4>Required tools</h4>
+                ${step.tools.length ? step.tools.map((tool) => `
+                  <label class="tool-row">
+                    <input type="checkbox" data-action="toolOwned" data-tool="${escapeHtml(tool)}" ${isToolOwned(tool) ? "checked" : ""} ${disabled} />
+                    <span>${escapeHtml(tool)}</span>
+                  </label>
+                `).join("") : '<div class="chips"><span class="chip">None listed</span></div>'}
+              </div>
+              <div class="section-box">
+                <h4>Parts / supplies</h4>
+                ${step.parts.length ? step.parts.map((part) => `
+                  <label class="tool-row">
+                    <input type="checkbox" data-action="supplyOwned" data-supply="${escapeHtml(part)}" ${isSupplyOwned(part) ? "checked" : ""} ${disabled} />
+                    <span>${escapeHtml(part)}</span>
+                  </label>
+                `).join("") : '<div class="chips"><span class="chip">None listed</span></div>'}
+              </div>
+            </div>
+
+            <div class="section-box">
+              <h4>Photos to take</h4>
+              ${editor ? `
+                <label class="tool-row">
+                  <input type="checkbox" data-action="publicPhotos" ${step.publicPhotos ? "checked" : ""} />
+                  <span>Show uploaded photos publicly</span>
+                </label>
+              ` : ""}
+              ${photoContentTemplate(step)}
+            </div>
+
+            <div class="section-box">
+              <h4>Itemized Costs</h4>
+              ${editor ? `
+                <label class="tool-row">
+                  <input type="checkbox" data-action="publicCosts" ${step.publicCosts ? "checked" : ""} />
+                  <span>Show costs publicly</span>
+                </label>
+              ` : ""}
+              ${editor || step.publicCosts ? costItemsTemplate(step) : '<div class="empty">Costs are private.</div>'}
+            </div>
+
+            ${editor ? `
+              <div class="section-box">
+                <h4>Notes</h4>
+                <label class="tool-row">
+                  <input type="checkbox" data-action="publicNotes" ${step.publicNotes ? "checked" : ""} />
+                  <span>Show notes publicly</span>
+                </label>
+                <label>Notes
+                  <textarea data-action="notes" placeholder="Measurements, observations, parts numbers, next move...">${escapeHtml(step.notes)}</textarea>
+                </label>
+              </div>
+            ` : `
+              <div class="section-box">
+                <h4>Notes</h4>
+                ${step.publicNotes && step.notes ? `<p>${escapeHtml(step.notes)}</p>` : '<div class="empty">No public notes for this step yet.</div>'}
+              </div>
+            `}
+
+            <div class="section-box">
+              <h4>Additional Help</h4>
+              <div class="help-links">
+                ${(step.additionalHelp || []).map((link, index) => `
+                  <div class="list-card">
+                    <a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>
+                    ${editor ? `<button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button>` : ""}
+                  </div>
+                `).join("") || '<div class="empty">No additional help links yet.</div>'}
+              </div>
+              ${editor ? `
+                <div class="grid-two">
+                  <label>Label
+                    <input data-action="newHelpLabel" placeholder="Example: Chevelle brake rebuild guide" />
+                  </label>
+                  <label>Hyperlink
+                    <input data-action="newHelpUrl" type="url" placeholder="https://..." />
+                  </label>
+                </div>
+                <button type="button" class="secondary" data-action="addAdditionalHelp">Add help link</button>
+              ` : ""}
+            </div>
+
+            <div class="button-row editor-only">
+              <button type="button" class="secondary" data-action="markDone">Mark done today</button>
+              <button type="button" class="ghost" data-action="editStep">Edit step</button>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    function renderGallery() {
+      const items = allSteps().map(({ phase, step }) => ({
+        phase,
+        step,
+        photos: isEditorMode() || step.publicPhotos ? (step.photos || []) : [],
+        damagePhotos: isEditorMode() || step.publicPhotos ? (step.damagePhotos || []) : []
+      })).filter((item) => item.photos.length || item.damagePhotos.length);
+      document.getElementById("galleryList").innerHTML = items.length ? items.map(({ phase, step }) => `
+        <article class="list-card">
+          <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
+          <div class="photo-grid">
+            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.location || "Damage photo")}</figcaption></figure>`).join("") : ""}
+          </div>
+        </article>
+      `).join("") : '<div class="empty">No public photos yet.</div>';
+    }
+
+    function shoppingItems() {
+      const needed = new Map();
+      allSteps().forEach(({ phase, step }) => {
+        if (step.status === "Done") return;
+        step.tools.forEach((item) => {
+          if (!item) return;
+          const key = toolKey(item);
+          if (!needed.has(key)) needed.set(key, { item, refs: [] });
+          needed.get(key).refs.push(`${phase.title}: ${step.title}`);
+        });
+      });
+      return [...needed.values()].sort((a, b) => a.item.localeCompare(b.item));
+    }
+
+    function toolStepGroups() {
+      const uniqueTools = (tools) => {
+        const seen = new Set();
+        return tools.filter((tool) => {
+          const key = toolKey(tool);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      };
+      const seenAcrossPhases = new Set();
+      return state.phases.map((phase) => ({
+        phase,
+        steps: phase.steps
+          .filter((step) => step.status !== "Done" && step.tools.length)
+          .map((step) => ({
+            step,
+            tools: uniqueTools(step.tools).filter((tool) => {
+              const key = toolKey(tool);
+              if (seenAcrossPhases.has(key)) return false;
+              seenAcrossPhases.add(key);
+              return true;
+            })
+          }))
+          .filter((item) => item.tools.length)
+      })).filter((group) => group.steps.length);
+    }
+
+    function renderShopping() {
+      const groups = toolStepGroups();
+      document.getElementById("shoppingList").innerHTML = groups.length ? groups.map(({ phase, steps }) => `
+        <article class="list-card">
+          <h3>${escapeHtml(phase.title)}</h3>
+          <p>${escapeHtml(phase.goal)}</p>
+          ${steps.map(({ step, tools }) => `
+            <div class="section-box">
+              <h4>${escapeHtml(step.title)}</h4>
+              ${tools.map((tool) => `
+                <label class="tool-row">
+                  <input type="checkbox" data-action="globalToolOwned" data-tool="${escapeHtml(tool)}" ${isToolOwned(tool) ? "checked" : ""} ${editDisabled()} />
+                  <span>${escapeHtml(tool)}</span>
+                </label>
+              `).join("")}
+            </div>
+          `).join("")}
+        </article>
+      `).join("") : '<div class="empty">Every step is done. No tools are needed for unfinished work.</div>';
+    }
+
+    function renderTimeline() {
+      const completed = allSteps()
+        .filter(({ step }) => step.status === "Done" && step.completedDate)
+        .sort((a, b) => b.step.completedDate.localeCompare(a.step.completedDate));
+      document.getElementById("timelineList").innerHTML = completed.length ? completed.map(({ phase, step }) => `
+        <article class="list-card">
+          <h3>${escapeHtml(step.completedDate)} - ${escapeHtml(step.title)}</h3>
+          <p>${escapeHtml(phase.title)}</p>
+          ${stepCostTotals(step).subtotal ? `<p>Cost: ${currency(stepCostTotals(step).subtotal)}</p>` : ""}
+          ${step.notes ? `<p>${escapeHtml(step.notes)}</p>` : ""}
+        </article>
+      `).join("") : '<div class="empty">Completed steps with dates will appear here.</div>';
+    }
+
+    function renderVehicleInfo() {
+      document.getElementById("vehicleInfo").innerHTML = `
+        <article class="list-card">
+          <h3>Known Vehicle Info</h3>
+          <div class="grid-two">
+            ${VEHICLE_FIELDS.map(([key, label]) => `
+              <label>${escapeHtml(label)}
+                ${key === "ownershipHistory" || key === "notes" || key === "cowlDataTag" ? `
+                  <textarea data-action="vehicle-${key}" placeholder="${escapeHtml(label)}" ${editDisabled()}>${escapeHtml(state.vehicleInfo[key] || "")}</textarea>
+                ` : `
+                  <input data-action="vehicle-${key}" value="${escapeHtml(state.vehicleInfo[key] || "")}" placeholder="${escapeHtml(label)}" ${editDisabled()} />
+                `}
+              </label>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderMilestones() {
+      document.getElementById("milestoneList").innerHTML = `
+        <article class="list-card">
+          <h3>Project Timeline Milestones</h3>
+          <div class="grid-two">
+            ${MILESTONE_FIELDS.map(([key, label]) => `
+              <label>${escapeHtml(label)}
+                <input type="date" data-action="milestone-${key}" value="${escapeHtml(state.milestones[key] || "")}" ${editDisabled()} />
+              </label>
+            `).join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSummary() {
+      const steps = allSteps();
+      const costs = projectCostTotals(!isEditorMode());
+      document.getElementById("printSummary").innerHTML = `
+        <article class="list-card">
+          <h3>Project Summary</h3>
+          <p>${escapeHtml(state.car)} | Updated ${new Date(state.updatedAt).toLocaleString()}</p>
+          <p>Progress: ${document.getElementById("overallPercent").textContent}${isEditorMode() ? ` | Total project cost: ${currency(costs.subtotal)} | Purchased: ${currency(costs.purchased)} | Planned: ${currency(costs.planned)}` : ""}</p>
+          <p>VIN: ${escapeHtml(state.vehicleInfo.vin || "Not entered")} | Mileage: ${escapeHtml(state.vehicleInfo.mileage || "Not entered")}</p>
+        </article>
+        <article class="list-card">
+          <h3>Milestones</h3>
+          ${MILESTONE_FIELDS.map(([key, label]) => `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(state.milestones[key] || "Not set")}</p>`).join("")}
+        </article>
+        ${state.phases.map((phase) => `
+          <article class="list-card">
+            <h3>${escapeHtml(phase.title)} - ${phaseProgress(phase)}%</h3>
+            <p>${escapeHtml(phase.goal)}</p>
+            <p><strong>Can continue:</strong> ${escapeHtml(phase.canContinue || "Not decided")}</p>
+            ${phase.steps.map((step) => `<p><strong>${escapeHtml(step.status)}</strong>: ${escapeHtml(step.title)} | ${escapeHtml(step.difficulty)} | ${escapeHtml(step.estimatedTime)}${step.completedDate ? ` (${escapeHtml(step.completedDate)})` : ""}${(isEditorMode() || step.publicNotes) && step.notes ? `<br>${escapeHtml(step.notes)}` : ""}${(isEditorMode() || step.publicCosts) && stepCostTotals(step).subtotal ? `<br>Cost: ${currency(stepCostTotals(step).subtotal)}` : ""}</p>`).join("")}
+          </article>
+        `).join("")}
+      `;
+    }
+
+    function render() {
+      renderAccessMode();
+      updateDashboard();
+      renderPhases();
+      renderGallery();
+      renderShopping();
+      renderVehicleInfo();
+      renderTimeline();
+      renderMilestones();
+      renderSummary();
+    }
+
+    function findStep(phaseId, stepId) {
+      const phase = state.phases.find((item) => item.id === phaseId);
+      const step = phase && phase.steps.find((item) => item.id === stepId);
+      return { phase, step };
+    }
+
+    function normalizeChecklist(items) {
+      return items.map((item) => typeof item === "string" ? { text: item, done: false } : item);
+    }
+
+    function saveField(card, action, value) {
+      const { phase, step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!phase || !step) return;
+      if (action === "status") {
+        step.status = value;
+        step.needsHelp = value === "Needs Help" ? true : step.needsHelp;
+        if (value === "Done" && !step.completedDate) step.completedDate = new Date().toISOString().slice(0, 10);
+      }
+      if (action === "completedDate") step.completedDate = value;
+      if (action === "cost") step.cost = value;
+      if (action === "hoursLogged") step.hoursLogged = value;
+      if (action === "difficulty") step.difficulty = value;
+      if (action === "estimatedTime") step.estimatedTime = value;
+      if (action === "confidence") step.confidence = value;
+      if (action === "needsHelp") step.needsHelp = value === "true";
+      if (["helpName", "helpWebsite", "helpPhone", "helpNotes"].includes(action)) {
+        step.professionalHelp = step.professionalHelp || { name: "", website: "", phone: "", notes: "" };
+        if (action === "helpName") step.professionalHelp.name = value;
+        if (action === "helpWebsite") step.professionalHelp.website = value;
+        if (action === "helpPhone") step.professionalHelp.phone = value;
+        if (action === "helpNotes") step.professionalHelp.notes = value;
+      }
+      if (action === "notes") step.notes = value;
+      if (action === "videoUrl") step.videoUrl = value;
+      saveState();
+    }
+
+    async function handlePhotos(card, files, need) {
+      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!step) return;
+      const readers = [...files].map((file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ name: file.name, need: photoNeedKey(need), dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }));
+      const photos = await Promise.all(readers);
+      step.photos.push(...photos);
+      step.photoChecks = step.photoChecks || {};
+      step.photoChecks[photoNeedKey(need)] = true;
+      saveState();
+    }
+
+    async function handleDamagePhotos(card, files, location) {
+      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!step) return;
+      const trimmedLocation = String(location || "").trim();
+      if (!trimmedLocation) {
+        alert("Add the scratch/dent/rust location first.");
+        return;
+      }
+      const readers = [...files].map((file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ name: file.name, location: trimmedLocation, dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }));
+      const photos = await Promise.all(readers);
+      step.damagePhotos = step.damagePhotos || [];
+      step.damagePhotos.push(...photos);
+      saveState();
+    }
+
+    function openStepModal(phaseId, stepId) {
+      const { phase, step } = findStep(phaseId, stepId);
+      const isNew = !step;
+      const targetStep = step || {
+        id: "",
+        title: "",
+        checklist: [],
+        tools: [],
+        parts: [],
+        warnings: [],
+        photosNeeded: [],
+        damagePhotos: [],
+        videoTerms: [],
+        difficulty: "Beginner",
+        estimatedTime: "",
+        stopConditions: [],
+        likelyOutcomes: likelyOutcomesFor("")
+      };
+      document.getElementById("modalTitle").textContent = isNew ? "Add Step" : "Edit Step";
+      document.getElementById("editPhaseId").value = phaseId || state.phases[0].id;
+      document.getElementById("editStepId").value = targetStep.id;
+      document.getElementById("editPhaseSelect").innerHTML = state.phases.map((item) => `<option value="${item.id}" ${item.id === (phase && phase.id) ? "selected" : ""}>${escapeHtml(item.title)}</option>`).join("");
+      document.getElementById("editDifficulty").innerHTML = DIFFICULTY_OPTIONS.map((option) => `<option value="${option}" ${option === targetStep.difficulty ? "selected" : ""}>${option}</option>`).join("");
+      document.getElementById("editTitle").value = targetStep.title;
+      document.getElementById("editEstimatedTime").value = targetStep.estimatedTime || "";
+      document.getElementById("editChecklist").value = targetStep.checklist.map((item) => item.text || item).join("\n");
+      document.getElementById("editTools").value = targetStep.tools.join(", ");
+      document.getElementById("editParts").value = targetStep.parts.join(", ");
+      document.getElementById("editWarnings").value = targetStep.warnings.join("\n");
+      document.getElementById("editStopConditions").value = (targetStep.stopConditions || []).join("\n");
+      document.getElementById("editOutcomes").value = Object.entries(targetStep.likelyOutcomes || likelyOutcomesFor(targetStep.title)).map(([label, text]) => `${label} | ${text}`).join("\n");
+      document.getElementById("editPhotos").value = targetStep.photosNeeded.join("\n");
+      document.getElementById("editVideos").value = (targetStep.additionalHelp || []).map((link) => `${link.label || ""} | ${link.url || ""}`).join("\n");
+      document.getElementById("deleteStep").style.display = isNew ? "none" : "inline-flex";
+      document.getElementById("stepModal").classList.add("active");
+    }
+
+    function closeStepModal() {
+      document.getElementById("stepModal").classList.remove("active");
+    }
+
+    function splitLines(value) {
+      return value.split("\n").map((item) => item.trim()).filter(Boolean);
+    }
+
+    function splitCommas(value) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+
+    function parseHelpLinks(value) {
+      return value.split("\n").map((line) => {
+        const [label, ...urlParts] = line.split("|");
+        const url = urlParts.join("|").trim();
+        return { label: (label || "").trim() || url, url };
+      }).filter((link) => link.url);
+    }
+
+    function parseOutcomes(value) {
+      const parsed = {};
+      value.split("\n").forEach((line) => {
+        const [label, ...textParts] = line.split("|");
+        const key = (label || "").trim();
+        const text = textParts.join("|").trim();
+        if (key && text) parsed[key] = text;
+      });
+      return Object.keys(parsed).length ? parsed : likelyOutcomesFor("");
+    }
+
+    document.addEventListener("change", (event) => {
+      const input = event.target;
+      if (!isEditorMode()) {
+        event.preventDefault();
+        input.checked = !input.checked;
+        return;
+      }
+      if (input.dataset.action === "globalToolOwned") {
+        setToolOwned(input.dataset.tool, input.checked);
+        saveState();
+        return;
+      }
+      if (input.dataset.action === "phaseCanContinue") {
+        const phase = state.phases.find((item) => item.id === input.dataset.phaseId);
+        if (phase) phase.canContinue = input.value;
+        saveState();
+        return;
+      }
+      if (input.dataset.action === "phasePartPurchased") {
+        const phase = state.phases.find((item) => item.id === input.dataset.phaseId);
+        if (phase && phase.partsLikelyNeeded[Number(input.dataset.index)]) phase.partsLikelyNeeded[Number(input.dataset.index)].purchased = input.checked;
+        saveState();
+        return;
+      }
+      const card = input.closest(".step-card");
+      if (!card || !input.dataset.action) return;
+      const action = input.dataset.action;
+      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!step) return;
+      if (action === "checklist") {
+        step.checklist = normalizeChecklist(step.checklist);
+        step.checklist[Number(input.dataset.index)].done = input.checked;
+        if (step.checklist.every((item) => item.done)) {
+          step.status = "Done";
+          step.completedDate = step.completedDate || new Date().toISOString().slice(0, 10);
+        } else if (step.status === "Done") {
+          step.status = "In Progress";
+        }
+        saveState();
+      } else if (action === "photoCheck") {
+        if (input.checked && !photosForNeed(step, input.dataset.photoNeed).length) {
+          input.checked = false;
+          input.closest(".photo-need-row").classList.add("choosing");
+          return;
+        }
+        step.photoChecks = step.photoChecks || {};
+        step.photoChecks[photoNeedKey(input.dataset.photoNeed)] = input.checked;
+        saveState();
+      } else if (action === "toolOwned") {
+        setToolOwned(input.dataset.tool, input.checked);
+        saveState();
+      } else if (action === "supplyOwned") {
+        setSupplyOwned(input.dataset.supply, input.checked);
+        saveState();
+      } else if (["publicNotes", "publicPhotos", "publicCosts"].includes(action)) {
+        step[action] = input.checked;
+        saveState();
+      } else if (action === "costPurchased") {
+        step.costItems = normalizeCostItems(step);
+        const item = step.costItems[Number(input.dataset.index)];
+        if (item) item.purchased = input.checked;
+        saveState();
+      } else if (action === "costCategory") {
+        step.costItems = normalizeCostItems(step);
+        const item = step.costItems[Number(input.dataset.index)];
+        if (item) item.category = input.value;
+        saveState();
+      } else if (action === "photos") {
+        handlePhotos(card, input.files, input.dataset.photoNeed);
+      } else if (action === "damagePhotos") {
+        const form = input.closest(".damage-form");
+        const locationInput = form && form.querySelector('[data-action="damageLocation"]');
+        handleDamagePhotos(card, input.files, locationInput ? locationInput.value : "");
+      } else {
+        saveField(card, action, input.value);
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      const input = event.target;
+      if (!isEditorMode()) return;
+      const card = input.closest(".step-card");
+      if (input.dataset.action && input.dataset.action.startsWith("phasePart")) {
+        const phase = state.phases.find((item) => item.id === input.dataset.phaseId);
+        const part = phase && phase.partsLikelyNeeded[Number(input.dataset.index)];
+        if (!part) return;
+        if (input.dataset.action === "phasePartNumber") part.partNumber = input.value;
+        if (input.dataset.action === "phasePartVendor") part.vendor = input.value;
+        if (input.dataset.action === "phasePartCost") part.cost = input.value;
+        if (input.dataset.action === "phasePartNotes") part.notes = input.value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        updateDashboard();
+        renderSummary();
+        return;
+      }
+      if (input.dataset.action && input.dataset.action.startsWith("vehicle-")) {
+        state.vehicleInfo[input.dataset.action.replace("vehicle-", "")] = input.value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderSummary();
+        return;
+      }
+      if (input.dataset.action && input.dataset.action.startsWith("milestone-")) {
+        state.milestones[input.dataset.action.replace("milestone-", "")] = input.value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        renderSummary();
+        return;
+      }
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes"].includes(input.dataset.action)) return;
+      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!step) return;
+      if (input.dataset.action && input.dataset.action.startsWith("cost")) {
+        step.costItems = normalizeCostItems(step);
+        const item = step.costItems[Number(input.dataset.index)];
+        if (!item) return;
+        if (input.dataset.action === "costName") item.name = input.value;
+        if (input.dataset.action === "costAmount") item.amount = input.value;
+        if (input.dataset.action === "costQuantity") item.quantity = input.value;
+        if (input.dataset.action === "costNotes") item.notes = input.value;
+      } else if (["helpName", "helpWebsite", "helpPhone", "helpNotes"].includes(input.dataset.action)) {
+        step.professionalHelp = step.professionalHelp || { name: "", website: "", phone: "", notes: "" };
+        if (input.dataset.action === "helpName") step.professionalHelp.name = input.value;
+        if (input.dataset.action === "helpWebsite") step.professionalHelp.website = input.value;
+        if (input.dataset.action === "helpPhone") step.professionalHelp.phone = input.value;
+        if (input.dataset.action === "helpNotes") step.professionalHelp.notes = input.value;
+      } else {
+        step[input.dataset.action] = input.value;
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateDashboard();
+      renderSummary();
+    });
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      const tabTarget = button.dataset.view;
+      if (tabTarget) {
+        document.querySelectorAll(".tabs button").forEach((tab) => tab.classList.toggle("active", tab === button));
+        document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
+        return;
+      }
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "printTop" || button.id === "generateShopping" || button.id === "expandAll" || button.id === "collapseAll" || button.id === "addStepTop" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+        return;
+      }
+      if (!isEditorMode()) {
+        event.preventDefault();
+        requireEditor();
+        return;
+      }
+      const card = button.closest(".step-card");
+      if (card && button.dataset.action) {
+      const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
+      if (!step) return;
+        if (button.dataset.action === "addCostItem") {
+          step.costItems = normalizeCostItems(step);
+          step.costItems.push({
+            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+            name: "",
+            category: "Other",
+            amount: "",
+            quantity: "1",
+            purchased: false,
+            notes: ""
+          });
+          saveState();
+        }
+        if (button.dataset.action === "removeCostItem") {
+          step.costItems = normalizeCostItems(step);
+          step.costItems.splice(Number(button.dataset.index), 1);
+          saveState();
+        }
+        if (button.dataset.action === "removePhoto") {
+          const removed = step.photos[Number(button.dataset.index)];
+          step.photos.splice(Number(button.dataset.index), 1);
+          if (removed && removed.need && !photosForNeed(step, removed.need).length) {
+            step.photoChecks = step.photoChecks || {};
+            step.photoChecks[photoNeedKey(removed.need)] = false;
+          }
+          saveState();
+        }
+        if (button.dataset.action === "showDamageForm") {
+          const form = card.querySelector(".damage-form");
+          if (form) {
+            form.classList.add("active");
+            const input = form.querySelector('[data-action="damageLocation"]');
+            if (input) input.focus();
+          }
+        }
+        if (button.dataset.action === "removeDamagePhoto") {
+          step.damagePhotos = step.damagePhotos || [];
+          step.damagePhotos.splice(Number(button.dataset.index), 1);
+          saveState();
+        }
+        if (button.dataset.action === "addAdditionalHelp") {
+          const labelInput = card.querySelector('[data-action="newHelpLabel"]');
+          const urlInput = card.querySelector('[data-action="newHelpUrl"]');
+          const url = urlInput ? urlInput.value.trim() : "";
+          if (!url) {
+            alert("Add a hyperlink first.");
+            return;
+          }
+          step.additionalHelp = step.additionalHelp || [];
+          step.additionalHelp.push({ label: (labelInput && labelInput.value.trim()) || url, url });
+          if (labelInput) labelInput.value = "";
+          if (urlInput) urlInput.value = "";
+          saveState();
+        }
+        if (button.dataset.action === "removeAdditionalHelp") {
+          step.additionalHelp = step.additionalHelp || [];
+          step.additionalHelp.splice(Number(button.dataset.index), 1);
+          saveState();
+        }
+        if (button.dataset.action === "markDone") {
+          step.status = "Done";
+          step.completedDate = new Date().toISOString().slice(0, 10);
+          step.checklist = normalizeChecklist(step.checklist).map((item) => ({ ...item, done: true }));
+          saveState();
+        }
+        if (button.dataset.action === "editStep") openStepModal(card.dataset.phaseId, card.dataset.stepId);
+      }
+    });
+
+    document.getElementById("addStepTop").addEventListener("click", () => {
+      if (requireEditor()) openStepModal(state.phases[0].id, "");
+    });
+    document.getElementById("addStepToolbar").addEventListener("click", () => {
+      if (requireEditor()) openStepModal(state.phases[0].id, "");
+    });
+    document.getElementById("loginButton").addEventListener("click", () => {
+      const password = prompt("Enter editor password");
+      if (password === ADMIN_PASSWORD) {
+        sessionStorage.setItem(EDITOR_SESSION_KEY, "true");
+        render();
+      } else if (password !== null) {
+        alert("Incorrect password.");
+      }
+    });
+    document.getElementById("logoutButton").addEventListener("click", () => {
+      sessionStorage.removeItem(EDITOR_SESSION_KEY);
+      document.querySelector('[data-view="phasesView"]').click();
+      render();
+    });
+    document.getElementById("addPhaseToolbar").addEventListener("click", () => {
+      if (!requireEditor()) return;
+      const title = prompt("Phase title", "PHASE 15 - Custom Phase");
+      if (!title) return;
+      const goal = prompt("Phase goal", "Describe the goal for this phase.") || "";
+      state.phases.push({
+        id: phaseIdFromTitle(title),
+        title,
+        goal,
+        doNotDoYet: "Review safety and prerequisites before starting this phase.",
+        canContinue: "",
+        partsLikelyNeeded: [],
+        steps: []
+      });
+      saveState();
+    });
+    document.getElementById("printTop").addEventListener("click", () => window.print());
+    document.getElementById("generateShopping").addEventListener("click", () => document.querySelector('[data-view="shoppingView"]').click());
+    document.getElementById("expandAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = true));
+    document.getElementById("collapseAll").addEventListener("click", () => document.querySelectorAll("details").forEach((details) => details.open = false));
+    document.getElementById("cancelEdit").addEventListener("click", closeStepModal);
+    document.getElementById("stepModal").addEventListener("click", (event) => {
+      if (event.target.id === "stepModal") closeStepModal();
+    });
+
+    document.getElementById("stepForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const oldPhaseId = document.getElementById("editPhaseId").value;
+      const newPhaseId = document.getElementById("editPhaseSelect").value;
+      const stepId = document.getElementById("editStepId").value;
+      const existing = findStep(oldPhaseId, stepId);
+      const targetPhase = state.phases.find((phase) => phase.id === newPhaseId);
+      const saved = existing.step || {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        status: "Not Started",
+        needsHelp: false,
+        professionalHelp: { name: "", website: "", phone: "", notes: "" },
+        completedDate: "",
+        photos: [],
+        photoChecks: {},
+        notes: "",
+        cost: "",
+        costItems: [],
+        publicNotes: false,
+        publicPhotos: false,
+        publicCosts: false,
+        difficulty: "Beginner",
+        estimatedTime: "",
+        hoursLogged: "",
+        confidence: "Confident",
+        stopConditions: [],
+        likelyOutcomes: likelyOutcomesFor(""),
+        videoUrl: "",
+        additionalHelp: []
+      };
+      saved.title = document.getElementById("editTitle").value.trim();
+      saved.difficulty = document.getElementById("editDifficulty").value;
+      saved.estimatedTime = document.getElementById("editEstimatedTime").value.trim();
+      saved.checklist = splitLines(document.getElementById("editChecklist").value).map((text) => ({ text, done: false }));
+      saved.tools = splitCommas(document.getElementById("editTools").value);
+      saved.parts = splitCommas(document.getElementById("editParts").value);
+      saved.warnings = splitLines(document.getElementById("editWarnings").value);
+      saved.stopConditions = splitLines(document.getElementById("editStopConditions").value);
+      saved.likelyOutcomes = parseOutcomes(document.getElementById("editOutcomes").value);
+      saved.photosNeeded = splitLines(document.getElementById("editPhotos").value);
+      saved.videoTerms = [];
+      saved.videoUrl = "";
+      saved.additionalHelp = parseHelpLinks(document.getElementById("editVideos").value);
+      if (existing.phase && existing.phase.id !== newPhaseId) {
+        existing.phase.steps = existing.phase.steps.filter((step) => step.id !== stepId);
+        targetPhase.steps.push(saved);
+      } else if (!existing.step) {
+        targetPhase.steps.push(saved);
+      }
+      closeStepModal();
+      saveState();
+    });
+
+    document.getElementById("deleteStep").addEventListener("click", () => {
+      const phaseId = document.getElementById("editPhaseId").value;
+      const stepId = document.getElementById("editStepId").value;
+      const { phase } = findStep(phaseId, stepId);
+      if (!phase || !confirm("Delete this step?")) return;
+      phase.steps = phase.steps.filter((step) => step.id !== stepId);
+      closeStepModal();
+      saveState();
+    });
+
+    document.getElementById("copyShopping").addEventListener("click", async () => {
+      const text = shoppingItems()
+        .filter((entry) => !isToolOwned(entry.item))
+        .map((entry) => `- ${entry.item} (${entry.refs.length} unfinished steps)`)
+        .join("\n");
+      await navigator.clipboard.writeText(text || "All listed tools are checked off.");
+      alert("Missing tools copied.");
+    });
+
+    document.getElementById("exportJson").addEventListener("click", () => {
+      if (!requireEditor()) return;
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `chevelle-revival-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("importJsonButton").addEventListener("click", () => {
+      if (requireEditor()) document.getElementById("importJson").click();
+    });
+    document.getElementById("importJson").addEventListener("change", (event) => {
+      if (!requireEditor()) return;
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = normalizeState(JSON.parse(reader.result));
+          if (!Array.isArray(imported.phases)) throw new Error("Missing phases array");
+          state = imported;
+          saveState();
+          alert("Backup imported.");
+        } catch (error) {
+          alert("That JSON backup could not be imported.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById("resetSample").addEventListener("click", () => {
+      if (!requireEditor()) return;
+      if (!confirm("Reset to sample data? This replaces local tracker data.")) return;
+      state = sampleData();
+      saveState();
+    });
+
+    state.phases.forEach((phase) => phase.steps.forEach((step) => step.checklist = normalizeChecklist(step.checklist)));
+    saveState();
+  </script>
+</body>
+</html>
