@@ -985,6 +985,16 @@
       text-decoration: none;
     }
 
+    .help-phone {
+      display: inline-block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff8eb;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
     .empty {
       padding: 18px;
       border: 1px dashed var(--line);
@@ -2646,6 +2656,11 @@
           step.videoUrl = step.videoUrl || "";
           step.additionalHelp = step.additionalHelp || [];
           step.additionalHelp = step.additionalHelp.filter((link) => !isDefaultHelpLink(link));
+          step.additionalHelp.forEach((link) => {
+            link.label = link.label || link.url || "Help link";
+            link.url = link.url || "";
+            link.phone = link.phone || "";
+          });
           step.notes = step.notes || "";
           step.cost = step.cost || "";
           step.costItems = normalizeCostItems(step);
@@ -3976,21 +3991,25 @@
               <div class="help-links">
                 ${(step.additionalHelp || []).map((link, index) => `
                   <div class="list-card">
-                    <a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>
+                    ${link.url ? `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>` : `<strong>${escapeHtml(link.label || "Help contact")}</strong>`}
+                    ${link.phone ? `<a class="help-phone" href="${escapeHtml(phoneHref(link.phone))}">${escapeHtml(link.phone)}</a>` : ""}
                     ${editing ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
               </div>
               ${editing ? `
-                <div class="grid-two">
+                <div class="field-grid">
                   <label>Label
                     <input data-action="newHelpLabel" placeholder="Example: Chevelle brake rebuild guide" />
                   </label>
                   <label>Hyperlink
-                    <input data-action="newHelpUrl" type="url" placeholder="https://..." />
+                    <input data-action="newHelpUrl" type="text" inputmode="url" placeholder="https://..." />
+                  </label>
+                  <label>Phone number
+                    <input data-action="newHelpPhone" type="tel" inputmode="tel" placeholder="Optional phone number" />
                   </label>
                 </div>
-                <button type="button" class="secondary" data-action="addAdditionalHelp">Add help link</button>
+                <button type="button" class="secondary" data-action="addAdditionalHelp">Add help</button>
               ` : ""}
             </details>
 
@@ -4614,6 +4633,15 @@
       return `https://${trimmed}`;
     }
 
+    function normalizePhone(phone) {
+      return String(phone || "").trim();
+    }
+
+    function phoneHref(phone) {
+      const cleaned = normalizePhone(phone).replace(/[^\d+]/g, "");
+      return cleaned ? `tel:${cleaned}` : "";
+    }
+
     function parseOutcomes(value) {
       const parsed = {};
       value.split("\n").forEach((line) => {
@@ -5042,17 +5070,20 @@
         if (button.dataset.action === "addAdditionalHelp") {
           const labelInput = card.querySelector('[data-action="newHelpLabel"]');
           const urlInput = card.querySelector('[data-action="newHelpUrl"]');
+          const phoneInput = card.querySelector('[data-action="newHelpPhone"]');
           const url = normalizeUrl(urlInput ? urlInput.value : "");
-          if (!url) {
-            alert("Add a hyperlink first.");
+          const phone = normalizePhone(phoneInput ? phoneInput.value : "");
+          if (!url && !phone) {
+            alert("Add a hyperlink or phone number first.");
             return;
           }
-          const label = (labelInput && labelInput.value.trim()) || url;
+          const label = (labelInput && labelInput.value.trim()) || url || phone;
           step.additionalHelp = step.additionalHelp || [];
-          step.additionalHelp.push({ label, url });
-          recordHistory("Added help link", `${step.title}: ${label}`);
+          step.additionalHelp.push({ label, url, phone });
+          recordHistory("Added help", `${step.title}: ${label}`);
           if (labelInput) labelInput.value = "";
           if (urlInput) urlInput.value = "";
+          if (phoneInput) phoneInput.value = "";
           saveState();
         }
         if (button.dataset.action === "editAdditionalHelp") {
@@ -5062,10 +5093,12 @@
           const label = prompt("Help link label", link.label || "");
           if (label === null) return;
           const url = normalizeUrl(prompt("Help link URL", link.url || ""));
-          if (!url) return;
-          link.label = label.trim() || url.trim();
+          const phone = normalizePhone(prompt("Help phone number", link.phone || ""));
+          if (!url && !phone) return;
+          link.label = label.trim() || url.trim() || phone;
           link.url = url.trim();
-          recordHistory("Edited help link", `${step.title}: ${link.label}`);
+          link.phone = phone;
+          recordHistory("Edited help", `${step.title}: ${link.label}`);
           saveState();
         }
         if (button.dataset.action === "removeAdditionalHelp") {
