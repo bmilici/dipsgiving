@@ -4217,6 +4217,7 @@
       step.photoChecks[photoNeedKey(need)] = true;
       recordHistory(`Added ${photos.length} photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${caption}`);
       saveState();
+      saveStateToCloud();
     }
 
     async function handleDamagePhotos(card, files, location) {
@@ -4238,6 +4239,7 @@
       step.damagePhotos.push(...photos);
       recordHistory(`Added damage photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${trimmedLocation}`);
       saveState();
+      saveStateToCloud();
     }
 
     async function handleUpgradePhotos(card, files, key) {
@@ -4259,6 +4261,7 @@
       upgrade[key].push(...photos);
       recordHistory(`Added upgrade photo${photos.length === 1 ? "" : "s"}`, upgrade.name);
       saveState();
+      saveStateToCloud();
     }
 
     function openStepModal(phaseId, stepId) {
