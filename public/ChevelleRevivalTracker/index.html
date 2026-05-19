@@ -1159,6 +1159,10 @@
     </form>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-storage-compat.js"></script>
   <script>
     const STORAGE_KEY = "chevelleRevivalTracker.v1";
     const EDITOR_SESSION_KEY = "chevelleRevivalTracker.editorUnlocked";
@@ -1173,6 +1177,17 @@
     const TOOL_RESOURCE_SCHEMA_VERSION = 3;
     const PHOTO_SCHEMA_VERSION = 8;
     const PHASE_SCHEMA_VERSION = 13;
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCwvSlbD8CT8723HwGMaSoUrknxLJB5xiU",
+      authDomain: "dipsgiving.firebaseapp.com",
+      projectId: "dipsgiving",
+      storageBucket: "dipsgiving.appspot.com",
+      messagingSenderId: "434787110254",
+      appId: "1:434787110254:web:9de56ea4948d2d3a06fcf",
+      measurementId: "G-NYINL4SKN"
+    };
+    const CLOUD_PROJECT_COLLECTION = "chevelleProjects";
+    const CLOUD_PROJECT_ID = "main";
     const PHOTO_DOC_STEP_TITLE = "Complete before-transport photo documentation.";
     const DAMAGE_STEP_TITLE = "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.";
     const TITLE_TRANSFER_STEP_TITLE = "Transfer title into my name.";
@@ -2392,6 +2407,7 @@
     let state = loadState();
     const editingStepIds = new Set();
     const editingUpgradeIds = new Set();
+    let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null };
 
     function loadState() {
       try {
@@ -2712,6 +2728,129 @@
       state.updatedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       render();
+      queueCloudSave();
+    }
+
+    function cloudDocRef() {
+      return cloud.db.collection(CLOUD_PROJECT_COLLECTION).doc(CLOUD_PROJECT_ID);
+    }
+
+    function initFirebaseCloud() {
+      if (!window.firebase || cloud.ready) return;
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        cloud = {
+          ...cloud,
+          ready: true,
+          db: firebase.firestore(),
+          storage: firebase.storage(),
+          auth: firebase.auth()
+        };
+        loadStateFromCloud();
+      } catch (error) {
+        console.warn("Firebase could not initialize", error);
+      }
+    }
+
+    async function loadStateFromCloud() {
+      if (!cloud.ready) return;
+      try {
+        const snapshot = await cloudDocRef().get();
+        const remote = snapshot.exists && snapshot.data() && snapshot.data().state;
+        if (!remote) return;
+        const remoteState = normalizeState(remote);
+        const remoteTime = Date.parse(remoteState.updatedAt || "");
+        const localTime = Date.parse(state.updatedAt || "");
+        if (!localTime || remoteTime >= localTime) {
+          state = remoteState;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          render();
+        }
+      } catch (error) {
+        console.warn("Firebase project load failed", error);
+      }
+    }
+
+    async function ensureFirebaseEditorAuth() {
+      initFirebaseCloud();
+      if (!cloud.ready || !cloud.auth) return false;
+      if (cloud.auth.currentUser) return true;
+      try {
+        await cloud.auth.signInAnonymously();
+        return true;
+      } catch (error) {
+        console.warn("Firebase editor sign-in failed", error);
+        return false;
+      }
+    }
+
+    function queueCloudSave() {
+      if (!isEditorMode() || !cloud.ready) return;
+      clearTimeout(cloud.timer);
+      cloud.timer = setTimeout(() => saveStateToCloud(), 700);
+    }
+
+    function allPhotoBuckets(projectState = state) {
+      const buckets = [];
+      (projectState.phases || []).forEach((phase) => {
+        (phase.steps || []).forEach((step) => {
+          buckets.push(step.photos || [], step.damagePhotos || []);
+        });
+      });
+      (projectState.upgrades || []).forEach((upgrade) => {
+        buckets.push(upgrade.originalPartPhotos || [], upgrade.receiptPhotos || [], upgrade.installPhotos || []);
+      });
+      return buckets;
+    }
+
+    function sanitizePathPart(value) {
+      return String(value || "photo").replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "photo";
+    }
+
+    async function uploadPhotoToCloud(photo, bucketName) {
+      if (!photo || !photo.dataUrl || photo.url || !cloud.storage) return false;
+      const response = await fetch(photo.dataUrl);
+      const blob = await response.blob();
+      const name = sanitizePathPart(photo.name || `${Date.now()}.jpg`);
+      const path = `chevelle-revival-tracker/${CLOUD_PROJECT_ID}/${bucketName}/${Date.now()}-${Math.random().toString(36).slice(2)}-${name}`;
+      const ref = cloud.storage.ref(path);
+      await ref.put(blob, { contentType: blob.type || "image/jpeg" });
+      photo.url = await ref.getDownloadURL();
+      photo.storagePath = path;
+      delete photo.dataUrl;
+      return true;
+    }
+
+    async function uploadLocalPhotosToCloud() {
+      let changed = false;
+      const buckets = allPhotoBuckets(state);
+      for (const bucket of buckets) {
+        for (const photo of bucket) {
+          if (photo && photo.dataUrl && !photo.url) {
+            changed = (await uploadPhotoToCloud(photo, "photos")) || changed;
+          }
+        }
+      }
+      if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return changed;
+    }
+
+    async function saveStateToCloud() {
+      if (!cloud.ready || cloud.saving || !isEditorMode()) return;
+      cloud.saving = true;
+      try {
+        const signedIn = await ensureFirebaseEditorAuth();
+        if (!signedIn) return;
+        await uploadLocalPhotosToCloud();
+        await cloudDocRef().set({
+          state,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        console.warn("Firebase project save failed", error);
+      } finally {
+        cloud.saving = false;
+      }
     }
 
     function recordHistory(message, detail = "") {
@@ -2982,6 +3121,10 @@
       return photo.damageFound ? `${base} - Damage found${photo.damageNotes ? `: ${photo.damageNotes}` : ""}` : base;
     }
 
+    function photoSrc(photo) {
+      return photo && (photo.url || photo.dataUrl) || "";
+    }
+
     function photoCategory(need) {
       const text = String(need || "").toLowerCase();
       if (text.includes("before")) return "Before Transport";
@@ -3036,7 +3179,7 @@
           <div class="photo-grid">
             ${photosForNeed(step, need).map(({ photo, index }) => `
               <figure class="photo-tile">
-                <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || need)}" />
+                <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || need)}" />
                 <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, need))}</figcaption>
                 ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
               </figure>
@@ -3068,7 +3211,7 @@
         <div class="photo-grid">
           ${(step.damagePhotos || []).map((photo, index) => `
             <figure class="photo-tile">
-              <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
+              <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
               <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               ${isStepEditing(step) ? `<button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : ""}
             </figure>
@@ -3084,7 +3227,7 @@
           <div class="photo-grid">
             ${photos.map(({ photo }) => `
               <figure class="photo-tile">
-                <img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
+                <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
                 <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               </figure>
             `).join("")}
@@ -3108,7 +3251,7 @@
             <div class="photo-grid">
               ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => `
                 <figure class="photo-tile">
-                  <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" />
+                  <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || step.title)}" />
                   <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, step.title))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
                   ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
                 </figure>
@@ -3476,13 +3619,13 @@
             <div class="comparison-column">
               <h3>Before Transport</h3>
               <div class="photo-grid">
-                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Before"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
+                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Before"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
               </div>
             </div>
             <div class="comparison-column">
               <h3>After Transport</h3>
               <div class="photo-grid">
-                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "After"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
+                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "After"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
               </div>
             </div>
           </div>
@@ -3492,8 +3635,8 @@
         <article class="list-card">
           <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
           <div class="photo-grid">
-            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
-            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photo.dataUrl}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
           </div>
         </article>
       `).join("") : '<div class="empty">No public photos yet.</div>';
@@ -3637,7 +3780,7 @@
         <div class="photo-grid">
           ${photos.map((photo, index) => `
             <figure class="photo-tile">
-              <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || "Upgrade photo")}" />
+              <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || "Upgrade photo")}" />
               <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.name || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
               ${editingUpgradeIds.has(upgrade.id) ? `<button type="button" aria-label="Remove photo" data-action="removeUpgradePhoto" data-photo-key="${key}" data-index="${index}">x</button>` : ""}
             </figure>
@@ -4479,10 +4622,12 @@
       recordHistory("Added upgrade", upgrade.name);
       saveState();
     });
-    document.getElementById("loginButton").addEventListener("click", () => {
+    document.getElementById("loginButton").addEventListener("click", async () => {
       const password = prompt("Enter editor password");
       if (password === ADMIN_PASSWORD) {
         sessionStorage.setItem(EDITOR_SESSION_KEY, "true");
+        await ensureFirebaseEditorAuth();
+        queueCloudSave();
         render();
       } else if (password !== null) {
         alert("Incorrect password.");
@@ -4630,7 +4775,9 @@
     });
 
     state.phases.forEach((phase) => phase.steps.forEach((step) => step.checklist = normalizeChecklist(step.checklist)));
-    saveState();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    render();
+    initFirebaseCloud();
   </script>
 </body>
 </html>

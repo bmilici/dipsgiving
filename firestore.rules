@@ -103,6 +103,13 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /chevelleProjects/{projectId} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(["state", "updatedAt"]);
+      allow delete: if false;
+    }
+
     match /invitationList/{inviteeId} {
       allow read: if signedIn();
       allow create, update: if signedIn()
