@@ -830,6 +830,12 @@
       gap: 10px;
     }
 
+    .photo-card {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
     .photo-tile {
       position: relative;
       overflow: hidden;
@@ -878,6 +884,25 @@
       padding: 0;
       border-radius: 8px;
       background: rgba(127,33,30,0.92);
+    }
+
+    .photo-meta {
+      display: grid;
+      gap: 7px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+    }
+
+    .photo-meta label {
+      margin: 0;
+      font-size: 0.74rem;
+    }
+
+    .photo-meta input[type="text"] {
+      min-height: 38px;
+      padding: 8px;
     }
 
     .help-links {
@@ -2487,6 +2512,7 @@
     const editingUpgradeIds = new Set();
     const openPhaseIds = new Set();
     const openStepIds = new Set();
+    let isRendering = false;
     let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null, unsubscribe: null };
 
     function loadState() {
@@ -2567,11 +2593,13 @@
             photo.category = photo.category || uploadPhotoCategory(phase, step, photo.need || step.title);
             photo.caption = photo.caption || photo.need || "";
             photo.addedAt = photo.addedAt || "";
+            if (typeof photo.public !== "boolean") photo.public = Boolean(step.publicPhotos);
           });
           step.damagePhotos.forEach((photo) => {
             photo.category = photo.category || "Damage";
             photo.caption = photo.caption || photo.location || "";
             photo.addedAt = photo.addedAt || "";
+            if (typeof photo.public !== "boolean") photo.public = Boolean(step.publicPhotos);
           });
           step.photos.forEach((photo) => {
             if (photo.need) step.photoChecks[photoNeedKey(photo.need)] = true;
@@ -3195,7 +3223,12 @@
     }
 
     function stepPublicPhotos(step) {
-      if (!step.publicPhotos && !isEditorMode()) return [];
+      if (!isEditorMode()) {
+        return [
+          ...(step.photos || []).map((photo, index) => ({ photo, index, damage: false })),
+          ...(step.damagePhotos || []).map((photo, index) => ({ photo, index, damage: true }))
+        ].filter(({ photo }) => photo.public === true);
+      }
       return [
         ...(step.photos || []).map((photo, index) => ({ photo, index, damage: false })),
         ...(step.damagePhotos || []).map((photo, index) => ({ photo, index, damage: true }))
@@ -3244,18 +3277,36 @@
       return photo && (photo.url || photo.dataUrl) || "";
     }
 
-    function photoTileTemplate(photo, fallback = "Photo", removeHtml = "") {
+    function photoControlsTemplate(photo, bucket, index) {
+      if (!isEditorMode()) return "";
+      return `
+        <div class="photo-meta">
+          <label>Caption / comment
+            <input type="text" data-action="photoCaption" data-photo-bucket="${bucket}" data-index="${index}" value="${escapeHtml(photo.caption || "")}" placeholder="Add a note for this photo" />
+          </label>
+          <label class="tool-row">
+            <input type="checkbox" data-action="photoPublic" data-photo-bucket="${bucket}" data-index="${index}" ${photo.public ? "checked" : ""} />
+            <span>Show this photo publicly</span>
+          </label>
+        </div>
+      `;
+    }
+
+    function photoTileTemplate(photo, fallback = "Photo", removeHtml = "", metaHtml = "") {
       const src = photoSrc(photo);
       if (!src) return "";
       const caption = photoCaptionText(photo, fallback);
       const datedCaption = `${caption}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}`;
       return `
-        <figure class="photo-tile">
-          <img src="${escapeHtml(src)}" alt="${escapeHtml(photo.name || photo.location || fallback)}" />
-          <button type="button" class="photo-open" data-action="openPhoto" data-photo-src="${escapeHtml(src)}" data-photo-caption="${escapeHtml(datedCaption)}" aria-label="Open photo"></button>
-          <figcaption class="photo-caption">${escapeHtml(datedCaption)}</figcaption>
-          ${removeHtml}
-        </figure>
+        <div class="photo-card">
+          <figure class="photo-tile">
+            <img src="${escapeHtml(src)}" alt="${escapeHtml(photo.name || photo.location || fallback)}" />
+            <button type="button" class="photo-open" data-action="openPhoto" data-photo-src="${escapeHtml(src)}" data-photo-caption="${escapeHtml(datedCaption)}" aria-label="Open photo"></button>
+            <figcaption class="photo-caption">${escapeHtml(datedCaption)}</figcaption>
+            ${removeHtml}
+          </figure>
+          ${metaHtml}
+        </div>
       `;
     }
 
@@ -3331,7 +3382,12 @@
             </div>
           </div>
           <div class="photo-grid">
-            ${photosForNeed(step, need).map(({ photo, index }) => photoTileTemplate(photo, need, isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "")).join("")}
+            ${photosForNeed(step, need).map(({ photo, index }) => photoTileTemplate(
+              photo,
+              need,
+              isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "",
+              photoControlsTemplate(photo, "photos", index)
+            )).join("")}
           </div>
         </div>
       `;
@@ -3357,7 +3413,12 @@
           </div>
         </div>
         <div class="photo-grid">
-          ${(step.damagePhotos || []).map((photo, index) => photoTileTemplate(photo, "Damage photo", isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : "")).join("")}
+          ${(step.damagePhotos || []).map((photo, index) => photoTileTemplate(
+            photo,
+            "Damage photo",
+            isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : "",
+            photoControlsTemplate(photo, "damagePhotos", index)
+          )).join("")}
         </div>
       `;
     }
@@ -3386,7 +3447,12 @@
           <div class="photo-need-row">
             <strong>Other uploaded photos</strong>
             <div class="photo-grid">
-              ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => photoTileTemplate(photo, step.title, isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "")).join("")}
+              ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => photoTileTemplate(
+                photo,
+                step.title,
+                isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "",
+                photoControlsTemplate(photo, "photos", index)
+              )).join("")}
             </div>
           </div>
         ` : ""}
@@ -3673,7 +3739,7 @@
               ${editor ? `
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicPhotos" ${step.publicPhotos ? "checked" : ""} />
-                  <span>Show uploaded photos publicly</span>
+                  <span>Make new photos public by default</span>
                 </label>
               ` : ""}
               ${editing && !(step.photoSections && step.photoSections.length) ? `<button type="button" class="secondary" data-action="addListItem" data-list="photosNeeded">Add photo requirement</button>` : ""}
@@ -3745,8 +3811,8 @@
       const items = allSteps().map(({ phase, step }) => ({
         phase,
         step,
-        photos: isEditorMode() || step.publicPhotos ? (step.photos || []) : [],
-        damagePhotos: isEditorMode() || step.publicPhotos ? (step.damagePhotos || []) : []
+        photos: isEditorMode() ? (step.photos || []) : (step.photos || []).filter((photo) => photo.public === true),
+        damagePhotos: isEditorMode() ? (step.damagePhotos || []) : (step.damagePhotos || []).filter((photo) => photo.public === true)
       })).filter((item) => item.photos.length || item.damagePhotos.length);
       const allPublicPhotos = items.flatMap(({ phase, step, photos, damagePhotos }) => [
         ...photos.map((photo) => ({ phase, step, photo })),
@@ -3777,8 +3843,8 @@
         <article class="list-card">
           <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
           <div class="photo-grid">
-            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => photoTileTemplate(photo, photo.need || step.title || "Photo")).join("") : ""}
-            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => photoTileTemplate(photo, "Damage photo")).join("") : ""}
+            ${step.photos.map((photo) => photoTileTemplate(photo, photo.need || step.title || "Photo")).join("")}
+            ${(step.damagePhotos || []).map((photo) => photoTileTemplate(photo, "Damage photo")).join("")}
           </div>
         </article>
       `).join("") : '<div class="empty">No public photos yet.</div>';
@@ -4152,6 +4218,7 @@
     }
 
     function render() {
+      isRendering = true;
       renderAccessMode();
       updateDashboard();
       renderPhases();
@@ -4162,6 +4229,9 @@
       renderTimeline();
       renderMilestones();
       renderSummary();
+      setTimeout(() => {
+        isRendering = false;
+      }, 0);
     }
 
     function findStep(phaseId, stepId) {
@@ -4220,6 +4290,7 @@
           need: photoNeedKey(need),
           category,
           caption,
+          public: Boolean(step.publicPhotos),
           damageFound: damageEntry ? Boolean(damageEntry.found) : false,
           damageNotes: damageEntry ? damageEntry.notes || "" : "",
           dataUrl: reader.result,
@@ -4247,7 +4318,7 @@
       }
       const readers = [...files].map((file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve({ name: file.name, location: trimmedLocation, category: "Damage", caption: trimmedLocation, dataUrl: reader.result, addedAt: new Date().toISOString() });
+        reader.onload = () => resolve({ name: file.name, location: trimmedLocation, category: "Damage", caption: trimmedLocation, public: Boolean(step.publicPhotos), dataUrl: reader.result, addedAt: new Date().toISOString() });
         reader.onerror = reject;
         reader.readAsDataURL(file);
       }));
@@ -4453,6 +4524,11 @@
       } else if (action === "supplyOwned") {
         setSupplyOwned(input.dataset.supply, input.checked);
         saveState();
+      } else if (action === "photoPublic") {
+        const bucket = input.dataset.photoBucket === "damagePhotos" ? step.damagePhotos : step.photos;
+        const photo = bucket && bucket[Number(input.dataset.index)];
+        if (photo) photo.public = input.checked;
+        saveState();
       } else if (["publicNotes", "publicPhotos", "publicCosts"].includes(action)) {
         step[action] = input.checked;
         saveState();
@@ -4518,7 +4594,7 @@
         renderSummary();
         return;
       }
-      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes"].includes(input.dataset.action)) return;
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
       if (input.dataset.action && input.dataset.action.startsWith("cost")) {
@@ -4538,6 +4614,10 @@
       } else if (input.dataset.action === "photoDamageNotes") {
         const damageEntry = transportDamageEntry(step, input.dataset.photoNeed);
         damageEntry.notes = input.value;
+      } else if (input.dataset.action === "photoCaption") {
+        const bucket = input.dataset.photoBucket === "damagePhotos" ? step.damagePhotos : step.photos;
+        const photo = bucket && bucket[Number(input.dataset.index)];
+        if (photo) photo.caption = input.value;
       } else {
         if (input.dataset.action === "notes" && !step.notes && input.value.trim()) recordHistory("Added notes", step.title);
         step[input.dataset.action] = input.value;
@@ -4545,9 +4625,11 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       updateDashboard();
       renderSummary();
+      queueCloudSave();
     });
 
     document.addEventListener("toggle", (event) => {
+      if (isRendering) return;
       const details = event.target;
       if (!(details instanceof HTMLDetailsElement)) return;
       if (details.classList.contains("phase-card") && details.dataset.phaseId) {
