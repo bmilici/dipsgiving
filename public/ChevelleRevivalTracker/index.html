@@ -3177,6 +3177,23 @@
       return Boolean(step.photoChecks && step.photoChecks[key]) || photosForNeed(step, need).length > 0;
     }
 
+    function photoRequirementItems(step) {
+      if (step.photoSections && step.photoSections.length) {
+        return step.photoSections.flatMap((section) => section.damage ? [] : (section.items || []));
+      }
+      return step.photosNeeded || [];
+    }
+
+    function photoSectionSummary(step) {
+      const requirements = photoRequirementItems(step);
+      if (requirements.length) {
+        const done = requirements.filter((need) => isPhotoNeedDone(step, need)).length;
+        return `${done}/${requirements.length}`;
+      }
+      const photoCount = (step.photos || []).length + (step.damagePhotos || []).length;
+      return String(photoCount);
+    }
+
     function stepPublicPhotos(step) {
       if (!step.publicPhotos && !isEditorMode()) return [];
       return [
@@ -3652,7 +3669,7 @@
             ${safetyTemplate(step)}
 
             <details class="section-box" ${sectionOpen()}>
-              <summary><h4>Photos</h4><span>${step.photosNeeded.length + (step.damagePhotos || []).length + step.photos.length}</span></summary>
+              <summary><h4>Photos</h4><span>${photoSectionSummary(step)}</span></summary>
               ${editor ? `
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicPhotos" ${step.publicPhotos ? "checked" : ""} />
