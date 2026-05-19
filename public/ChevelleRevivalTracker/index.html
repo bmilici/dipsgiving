@@ -2604,6 +2604,7 @@
     const openSectionKeys = new Set();
     const closedSectionKeys = new Set();
     const textareaHeights = new Map();
+    const helpDrafts = {};
     let isRendering = false;
     let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null, unsubscribe: null };
 
@@ -3642,6 +3643,10 @@
       ["index", "photoBucket", "photoNeed", "phaseId", "tool", "supply"].forEach((key) => {
         if (element.dataset[key]) parts.push(`${key}:${element.dataset[key]}`);
       });
+      if (["newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(element.dataset.action || "")) {
+        const stepCard = element.closest(".step-card");
+        if (stepCard) parts.push(`helpDraft:${stepCard.dataset.stepId || ""}`);
+      }
       const stepCard = element.closest(".step-card");
       const upgradeCard = element.closest(".upgrade-card");
       if (stepCard) parts.push(`step:${stepCard.dataset.stepId || ""}`);
@@ -3864,6 +3869,7 @@
       const editing = isStepEditing(step);
       const disabled = editDisabled();
       const shouldOpen = openStepIds.has(step.id);
+      const helpDraft = helpDrafts[step.id] || { label: "", url: "", phone: "" };
       return `
         <details class="step-card ${isHelp ? "needs-help" : ""}" ${shouldOpen ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
           <summary>
@@ -4000,13 +4006,13 @@
               ${editing ? `
                 <div class="field-grid">
                   <label>Label
-                    <input data-action="newHelpLabel" placeholder="Example: Chevelle brake rebuild guide" />
+                    <input data-action="newHelpLabel" value="${escapeHtml(helpDraft.label || "")}" placeholder="Example: Chevelle brake rebuild guide" />
                   </label>
                   <label>Hyperlink
-                    <input data-action="newHelpUrl" type="text" inputmode="url" placeholder="https://..." />
+                    <input data-action="newHelpUrl" type="text" inputmode="url" value="${escapeHtml(helpDraft.url || "")}" placeholder="https://..." />
                   </label>
                   <label>Phone number
-                    <input data-action="newHelpPhone" type="tel" inputmode="tel" placeholder="Optional phone number" />
+                    <input data-action="newHelpPhone" type="tel" inputmode="tel" value="${escapeHtml(helpDraft.phone || "")}" placeholder="Optional phone number" />
                   </label>
                 </div>
                 <button type="button" class="secondary" data-action="addAdditionalHelp">Add help</button>
@@ -4825,10 +4831,17 @@
         renderSummary();
         return;
       }
-      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption"].includes(input.dataset.action)) return;
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption", "newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
       preserveOpenContext(input);
+      if (["newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(input.dataset.action)) {
+        helpDrafts[step.id] = helpDrafts[step.id] || { label: "", url: "", phone: "" };
+        if (input.dataset.action === "newHelpLabel") helpDrafts[step.id].label = input.value;
+        if (input.dataset.action === "newHelpUrl") helpDrafts[step.id].url = input.value;
+        if (input.dataset.action === "newHelpPhone") helpDrafts[step.id].phone = input.value;
+        return;
+      }
       if (input.dataset.action && input.dataset.action.startsWith("cost")) {
         step.costItems = normalizeCostItems(step);
         const item = step.costItems[Number(input.dataset.index)];
@@ -5071,19 +5084,21 @@
           const labelInput = card.querySelector('[data-action="newHelpLabel"]');
           const urlInput = card.querySelector('[data-action="newHelpUrl"]');
           const phoneInput = card.querySelector('[data-action="newHelpPhone"]');
-          const url = normalizeUrl(urlInput ? urlInput.value : "");
-          const phone = normalizePhone(phoneInput ? phoneInput.value : "");
+          const draft = helpDrafts[step.id] || {};
+          const url = normalizeUrl((urlInput && urlInput.value) || draft.url || "");
+          const phone = normalizePhone((phoneInput && phoneInput.value) || draft.phone || "");
           if (!url && !phone) {
             alert("Add a hyperlink or phone number first.");
             return;
           }
-          const label = (labelInput && labelInput.value.trim()) || url || phone;
+          const label = (labelInput && labelInput.value.trim()) || draft.label || url || phone;
           step.additionalHelp = step.additionalHelp || [];
           step.additionalHelp.push({ label, url, phone });
           recordHistory("Added help", `${step.title}: ${label}`);
           if (labelInput) labelInput.value = "";
           if (urlInput) urlInput.value = "";
           if (phoneInput) phoneInput.value = "";
+          delete helpDrafts[step.id];
           saveState();
         }
         if (button.dataset.action === "editAdditionalHelp") {
