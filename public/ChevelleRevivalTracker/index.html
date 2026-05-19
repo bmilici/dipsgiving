@@ -2955,7 +2955,6 @@
         };
         loadStateFromCloud();
         startCloudSync();
-        if (isEditorMode()) queueCloudSave();
       } catch (error) {
         console.warn("Firebase could not initialize", error);
       }
@@ -2967,7 +2966,7 @@
       const remoteState = normalizeState(remote);
       const remoteTime = Date.parse(remoteState.updatedAt || "");
       const localTime = Date.parse(state.updatedAt || "");
-      if (force || !localTime || remoteTime >= localTime) {
+      if (force || !localTime || !isEditorMode() || remoteTime >= localTime) {
         state = remoteState;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         render();
@@ -3079,6 +3078,16 @@
         }
       } finally {
         cloud.saving = false;
+      }
+    }
+
+    async function deletePhotoFromCloud(photo) {
+      if (!photo || !photo.storagePath || !cloud.storage || !isEditorMode()) return;
+      try {
+        await ensureFirebaseEditorAuth();
+        await cloud.storage.ref(photo.storagePath).delete();
+      } catch (error) {
+        console.warn("Firebase photo delete failed", error);
       }
     }
 
@@ -4971,7 +4980,9 @@
         }
         if (button.dataset.action === "removeUpgradePhoto") {
           const key = button.dataset.photoKey;
-          if (Array.isArray(upgrade[key])) upgrade[key].splice(Number(button.dataset.index), 1);
+          let removed = null;
+          if (Array.isArray(upgrade[key])) removed = upgrade[key].splice(Number(button.dataset.index), 1)[0];
+          deletePhotoFromCloud(removed);
           recordHistory("Removed upgrade photo", upgrade.name);
           saveState();
         }
@@ -5059,6 +5070,7 @@
         if (button.dataset.action === "removePhoto") {
           const removed = step.photos[Number(button.dataset.index)];
           step.photos.splice(Number(button.dataset.index), 1);
+          deletePhotoFromCloud(removed);
           if (removed && removed.need && !photosForNeed(step, removed.need).length) {
             step.photoChecks = step.photoChecks || {};
             step.photoChecks[photoNeedKey(removed.need)] = false;
@@ -5076,7 +5088,8 @@
         }
         if (button.dataset.action === "removeDamagePhoto") {
           step.damagePhotos = step.damagePhotos || [];
-          step.damagePhotos.splice(Number(button.dataset.index), 1);
+          const removed = step.damagePhotos.splice(Number(button.dataset.index), 1)[0];
+          deletePhotoFromCloud(removed);
           recordHistory("Removed damage photo", step.title);
           saveState();
         }
