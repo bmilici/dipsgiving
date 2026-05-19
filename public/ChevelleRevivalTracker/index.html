@@ -88,6 +88,7 @@
     textarea {
       min-height: 98px;
       resize: vertical;
+      overflow: hidden;
     }
 
     label {
@@ -2598,6 +2599,7 @@
     const openStepIds = new Set();
     const openSectionKeys = new Set();
     const closedSectionKeys = new Set();
+    const textareaHeights = new Map();
     let isRendering = false;
     let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null, unsubscribe: null };
 
@@ -2951,6 +2953,7 @@
 
     function applyRemoteState(remote, force = false) {
       if (!remote) return;
+      if (!force && isTextFieldActive()) return;
       const remoteState = normalizeState(remote);
       const remoteTime = Date.parse(remoteState.updatedAt || "");
       const localTime = Date.parse(state.updatedAt || "");
@@ -3612,6 +3615,82 @@
       const stepDetails = details && details.closest && details.closest(".step-card");
       const name = details && details.dataset && details.dataset.section;
       return stepDetails && stepDetails.dataset.stepId && name ? `${stepDetails.dataset.stepId}:${name}` : "";
+    }
+
+    function isTextField(element) {
+      return element instanceof HTMLTextAreaElement
+        || element instanceof HTMLInputElement
+        || element instanceof HTMLSelectElement;
+    }
+
+    function isTextFieldActive() {
+      return isEditorMode() && isTextField(document.activeElement);
+    }
+
+    function formFieldKey(element) {
+      if (!isTextField(element)) return "";
+      const parts = [element.tagName.toLowerCase(), element.id || "", element.name || "", element.dataset.action || ""];
+      ["index", "photoBucket", "photoNeed", "phaseId", "tool", "supply"].forEach((key) => {
+        if (element.dataset[key]) parts.push(`${key}:${element.dataset[key]}`);
+      });
+      const stepCard = element.closest(".step-card");
+      const upgradeCard = element.closest(".upgrade-card");
+      if (stepCard) parts.push(`step:${stepCard.dataset.stepId || ""}`);
+      if (upgradeCard) parts.push(`upgrade:${upgradeCard.dataset.upgradeId || ""}`);
+      return parts.filter(Boolean).join("|");
+    }
+
+    function rememberTextareaHeight(element) {
+      if (!(element instanceof HTMLTextAreaElement)) return;
+      const key = formFieldKey(element);
+      if (!key) return;
+      textareaHeights.set(key, Math.max(element.offsetHeight, element.scrollHeight, 98));
+    }
+
+    function sizeTextarea(element) {
+      if (!(element instanceof HTMLTextAreaElement)) return;
+      const key = formFieldKey(element);
+      const remembered = key ? textareaHeights.get(key) : 0;
+      element.style.height = "auto";
+      element.style.height = `${Math.max(remembered || 0, element.scrollHeight, 98)}px`;
+    }
+
+    function sizeAllTextareas() {
+      document.querySelectorAll("textarea").forEach(sizeTextarea);
+    }
+
+    function captureActiveField() {
+      const element = document.activeElement;
+      if (!isTextField(element)) return null;
+      rememberTextareaHeight(element);
+      let selectionStart = null;
+      let selectionEnd = null;
+      try {
+        selectionStart = typeof element.selectionStart === "number" ? element.selectionStart : null;
+        selectionEnd = typeof element.selectionEnd === "number" ? element.selectionEnd : null;
+      } catch (error) {
+        selectionStart = null;
+        selectionEnd = null;
+      }
+      return {
+        key: formFieldKey(element),
+        value: element.value,
+        selectionStart,
+        selectionEnd
+      };
+    }
+
+    function restoreActiveField(snapshot) {
+      sizeAllTextareas();
+      if (!snapshot || !snapshot.key) return;
+      const target = [...document.querySelectorAll("input, select, textarea")].find((element) => formFieldKey(element) === snapshot.key);
+      if (!target) return;
+      if (target.value !== snapshot.value && !(target instanceof HTMLSelectElement)) target.value = snapshot.value;
+      target.focus({ preventScroll: true });
+      if (typeof snapshot.selectionStart === "number" && typeof target.setSelectionRange === "function") {
+        target.setSelectionRange(snapshot.selectionStart, snapshot.selectionEnd);
+      }
+      sizeTextarea(target);
     }
 
     function renderPhases() {
@@ -4341,6 +4420,7 @@
     }
 
     function render() {
+      const activeField = captureActiveField();
       isRendering = true;
       renderAccessMode();
       updateDashboard();
@@ -4353,6 +4433,7 @@
       renderMilestones();
       renderSummary();
       setTimeout(() => {
+        restoreActiveField(activeField);
         isRendering = false;
       }, 0);
     }
@@ -4679,6 +4760,10 @@
 
     document.addEventListener("input", (event) => {
       const input = event.target;
+      if (input instanceof HTMLTextAreaElement) {
+        rememberTextareaHeight(input);
+        sizeTextarea(input);
+      }
       if (!isEditorMode()) return;
       const card = input.closest(".step-card");
       if (input.dataset.action && input.dataset.action.startsWith("phasePart")) {
@@ -4751,6 +4836,14 @@
       updateDashboard();
       renderSummary();
       queueCloudSave();
+    });
+
+    ["mouseup", "touchend", "keyup"].forEach((eventName) => {
+      document.addEventListener(eventName, (event) => {
+        if (event.target instanceof HTMLTextAreaElement) {
+          rememberTextareaHeight(event.target);
+        }
+      });
     });
 
     document.addEventListener("toggle", (event) => {
