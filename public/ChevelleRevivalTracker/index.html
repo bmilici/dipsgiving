@@ -857,14 +857,13 @@
     }
 
     .photo-need-row > .photo-grid {
-      grid-template-columns: minmax(0, 560px);
+      grid-template-columns: minmax(0, 260px);
     }
 
     .photo-need-row .photo-card {
-      grid-template-columns: 132px minmax(0, 1fr);
-      grid-template-areas: "photo meta";
-      gap: 10px;
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
       padding: 8px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -878,10 +877,10 @@
       font-size: 0.96rem;
       font-weight: 900;
       line-height: 1.2;
+      text-align: left;
     }
 
     .photo-tile {
-      grid-area: photo;
       position: relative;
       overflow: hidden;
       border: 1px solid var(--line);
@@ -941,7 +940,6 @@
     }
 
     .photo-need-row .photo-meta {
-      grid-area: meta;
       display: grid;
       align-content: start;
       padding: 0;
@@ -1133,15 +1131,11 @@
 
     @media (max-width: 620px) {
       .photo-need-row > .photo-grid {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: minmax(0, 260px);
       }
 
       .photo-need-row .photo-card {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas:
-          "meta"
-          "photo";
-        max-width: 280px;
+        max-width: 260px;
       }
 
       .photo-need-head input[data-action="pendingPhotoCaption"] {
@@ -3390,13 +3384,13 @@
       const datedCaption = `${caption}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}`;
       return `
         <div class="photo-card">
+          ${metaHtml}
           <figure class="photo-tile">
             <img src="${escapeHtml(src)}" alt="${escapeHtml(photo.name || photo.location || fallback)}" />
             <button type="button" class="photo-open" data-action="openPhoto" data-photo-src="${escapeHtml(src)}" data-photo-caption="${escapeHtml(datedCaption)}" aria-label="Open photo"></button>
             <figcaption class="photo-caption">${escapeHtml(datedCaption)}</figcaption>
             ${removeHtml}
           </figure>
-          ${metaHtml}
         </div>
       `;
     }
