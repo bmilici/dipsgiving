@@ -2661,6 +2661,7 @@
             link.label = link.label || link.url || "Help link";
             link.url = link.url || "";
             link.phone = link.phone || "";
+            link.notes = link.notes || "";
           });
           step.notes = step.notes || "";
           step.cost = step.cost || "";
@@ -3652,7 +3653,7 @@
       ["index", "photoBucket", "photoNeed", "phaseId", "tool", "supply"].forEach((key) => {
         if (element.dataset[key]) parts.push(`${key}:${element.dataset[key]}`);
       });
-      if (["newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(element.dataset.action || "")) {
+      if (["newHelpLabel", "newHelpUrl", "newHelpPhone", "newHelpNotes"].includes(element.dataset.action || "")) {
         const stepCard = element.closest(".step-card");
         if (stepCard) parts.push(`helpDraft:${stepCard.dataset.stepId || ""}`);
       }
@@ -3878,7 +3879,7 @@
       const editing = isStepEditing(step);
       const disabled = editDisabled();
       const shouldOpen = openStepIds.has(step.id);
-      const helpDraft = helpDrafts[step.id] || { label: "", url: "", phone: "" };
+      const helpDraft = helpDrafts[step.id] || { label: "", url: "", phone: "", notes: "" };
       return `
         <details class="step-card ${isHelp ? "needs-help" : ""}" ${shouldOpen ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
           <summary>
@@ -4008,6 +4009,7 @@
                   <div class="list-card">
                     ${link.url ? `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>` : `<strong>${escapeHtml(link.label || "Help contact")}</strong>`}
                     ${link.phone ? `<a class="help-phone" href="${escapeHtml(phoneHref(link.phone))}">${escapeHtml(link.phone)}</a>` : ""}
+                    ${link.notes ? `<p>${escapeHtml(link.notes)}</p>` : ""}
                     ${editing ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
@@ -4022,6 +4024,9 @@
                   </label>
                   <label>Phone number
                     <input data-action="newHelpPhone" type="tel" inputmode="tel" value="${escapeHtml(helpDraft.phone || "")}" placeholder="Optional phone number" />
+                  </label>
+                  <label>Call notes
+                    <textarea data-action="newHelpNotes" placeholder="Date called, who you spoke with, what was discussed">${escapeHtml(helpDraft.notes || "")}</textarea>
                   </label>
                 </div>
                 <button type="button" class="secondary" data-action="addAdditionalHelp">Add help</button>
@@ -4840,15 +4845,16 @@
         renderSummary();
         return;
       }
-      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption", "newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(input.dataset.action)) return;
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption", "newHelpLabel", "newHelpUrl", "newHelpPhone", "newHelpNotes"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
       preserveOpenContext(input);
-      if (["newHelpLabel", "newHelpUrl", "newHelpPhone"].includes(input.dataset.action)) {
-        helpDrafts[step.id] = helpDrafts[step.id] || { label: "", url: "", phone: "" };
+      if (["newHelpLabel", "newHelpUrl", "newHelpPhone", "newHelpNotes"].includes(input.dataset.action)) {
+        helpDrafts[step.id] = helpDrafts[step.id] || { label: "", url: "", phone: "", notes: "" };
         if (input.dataset.action === "newHelpLabel") helpDrafts[step.id].label = input.value;
         if (input.dataset.action === "newHelpUrl") helpDrafts[step.id].url = input.value;
         if (input.dataset.action === "newHelpPhone") helpDrafts[step.id].phone = input.value;
+        if (input.dataset.action === "newHelpNotes") helpDrafts[step.id].notes = input.value;
         return;
       }
       if (input.dataset.action && input.dataset.action.startsWith("cost")) {
@@ -5097,20 +5103,23 @@
           const labelInput = card.querySelector('[data-action="newHelpLabel"]');
           const urlInput = card.querySelector('[data-action="newHelpUrl"]');
           const phoneInput = card.querySelector('[data-action="newHelpPhone"]');
+          const notesInput = card.querySelector('[data-action="newHelpNotes"]');
           const draft = helpDrafts[step.id] || {};
           const url = normalizeUrl((urlInput && urlInput.value) || draft.url || "");
           const phone = normalizePhone((phoneInput && phoneInput.value) || draft.phone || "");
+          const notes = (notesInput && notesInput.value) || draft.notes || "";
           if (!url && !phone) {
             alert("Add a hyperlink or phone number first.");
             return;
           }
           const label = (labelInput && labelInput.value.trim()) || draft.label || url || phone;
           step.additionalHelp = step.additionalHelp || [];
-          step.additionalHelp.push({ label, url, phone });
+          step.additionalHelp.push({ label, url, phone, notes });
           recordHistory("Added help", `${step.title}: ${label}`);
           if (labelInput) labelInput.value = "";
           if (urlInput) urlInput.value = "";
           if (phoneInput) phoneInput.value = "";
+          if (notesInput) notesInput.value = "";
           delete helpDrafts[step.id];
           saveState();
         }
@@ -5122,10 +5131,13 @@
           if (label === null) return;
           const url = normalizeUrl(prompt("Help link URL", link.url || ""));
           const phone = normalizePhone(prompt("Help phone number", link.phone || ""));
+          const notes = prompt("Call notes", link.notes || "");
+          if (notes === null) return;
           if (!url && !phone) return;
           link.label = label.trim() || url.trim() || phone;
           link.url = url.trim();
           link.phone = phone;
+          link.notes = notes;
           recordHistory("Edited help", `${step.title}: ${link.label}`);
           saveState();
         }
