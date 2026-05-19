@@ -630,6 +630,10 @@
       max-width: 560px;
     }
 
+    .photo-need-row.has-photos .photo-need-head {
+      display: none;
+    }
+
     .photo-need-head strong {
       line-height: 1.25;
     }
@@ -856,7 +860,7 @@
     }
 
     .photo-need-row .photo-card {
-      grid-template-columns: 144px minmax(0, 1fr);
+      grid-template-columns: 132px minmax(0, 1fr);
       gap: 10px;
       align-items: stretch;
       padding: 8px;
@@ -864,6 +868,14 @@
       border-radius: 8px;
       background: #fffdf8;
       box-shadow: 0 8px 20px rgba(44, 31, 21, 0.06);
+    }
+
+    .photo-card-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 0.96rem;
+      font-weight: 900;
+      line-height: 1.2;
     }
 
     .photo-tile {
@@ -926,6 +938,7 @@
     }
 
     .photo-need-row .photo-meta {
+      display: grid;
       align-content: start;
       padding: 0;
       border: 0;
@@ -3345,10 +3358,11 @@
       return photo && (photo.url || photo.dataUrl) || "";
     }
 
-    function photoControlsTemplate(photo, bucket, index) {
+    function photoControlsTemplate(photo, bucket, index, title = "") {
       if (!isEditorMode()) return "";
       return `
         <div class="photo-meta">
+          ${title ? `<h5 class="photo-card-title">${escapeHtml(title)}</h5>` : ""}
           <label>Caption / comment
             <input type="text" data-action="photoCaption" data-photo-bucket="${bucket}" data-index="${index}" value="${escapeHtml(photo.caption || "")}" placeholder="Add a note for this photo" />
           </label>
@@ -3414,8 +3428,10 @@
     function photoNeedTemplate(phase, step, need) {
       const afterTransport = isAfterTransportStep(phase, step);
       const damageEntry = afterTransport ? transportDamageEntry(step, need) : null;
+      const attachedPhotos = photosForNeed(step, need);
+      const hasPhotos = attachedPhotos.length > 0;
       return `
-        <div class="photo-need-row">
+        <div class="photo-need-row ${hasPhotos ? "has-photos" : ""}">
           <div class="photo-need-head">
             <label class="check-row">
               <input type="checkbox" data-action="photoCheck" data-photo-need="${escapeHtml(need)}" ${isPhotoNeedDone(step, need) ? "checked" : ""} ${editDisabled()} />
@@ -3450,11 +3466,11 @@
             </div>
           </div>
           <div class="photo-grid">
-            ${photosForNeed(step, need).map(({ photo, index }) => photoTileTemplate(
+            ${attachedPhotos.map(({ photo, index }) => photoTileTemplate(
               photo,
               need,
               isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "",
-              photoControlsTemplate(photo, "photos", index)
+              photoControlsTemplate(photo, "photos", index, need)
             )).join("")}
           </div>
         </div>
@@ -3485,7 +3501,7 @@
             photo,
             "Damage photo",
             isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : "",
-            photoControlsTemplate(photo, "damagePhotos", index)
+            photoControlsTemplate(photo, "damagePhotos", index, photo.location || "Damage photo")
           )).join("")}
         </div>
       `;
@@ -3519,7 +3535,7 @@
                 photo,
                 step.title,
                 isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "",
-                photoControlsTemplate(photo, "photos", index)
+                photoControlsTemplate(photo, "photos", index, photo.caption || step.title)
               )).join("")}
             </div>
           </div>
