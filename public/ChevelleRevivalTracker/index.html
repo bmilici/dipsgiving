@@ -861,6 +861,7 @@
 
     .photo-need-row .photo-card {
       grid-template-columns: 132px minmax(0, 1fr);
+      grid-template-areas: "photo meta";
       gap: 10px;
       align-items: stretch;
       padding: 8px;
@@ -879,6 +880,7 @@
     }
 
     .photo-tile {
+      grid-area: photo;
       position: relative;
       overflow: hidden;
       border: 1px solid var(--line);
@@ -938,6 +940,7 @@
     }
 
     .photo-need-row .photo-meta {
+      grid-area: meta;
       display: grid;
       align-content: start;
       padding: 0;
@@ -1134,6 +1137,9 @@
 
       .photo-need-row .photo-card {
         grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+          "meta"
+          "photo";
         max-width: 280px;
       }
 
