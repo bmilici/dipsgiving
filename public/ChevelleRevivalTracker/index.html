@@ -4013,7 +4013,7 @@
                       <label>Call notes
                         <textarea data-action="additionalHelpNotes" data-index="${index}" placeholder="Date called, who you spoke with, what was discussed">${escapeHtml(link.notes || "")}</textarea>
                       </label>
-                    ` : (link.notes ? `<p>${escapeHtml(link.notes)}</p>` : "")}
+                    ` : ""}
                     ${editing ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
