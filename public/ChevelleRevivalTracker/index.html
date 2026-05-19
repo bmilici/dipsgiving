@@ -1036,6 +1036,7 @@
       <button class="active" data-view="phasesView">Phases</button>
       <button data-view="galleryView">Gallery</button>
       <button data-view="shoppingView">Tools</button>
+      <button data-view="upgradesView">Upgrades</button>
       <button data-view="vehicleView">Vehicle</button>
       <button data-view="timelineView">Timeline</button>
       <button data-view="milestonesView">Milestones</button>
@@ -1065,6 +1066,13 @@
         <button id="copyShopping">Copy missing tools</button>
       </div>
       <div class="list-view" id="shoppingList"></div>
+    </section>
+
+    <section id="upgradesView" class="view">
+      <div class="toolbar">
+        <button class="secondary editor-only" id="addUpgrade">Add upgrade</button>
+      </div>
+      <div class="list-view" id="upgradeList"></div>
     </section>
 
     <section id="vehicleView" class="view">
@@ -1164,9 +1172,11 @@
     */
     const TOOL_RESOURCE_SCHEMA_VERSION = 3;
     const PHOTO_SCHEMA_VERSION = 8;
-    const PHASE_SCHEMA_VERSION = 11;
+    const PHASE_SCHEMA_VERSION = 13;
     const PHOTO_DOC_STEP_TITLE = "Complete before-transport photo documentation.";
     const DAMAGE_STEP_TITLE = "Photograph all existing dents, scratches, rust, trim, wheels, glass, and interior.";
+    const TITLE_TRANSFER_STEP_TITLE = "Transfer title into my name.";
+    const TOOL_SHIPPING_STEP_TITLE = "Prepare tools, parts, and garage equipment for U-Haul transport";
     const TRANSPORT_ADMIN_STEP_TITLE = "Arrange transport paperwork, keys, and requirements.";
     const VEHICLE_LOAD_PREP_STEP_TITLE = "Prepare the car for safe loading and transport.";
     const PICKUP_HANDOFF_STEP_TITLE = "Complete pickup handoff with the driver.";
@@ -1176,6 +1186,10 @@
     const DIFFICULTY_OPTIONS = ["Beginner", "Moderate", "Advanced", "Professional Recommended"];
     const CONFIDENCE_OPTIONS = ["Confident", "Unsure", "Need help"];
     const GATE_OPTIONS = ["Yes", "Yes, with caution", "No, professional help recommended"];
+    const UPGRADE_CATEGORIES = ["Audio", "Safety", "Brakes", "Suspension", "Engine", "Cooling", "Lighting", "Interior", "Convenience", "Electrical", "Other"];
+    const UPGRADE_STATUSES = ["Considering", "Planned", "Purchased", "Installed", "Reverted"];
+    const UPGRADE_PRIORITIES = ["Low", "Medium", "High"];
+    const VALUE_IMPACTS = ["Positive", "Neutral", "Negative", "Unknown"];
     const VEHICLE_FIELDS = [
       ["vin", "VIN"],
       ["titleStatus", "Title status"],
@@ -1572,6 +1586,53 @@
 
     const groupedPhasePlans = {
       "PHASE 0 - Transportation Preparation": [
+        {
+          title: TITLE_TRANSFER_STEP_TITLE,
+          checklist: [
+            "Confirm title is available and VIN matches the car.",
+            "Verify seller signature and notarization requirements.",
+            "Complete buyer information correctly.",
+            "Make photos/copies of title and bill of sale.",
+            "Keep original title and paperwork separate from the car.",
+            "Check Florida title and registration requirements.",
+            "Start title transfer into my name as soon as legally possible."
+          ]
+        },
+        {
+          title: TOOL_SHIPPING_STEP_TITLE,
+          checklist: [
+            "Decide what will travel in: U-Haul, personal vehicle, shipped separately, or inside Chevelle if allowed.",
+            "Confirm U-Haul/trailer/truck size needed.",
+            "Inspect air compressor for safe transport.",
+            "Drain compressor if necessary.",
+            "Label all storage bins clearly.",
+            "Photograph contents of each bin before loading.",
+            "Bag and label loose hardware.",
+            "Separate original Chevelle parts from new replacement parts.",
+            "Create bins for: Engine parts, Interior parts, Electrical, Hardware, Audio upgrades, Fluids/chemicals, Cleaning supplies.",
+            "Do NOT transport leaking fluids.",
+            "Remove flammables/aerosols if required.",
+            "Secure heavy items to prevent shifting.",
+            "Protect original trim and delicate parts with padding.",
+            "Inventory valuable/original components.",
+            "Create Immediate Use tool bin for first week in Florida.",
+            "Create Chevelle Startup Kit bin.",
+            "Confirm loading help if moving engine/compressor.",
+            "Verify trailer/tie-down straps.",
+            "Keep title/paperwork separate from transported parts.",
+            "Record Upgrade Planner storage references for original Chevelle parts, such as Original radio -> Bin 4 -> Shelf A."
+          ],
+          photos: [
+            "All loaded bins",
+            "Compressor condition",
+            "Spare engine",
+            "Original parts",
+            "Tool inventory",
+            "Trailer/U-Haul before departure",
+            "Secured cargo"
+          ],
+          notes: "U-Haul reservation details:\n\nEstimated trip dates:\n\nStorage locations in Florida:\n\nBin numbering system:\n\nUpgrade Planner references for original parts:\n"
+        },
         { title: TRANSPORT_ADMIN_STEP_TITLE, checklist: phase0ChecklistByStep[TRANSPORT_ADMIN_STEP_TITLE] },
         { title: PHOTO_DOC_STEP_TITLE, checklist: phase0ChecklistByStep[PHOTO_DOC_STEP_TITLE], photos: beforeTransportPhotos, photoSections: phase0PhotoSections },
         { title: VEHICLE_LOAD_PREP_STEP_TITLE, checklist: phase0ChecklistByStep[VEHICLE_LOAD_PREP_STEP_TITLE] },
@@ -1637,12 +1698,14 @@
       {
         title: "PHASE 0 - Transportation Preparation",
         goal: "Safely prepare the 1969 Chevrolet Chevelle Malibu convertible for transport from Pennsylvania to Florida.",
-        tools: ["Tire inflator or air compressor", "Flashlight", "Battery wrench", "Gloves", "Camera/phone", "Shop towels", "Zip ties", "Tape/labels", "Wheel chocks", "Portable jump pack if needed for steering/neutral"],
-        parts: ["Tire pressure gauge", "Plastic bags for loose parts", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork"],
+        tools: ["Tire inflator or air compressor", "Flashlight", "Battery wrench", "Gloves", "Camera/phone", "Shop towels", "Zip ties", "Tape/labels", "Wheel chocks", "Portable jump pack if needed for steering/neutral", "Ratchet strap set", "Moving dolly", "Cordless drill", "Basic socket set", "Utility knife", "Air compressor accessories", "Battery jump pack"],
+        parts: ["Tire pressure gauge", "Plastic bags for loose parts", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork", "Plastic storage bins", "Ziplock bags", "Ratchet straps", "Furniture blankets/moving blankets", "Packing foam/bubble wrap", "Permanent markers", "Tote organizers", "Heavy-duty shelving labels", "Tie-down hooks", "Floor dolly", "Oil absorbent pads"],
         photos: beforeTransportPhotos,
         videos: ["how to prepare classic car for transport", "shipping non running classic car", "classic car transport checklist", "how to load non running car onto trailer", "enclosed transport classic muscle car"],
         warnings: ["Do not drive vehicle before brakes are inspected.", "Do not attempt to start engine just for transport.", "Verify parking brake is released before loading.", "Never stand directly behind vehicle during winching/loading.", "Use wheel chocks when parked before pickup.", "Prefer enclosed transport if budget allows.", "Open transport is acceptable for project/survivor condition.", "Non-running vehicles may require additional loading fee.", "Confirm transporter has winch capability.", "Confirm low-clearance loading capability if needed."],
         steps: [
+          TITLE_TRANSFER_STEP_TITLE,
+          TOOL_SHIPPING_STEP_TITLE,
           TRANSPORT_ADMIN_STEP_TITLE,
           PHOTO_DOC_STEP_TITLE,
           VEHICLE_LOAD_PREP_STEP_TITLE,
@@ -1801,7 +1864,7 @@
     ];
 
     const phasePartsLikelyNeeded = {
-      "PHASE 0 - Transportation Preparation": ["Tire pressure gauge", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork"],
+      "PHASE 0 - Transportation Preparation": ["Tire pressure gauge", "Absorbent pads/cardboard", "Painter's tape for labeling", "Binder/folder for paperwork", "Plastic storage bins", "Ziplock bags", "Ratchet straps", "Moving blankets", "Packing foam/bubble wrap", "Permanent markers", "Tote organizers", "Heavy-duty shelving labels", "Tie-down hooks", "Floor dolly"],
       "PHASE 1 - Arrival & Documentation": ["Cloud storage folder", "Plastic bins", "Ziplock bags", "Labels"],
       "PHASE 2 - Safe Storage & Basic Setup": ["Fire extinguisher", "Wheel chocks", "Battery terminal covers", "Absorbent pads"],
       "PHASE 3 - Engine Pre-Start Safety": ["Marvel Mystery Oil or ATF", "Spark plugs", "Borescope access if needed"],
@@ -1817,6 +1880,16 @@
       "PHASE 13 - Short Test Drives": ["Roadside fluids", "Tire inflator", "Spare fuses", "Shop towels"],
       "PHASE 14 - Reliability & Preservation": ["Vacuum hoses", "Belts", "Gaskets", "Fluids", "Detail supplies", "Storage bags for original parts"]
     };
+
+    const sampleUpgradeSeeds = [
+      { name: "Bluetooth retro radio", category: "Audio", priority: "Medium", reason: "Add modern Bluetooth while keeping a classic dash look.", partsNeeded: "Retro-style Bluetooth radio, antenna adapter, speaker wiring as needed", estimatedCost: "350", originalPartName: "Original radio", newPartInstalled: "Bluetooth retro radio", reversible: true, cuttingRequired: false, valueImpact: "Neutral" },
+      { name: "LED headlights", category: "Lighting", priority: "Medium", reason: "Improve night visibility and reduce electrical load.", partsNeeded: "LED sealed-beam style headlights, relay harness if needed", estimatedCost: "250", originalPartName: "Original headlights", newPartInstalled: "LED headlights", reversible: true, cuttingRequired: false, valueImpact: "Positive" },
+      { name: "Electronic ignition", category: "Electrical", priority: "Medium", reason: "Improve reliability and reduce points maintenance.", partsNeeded: "Electronic ignition conversion kit, coil if required", estimatedCost: "200", originalPartName: "Points ignition parts", newPartInstalled: "Electronic ignition conversion", reversible: true, cuttingRequired: false, valueImpact: "Neutral" },
+      { name: "Front disc brakes", category: "Brakes", priority: "High", reason: "Improve stopping performance and safety.", partsNeeded: "Front disc brake conversion kit, master cylinder/proportioning valve as needed", estimatedCost: "900", originalPartName: "Original front drum brake parts", newPartInstalled: "Front disc brake conversion", reversible: false, cuttingRequired: false, valueImpact: "Positive" },
+      { name: "Modern tires", category: "Safety", priority: "High", reason: "Replace unsafe aged tires before road driving.", partsNeeded: "Modern radial tires in correct size", estimatedCost: "800", originalPartName: "Old tires", newPartInstalled: "Modern radial tires", reversible: true, cuttingRequired: false, valueImpact: "Positive" },
+      { name: "Hidden USB charger", category: "Convenience", priority: "Low", reason: "Add phone charging without changing the visible interior.", partsNeeded: "Hidden USB charger, fused wiring, mounting hardware", estimatedCost: "75", originalPartName: "", newPartInstalled: "Hidden USB charger", reversible: true, cuttingRequired: false, valueImpact: "Neutral" },
+      { name: "Cooling system upgrade", category: "Cooling", priority: "Medium", reason: "Improve temperature control for Florida driving.", partsNeeded: "Radiator, hoses, thermostat, fan/fan clutch as needed", estimatedCost: "650", originalPartName: "Original radiator/cooling parts", newPartInstalled: "Cooling system upgrade", reversible: true, cuttingRequired: false, valueImpact: "Positive" }
+    ];
 
     const stopConditionMap = {
       "Soak cylinders and rotate engine by hand.": ["Stop if engine will not rotate.", "Stop if grinding occurs.", "Stop if coolant or fuel comes from spark plug holes."],
@@ -1871,6 +1944,14 @@
     };
 
     const phase0Resources = {
+      [TITLE_TRANSFER_STEP_TITLE]: {
+        tools: ["Camera/phone"],
+        parts: ["Binder/folder for paperwork"]
+      },
+      [TOOL_SHIPPING_STEP_TITLE]: {
+        tools: ["Ratchet strap set", "Moving dolly", "Gloves", "Flashlight", "Cordless drill", "Basic socket set", "Utility knife", "Air compressor accessories", "Tire inflator", "Battery jump pack"],
+        parts: ["Plastic storage bins", "Ziplock bags", "Label maker or masking tape", "Ratchet straps", "Furniture blankets/moving blankets", "Packing foam/bubble wrap", "Permanent markers", "Tote organizers", "Heavy-duty shelving labels", "Tie-down hooks", "Floor dolly", "Oil absorbent pads"]
+      },
       [TRANSPORT_ADMIN_STEP_TITLE]: {
         tools: ["Camera/phone"],
         parts: ["Binder/folder for paperwork", "Plastic bags for loose parts"]
@@ -2180,6 +2261,7 @@
     function makeStep(phase, title, index) {
       const safeNeedle = title.toLowerCase();
       const warnings = phase.warnings.filter(Boolean);
+      const plan = groupedPhasePlans[phase.title] && groupedPhasePlans[phase.title].find((item) => item.title === title);
       const photoSections = stepPhotoSections(phase, title);
       const checklist = stepChecklistItems(phase, title, photoSections);
       const resources = combinedResources(phase, title, checklist);
@@ -2207,7 +2289,7 @@
         confidence: "Confident",
         stopConditions: stopConditionMap[title] || [],
         likelyOutcomes: likelyOutcomesFor(title),
-        notes: "",
+        notes: plan && plan.notes ? plan.notes : "",
         cost: "",
         costItems: [],
         publicNotes: false,
@@ -2246,7 +2328,39 @@
         milestones: {},
         toolsOwned: {},
         suppliesOwned: {},
+        upgrades: sampleUpgradeSeeds.map(makeUpgradeFromSeed),
         phases: phaseSeeds.map(makePhaseFromSeed)
+      };
+    }
+
+    function makeUpgradeFromSeed(seed = {}) {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        name: seed.name || "New upgrade",
+        category: UPGRADE_CATEGORIES.includes(seed.category) ? seed.category : "Other",
+        status: UPGRADE_STATUSES.includes(seed.status) ? seed.status : "Considering",
+        priority: UPGRADE_PRIORITIES.includes(seed.priority) ? seed.priority : "Medium",
+        reason: seed.reason || "",
+        partsNeeded: seed.partsNeeded || "",
+        estimatedCost: seed.estimatedCost || "",
+        actualCost: seed.actualCost || "",
+        installDate: seed.installDate || "",
+        notes: seed.notes || "",
+        originalPartRemoved: Boolean(seed.originalPartRemoved),
+        originalPartName: seed.originalPartName || "",
+        originalPartCondition: seed.originalPartCondition || "",
+        originalPartBin: seed.originalPartBin || "",
+        originalPartShelf: seed.originalPartShelf || "",
+        originalPartNotes: seed.originalPartNotes || "",
+        originalPartPhotos: [],
+        newPartInstalled: seed.newPartInstalled || "",
+        brandModel: seed.brandModel || "",
+        vendor: seed.vendor || "",
+        receiptPhotos: [],
+        installPhotos: [],
+        reversible: seed.reversible === undefined ? true : Boolean(seed.reversible),
+        cuttingRequired: Boolean(seed.cuttingRequired),
+        valueImpact: VALUE_IMPACTS.includes(seed.valueImpact) ? seed.valueImpact : "Unknown"
       };
     }
 
@@ -2277,6 +2391,7 @@
 
     let state = loadState();
     const editingStepIds = new Set();
+    const editingUpgradeIds = new Set();
 
     function loadState() {
       try {
@@ -2297,6 +2412,7 @@
       data.history = Array.isArray(data.history) ? data.history : [];
       data.vehicleInfo = data.vehicleInfo || {};
       data.milestones = data.milestones || {};
+      data.upgrades = normalizeUpgrades(data.upgrades);
       data.phases = (data.phases || []).filter((phase) => {
         const title = String(phase.title || "");
         return !(title.includes("PHASE 15") && title.toLowerCase().includes("custom phase"));
@@ -2369,6 +2485,25 @@
       return data;
     }
 
+    function normalizeUpgrades(upgrades) {
+      const list = Array.isArray(upgrades) && upgrades.length ? upgrades : sampleUpgradeSeeds.map(makeUpgradeFromSeed);
+      return list.map((upgrade) => ({
+        ...makeUpgradeFromSeed(upgrade),
+        ...upgrade,
+        id: upgrade.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
+        category: UPGRADE_CATEGORIES.includes(upgrade.category) ? upgrade.category : "Other",
+        status: UPGRADE_STATUSES.includes(upgrade.status) ? upgrade.status : "Considering",
+        priority: UPGRADE_PRIORITIES.includes(upgrade.priority) ? upgrade.priority : "Medium",
+        originalPartRemoved: Boolean(upgrade.originalPartRemoved),
+        originalPartPhotos: Array.isArray(upgrade.originalPartPhotos) ? upgrade.originalPartPhotos : [],
+        receiptPhotos: Array.isArray(upgrade.receiptPhotos) ? upgrade.receiptPhotos : [],
+        installPhotos: Array.isArray(upgrade.installPhotos) ? upgrade.installPhotos : [],
+        reversible: upgrade.reversible === undefined ? true : Boolean(upgrade.reversible),
+        cuttingRequired: Boolean(upgrade.cuttingRequired),
+        valueImpact: VALUE_IMPACTS.includes(upgrade.valueImpact) ? upgrade.valueImpact : "Unknown"
+      }));
+    }
+
     function normalizeDisplayPreferences(data) {
       const saved = data.displayPreferences || {};
       return {
@@ -2416,6 +2551,7 @@
         "Confirm transporter can winch-load non-running vehicle.": TRANSPORT_ADMIN_STEP_TITLE,
         "Inform transporter car is NON-RUNNING.": TRANSPORT_ADMIN_STEP_TITLE,
         "Inform transporter car is a CLASSIC CONVERTIBLE.": TRANSPORT_ADMIN_STEP_TITLE,
+        "Inventory tools shipping with the car.": TOOL_SHIPPING_STEP_TITLE,
         "Remove loose items and secure the car for transport.": VEHICLE_LOAD_PREP_STEP_TITLE,
         "Prepare the car to roll for loading and unloading.": VEHICLE_LOAD_PREP_STEP_TITLE,
         "Check battery, leaks, and transport safety items.": VEHICLE_LOAD_PREP_STEP_TITLE,
@@ -2449,7 +2585,7 @@
         return Boolean((existingItem && existingItem.done) || stepDone(oldStep));
       };
       const newSteps = phase0Seed.steps.map((title, index) => {
-        const existing = oldSteps.find((step) => step.title === title);
+        const existing = oldSteps.find((step) => step.title === title || oldToNew[step.title] === title);
         const next = existing || makeStep(phase0Seed, title, index);
         next.title = title;
         next.checklist = stepChecklistItems(phase0Seed, title, stepPhotoSections(phase0Seed, title)).map((item) => ({
@@ -2460,6 +2596,8 @@
         next.parts = stepResources(phase0Seed, title).parts;
         next.photosNeeded = stepPhotoNeeds(phase0Seed, title);
         next.photoSections = stepPhotoSections(phase0Seed, title);
+        const plan = groupedPhasePlans[phase0Seed.title] && groupedPhasePlans[phase0Seed.title].find((item) => item.title === title);
+        if (plan && plan.notes && !next.notes) next.notes = plan.notes;
         if (title === PHOTO_DOC_STEP_TITLE) {
           const oldPhotoSteps = oldSteps.filter((step) => oldToNew[step.title] === PHOTO_DOC_STEP_TITLE);
           next.photos = [
@@ -3480,6 +3618,228 @@
       `;
     }
 
+    function upgradeMoney(value) {
+      return money(value);
+    }
+
+    function upgradeSummary() {
+      const upgrades = state.upgrades || [];
+      return {
+        planned: upgrades.filter((upgrade) => ["Planned", "Purchased"].includes(upgrade.status)).length,
+        installed: upgrades.filter((upgrade) => upgrade.status === "Installed").length,
+        totalCost: upgrades.reduce((sum, upgrade) => sum + upgradeMoney(upgrade.actualCost || upgrade.estimatedCost), 0)
+      };
+    }
+
+    function upgradePhotoGrid(upgrade, key) {
+      const photos = upgrade[key] || [];
+      return photos.length ? `
+        <div class="photo-grid">
+          ${photos.map((photo, index) => `
+            <figure class="photo-tile">
+              <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name || "Upgrade photo")}" />
+              <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.name || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
+              ${editingUpgradeIds.has(upgrade.id) ? `<button type="button" aria-label="Remove photo" data-action="removeUpgradePhoto" data-photo-key="${key}" data-index="${index}">x</button>` : ""}
+            </figure>
+          `).join("")}
+        </div>
+      ` : '<div class="empty">No photos yet.</div>';
+    }
+
+    function upgradeViewField(label, value) {
+      return `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value || "Not set")}</p>`;
+    }
+
+    function upgradeEditFields(upgrade) {
+      return `
+        <div class="grid-two">
+          <label>Upgrade name
+            <input data-action="upgrade-name" value="${escapeHtml(upgrade.name)}" />
+          </label>
+          <label>Category
+            <select data-action="upgrade-category">
+              ${UPGRADE_CATEGORIES.map((option) => `<option value="${option}" ${upgrade.category === option ? "selected" : ""}>${option}</option>`).join("")}
+            </select>
+          </label>
+          <label>Status
+            <select data-action="upgrade-status">
+              ${UPGRADE_STATUSES.map((option) => `<option value="${option}" ${upgrade.status === option ? "selected" : ""}>${option}</option>`).join("")}
+            </select>
+          </label>
+          <label>Priority
+            <select data-action="upgrade-priority">
+              ${UPGRADE_PRIORITIES.map((option) => `<option value="${option}" ${upgrade.priority === option ? "selected" : ""}>${option}</option>`).join("")}
+            </select>
+          </label>
+          <label>Estimated cost
+            <input type="number" min="0" step="0.01" inputmode="decimal" data-action="upgrade-estimatedCost" value="${escapeHtml(upgrade.estimatedCost)}" />
+          </label>
+          <label>Actual cost
+            <input type="number" min="0" step="0.01" inputmode="decimal" data-action="upgrade-actualCost" value="${escapeHtml(upgrade.actualCost)}" />
+          </label>
+          <label>Install date
+            <input type="date" data-action="upgrade-installDate" value="${escapeHtml(upgrade.installDate)}" />
+          </label>
+          <label>Value impact
+            <select data-action="upgrade-valueImpact">
+              ${VALUE_IMPACTS.map((option) => `<option value="${option}" ${upgrade.valueImpact === option ? "selected" : ""}>${option}</option>`).join("")}
+            </select>
+          </label>
+        </div>
+        <label>Reason for upgrade
+          <textarea data-action="upgrade-reason">${escapeHtml(upgrade.reason)}</textarea>
+        </label>
+        <label>Parts needed
+          <textarea data-action="upgrade-partsNeeded">${escapeHtml(upgrade.partsNeeded)}</textarea>
+        </label>
+        <label>Notes
+          <textarea data-action="upgrade-notes">${escapeHtml(upgrade.notes)}</textarea>
+        </label>
+      `;
+    }
+
+    function upgradeOriginalPartsTemplate(upgrade, editing) {
+      return `
+        <details class="section-box" ${sectionOpen()}>
+          <summary><h4>Original Parts Saved</h4><span>${upgrade.originalPartRemoved ? "Yes" : "No"}</span></summary>
+          ${editing ? `
+            <label class="tool-row">
+              <input type="checkbox" data-action="upgrade-originalPartRemoved" ${upgrade.originalPartRemoved ? "checked" : ""} />
+              <span>Original part removed?</span>
+            </label>
+            <div class="grid-two">
+              <label>Original part name
+                <input data-action="upgrade-originalPartName" value="${escapeHtml(upgrade.originalPartName)}" />
+              </label>
+              <label>Original part condition
+                <input data-action="upgrade-originalPartCondition" value="${escapeHtml(upgrade.originalPartCondition)}" />
+              </label>
+              <label>Bin number
+                <input data-action="upgrade-originalPartBin" value="${escapeHtml(upgrade.originalPartBin)}" placeholder="Bin 2" />
+              </label>
+              <label>Shelf / location
+                <input data-action="upgrade-originalPartShelf" value="${escapeHtml(upgrade.originalPartShelf)}" placeholder="Shelf A" />
+              </label>
+            </div>
+            <label>Storage notes
+              <textarea data-action="upgrade-originalPartNotes">${escapeHtml(upgrade.originalPartNotes)}</textarea>
+            </label>
+            <label class="secondary">
+              Upload original part photo
+              <input class="hidden-file" type="file" accept="image/*" multiple data-action="upgradePhoto" data-photo-key="originalPartPhotos" />
+            </label>
+          ` : `
+            ${upgradeViewField("Original part removed", upgrade.originalPartRemoved ? "Yes" : "No")}
+            ${upgradeViewField("Original part", upgrade.originalPartName)}
+            ${upgradeViewField("Condition", upgrade.originalPartCondition)}
+            ${upgradeViewField("Storage", [upgrade.originalPartBin, upgrade.originalPartShelf].filter(Boolean).join(", "))}
+            ${upgrade.originalPartNotes ? `<p>${escapeHtml(upgrade.originalPartNotes)}</p>` : ""}
+          `}
+          ${upgradePhotoGrid(upgrade, "originalPartPhotos")}
+        </details>
+      `;
+    }
+
+    function upgradeInstalledTemplate(upgrade, editing) {
+      return `
+        <details class="section-box" ${sectionOpen()}>
+          <summary><h4>Installed Upgrade</h4><span>${escapeHtml(upgrade.valueImpact || "Unknown")}</span></summary>
+          ${editing ? `
+            <div class="grid-two">
+              <label>New part installed
+                <input data-action="upgrade-newPartInstalled" value="${escapeHtml(upgrade.newPartInstalled)}" />
+              </label>
+              <label>Brand / model
+                <input data-action="upgrade-brandModel" value="${escapeHtml(upgrade.brandModel)}" />
+              </label>
+              <label>Vendor / source
+                <input data-action="upgrade-vendor" value="${escapeHtml(upgrade.vendor)}" />
+              </label>
+            </div>
+            <label class="tool-row">
+              <input type="checkbox" data-action="upgrade-reversible" ${upgrade.reversible ? "checked" : ""} />
+              <span>Reversible modification?</span>
+            </label>
+            <label class="tool-row">
+              <input type="checkbox" data-action="upgrade-cuttingRequired" ${upgrade.cuttingRequired ? "checked" : ""} />
+              <span>Cutting/drilling required?</span>
+            </label>
+            <div class="button-row">
+              <label class="secondary">
+                Upload receipt/photo
+                <input class="hidden-file" type="file" accept="image/*" multiple data-action="upgradePhoto" data-photo-key="receiptPhotos" />
+              </label>
+              <label class="secondary">
+                Upload installation photos
+                <input class="hidden-file" type="file" accept="image/*" multiple data-action="upgradePhoto" data-photo-key="installPhotos" />
+              </label>
+            </div>
+          ` : `
+            ${upgradeViewField("New part", upgrade.newPartInstalled)}
+            ${upgradeViewField("Brand/model", upgrade.brandModel)}
+            ${upgradeViewField("Vendor/source", upgrade.vendor)}
+            ${upgradeViewField("Reversible", upgrade.reversible ? "Yes" : "No")}
+            ${upgradeViewField("Cutting/drilling required", upgrade.cuttingRequired ? "Yes" : "No")}
+            ${upgradeViewField("Value impact", upgrade.valueImpact)}
+          `}
+          <h4>Receipts</h4>
+          ${upgradePhotoGrid(upgrade, "receiptPhotos")}
+          <h4>Installation photos</h4>
+          ${upgradePhotoGrid(upgrade, "installPhotos")}
+        </details>
+      `;
+    }
+
+    function renderUpgrades() {
+      const summary = upgradeSummary();
+      const upgrades = state.upgrades || [];
+      document.getElementById("upgradeList").innerHTML = `
+        <article class="list-card">
+          <h3>Upgrade Planner</h3>
+          <div class="cost-summary">
+            <div><span>Planned</span>${summary.planned}</div>
+            <div><span>Installed</span>${summary.installed}</div>
+            <div><span>Total Cost</span>${currency(summary.totalCost)}</div>
+          </div>
+        </article>
+        ${upgrades.map((upgrade) => {
+          const editing = isEditorMode() && editingUpgradeIds.has(upgrade.id);
+          return `
+            <details class="phase-card upgrade-card" open data-upgrade-id="${upgrade.id}">
+              <summary>
+                <div class="phase-title">
+                  <h2>${escapeHtml(upgrade.name)}</h2>
+                  <div class="pills">
+                    <span class="pill">${escapeHtml(upgrade.category)}</span>
+                    <span class="pill ${upgrade.status === "Installed" ? "done" : upgrade.status === "Purchased" ? "progress" : ""}">${escapeHtml(upgrade.status)}</span>
+                    <span class="pill">${escapeHtml(upgrade.priority)} priority</span>
+                  </div>
+                </div>
+                <div class="phase-percent">${currency(upgradeMoney(upgrade.actualCost || upgrade.estimatedCost))}</div>
+              </summary>
+              <div class="phase-body">
+                <div class="button-row editor-only step-edit-status">
+                  <span>${editing ? "Editing upgrade" : "Upgrade view"}</span>
+                  <button type="button" class="${editing ? "secondary" : "ghost"}" data-action="${editing ? "doneEditingUpgrade" : "startEditingUpgrade"}">${editing ? "Done Editing" : "Edit Upgrade"}</button>
+                  ${editing ? '<button type="button" class="danger" data-action="deleteUpgrade">Delete</button>' : ""}
+                </div>
+                ${editing ? upgradeEditFields(upgrade) : `
+                  ${upgradeViewField("Reason", upgrade.reason)}
+                  ${upgradeViewField("Parts needed", upgrade.partsNeeded)}
+                  ${upgradeViewField("Estimated cost", currency(upgradeMoney(upgrade.estimatedCost)))}
+                  ${upgradeViewField("Actual cost", upgrade.actualCost ? currency(upgradeMoney(upgrade.actualCost)) : "Not set")}
+                  ${upgradeViewField("Install date", upgrade.installDate)}
+                  ${upgrade.notes ? `<p>${escapeHtml(upgrade.notes)}</p>` : ""}
+                `}
+                ${upgradeOriginalPartsTemplate(upgrade, editing)}
+                ${upgradeInstalledTemplate(upgrade, editing)}
+              </div>
+            </details>
+          `;
+        }).join("")}
+      `;
+    }
+
     function renderSummary() {
       const steps = allSteps();
       const costs = projectCostTotals(!isEditorMode());
@@ -3493,6 +3853,13 @@
         <article class="list-card">
           <h3>Milestones</h3>
           ${MILESTONE_FIELDS.map(([key, label]) => `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(state.milestones[key] || "Not set")}</p>`).join("")}
+        </article>
+        <article class="list-card">
+          <h3>Upgrade Planner</h3>
+          ${(() => {
+            const summary = upgradeSummary();
+            return `<p>Planned: ${summary.planned} | Installed: ${summary.installed} | Total upgrade cost: ${currency(summary.totalCost)}</p>`;
+          })()}
         </article>
         ${state.phases.map((phase) => `
           <article class="list-card">
@@ -3511,6 +3878,7 @@
       renderPhases();
       renderGallery();
       renderShopping();
+      renderUpgrades();
       renderVehicleInfo();
       renderTimeline();
       renderMilestones();
@@ -3607,6 +3975,27 @@
       step.damagePhotos = step.damagePhotos || [];
       step.damagePhotos.push(...photos);
       recordHistory(`Added damage photo${photos.length === 1 ? "" : "s"}`, `${step.title}: ${trimmedLocation}`);
+      saveState();
+    }
+
+    async function handleUpgradePhotos(card, files, key) {
+      const upgrade = (state.upgrades || []).find((item) => item.id === card.dataset.upgradeId);
+      if (!upgrade || !files || !files.length) return;
+      const readers = [...files].map((file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          name: file.name,
+          caption: file.name,
+          dataUrl: reader.result,
+          addedAt: new Date().toISOString()
+        });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }));
+      const photos = await Promise.all(readers);
+      upgrade[key] = Array.isArray(upgrade[key]) ? upgrade[key] : [];
+      upgrade[key].push(...photos);
+      recordHistory(`Added upgrade photo${photos.length === 1 ? "" : "s"}`, upgrade.name);
       saveState();
     }
 
@@ -3733,6 +4122,20 @@
         saveState();
         return;
       }
+      const upgradeCard = input.closest(".upgrade-card");
+      if (upgradeCard && input.dataset.action === "upgradePhoto") {
+        handleUpgradePhotos(upgradeCard, input.files, input.dataset.photoKey);
+        input.value = "";
+        return;
+      }
+      if (upgradeCard && input.dataset.action && input.dataset.action.startsWith("upgrade-")) {
+        const upgrade = (state.upgrades || []).find((item) => item.id === upgradeCard.dataset.upgradeId);
+        if (!upgrade) return;
+        const key = input.dataset.action.replace("upgrade-", "");
+        upgrade[key] = input.type === "checkbox" ? input.checked : input.value;
+        saveState();
+        return;
+      }
       const card = input.closest(".step-card");
       if (!card || !input.dataset.action) return;
       const action = input.dataset.action;
@@ -3821,6 +4224,18 @@
         renderSummary();
         return;
       }
+      const upgradeCard = input.closest(".upgrade-card");
+      if (upgradeCard && input.dataset.action && input.dataset.action.startsWith("upgrade-")) {
+        const upgrade = (state.upgrades || []).find((item) => item.id === upgradeCard.dataset.upgradeId);
+        if (!upgrade) return;
+        const key = input.dataset.action.replace("upgrade-", "");
+        if (input.type === "checkbox") upgrade[key] = input.checked;
+        else upgrade[key] = input.value;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        updateDashboard();
+        renderSummary();
+        return;
+      }
       if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
@@ -3859,7 +4274,7 @@
         document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === tabTarget));
         return;
       }
-      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar") {
+      if (button.id === "loginButton" || button.id === "logoutButton" || button.id === "addStepToolbar" || button.id === "addPhaseToolbar" || button.id === "addUpgrade") {
         return;
       }
       const card = button.closest(".step-card");
@@ -3874,6 +4289,33 @@
       if (!isEditorMode()) {
         event.preventDefault();
         requireEditor();
+        return;
+      }
+      const upgradeCard = button.closest(".upgrade-card");
+      if (upgradeCard && button.dataset.action) {
+        const upgrade = (state.upgrades || []).find((item) => item.id === upgradeCard.dataset.upgradeId);
+        if (!upgrade) return;
+        if (button.dataset.action === "startEditingUpgrade") {
+          editingUpgradeIds.add(upgrade.id);
+          render();
+        }
+        if (button.dataset.action === "doneEditingUpgrade") {
+          editingUpgradeIds.delete(upgrade.id);
+          saveState();
+        }
+        if (button.dataset.action === "deleteUpgrade") {
+          if (!confirm(`Delete upgrade "${upgrade.name}"?`)) return;
+          state.upgrades = state.upgrades.filter((item) => item.id !== upgrade.id);
+          editingUpgradeIds.delete(upgrade.id);
+          recordHistory("Deleted upgrade", upgrade.name);
+          saveState();
+        }
+        if (button.dataset.action === "removeUpgradePhoto") {
+          const key = button.dataset.photoKey;
+          if (Array.isArray(upgrade[key])) upgrade[key].splice(Number(button.dataset.index), 1);
+          recordHistory("Removed upgrade photo", upgrade.name);
+          saveState();
+        }
         return;
       }
       if (card && button.dataset.action) {
@@ -4027,6 +4469,15 @@
 
     document.getElementById("addStepToolbar").addEventListener("click", () => {
       if (requireEditor()) openStepModal(state.phases[0].id, "");
+    });
+    document.getElementById("addUpgrade").addEventListener("click", () => {
+      if (!requireEditor()) return;
+      const upgrade = makeUpgradeFromSeed({ name: "New upgrade", category: "Other", status: "Considering", priority: "Medium", valueImpact: "Unknown" });
+      state.upgrades = state.upgrades || [];
+      state.upgrades.unshift(upgrade);
+      editingUpgradeIds.add(upgrade.id);
+      recordHistory("Added upgrade", upgrade.name);
+      saveState();
     });
     document.getElementById("loginButton").addEventListener("click", () => {
       const password = prompt("Enter editor password");
