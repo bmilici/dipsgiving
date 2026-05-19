@@ -620,15 +620,30 @@
     .photo-need-row {
       grid-template-columns: 1fr;
       align-items: stretch;
+      gap: 12px;
+      padding: 10px;
     }
 
     .photo-need-head {
       display: grid;
-      gap: 8px;
+      gap: 9px;
+      max-width: 560px;
     }
 
     .photo-need-head strong {
       line-height: 1.25;
+    }
+
+    .photo-need-head > .grid-two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .photo-need-head > .grid-two label {
+      margin: 0;
+    }
+
+    .photo-need-head input[data-action="pendingPhotoCaption"] {
+      max-width: 520px;
     }
 
     .photo-actions {
@@ -836,6 +851,21 @@
       align-content: start;
     }
 
+    .photo-need-row > .photo-grid {
+      grid-template-columns: minmax(0, 560px);
+    }
+
+    .photo-need-row .photo-card {
+      grid-template-columns: 144px minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+      box-shadow: 0 8px 20px rgba(44, 31, 21, 0.06);
+    }
+
     .photo-tile {
       position: relative;
       overflow: hidden;
@@ -895,6 +925,13 @@
       background: #fffdf8;
     }
 
+    .photo-need-row .photo-meta {
+      align-content: start;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
     .photo-meta label {
       margin: 0;
       font-size: 0.74rem;
@@ -903,6 +940,19 @@
     .photo-meta input[type="text"] {
       min-height: 38px;
       padding: 8px;
+    }
+
+    .photo-meta .tool-row {
+      grid-template-columns: 28px 1fr;
+      gap: 8px;
+      padding: 8px;
+      background: #fff8eb;
+    }
+
+    .photo-meta .tool-row input {
+      width: 22px;
+      height: 22px;
+      min-height: 22px;
     }
 
     .help-links {
@@ -1062,6 +1112,21 @@
       .modal-backdrop { place-items: center; }
       .phase-card > summary { padding: 18px; }
       .phase-body { padding: 0 18px 18px; }
+    }
+
+    @media (max-width: 620px) {
+      .photo-need-row > .photo-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .photo-need-row .photo-card {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 280px;
+      }
+
+      .photo-need-head input[data-action="pendingPhotoCaption"] {
+        max-width: none;
+      }
     }
 
     @media print {
@@ -3495,6 +3560,13 @@
       });
     }
 
+    function preserveOpenContext(element) {
+      const phaseDetails = element && element.closest && element.closest(".phase-card");
+      const stepDetails = element && element.closest && element.closest(".step-card");
+      if (phaseDetails && phaseDetails.dataset.phaseId && phaseDetails.open) openPhaseIds.add(phaseDetails.dataset.phaseId);
+      if (stepDetails && stepDetails.dataset.stepId && stepDetails.open) openStepIds.add(stepDetails.dataset.stepId);
+    }
+
     function renderPhases() {
       const phaseList = document.getElementById("phaseList");
       syncOpenDetailsFromDom();
@@ -4494,6 +4566,7 @@
       const action = input.dataset.action;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
+      preserveOpenContext(input);
       if (action === "checklist") {
         step.checklist = normalizeChecklist(step.checklist);
         step.checklist[Number(input.dataset.index)].done = input.checked;
@@ -4597,6 +4670,7 @@
       if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
+      preserveOpenContext(input);
       if (input.dataset.action && input.dataset.action.startsWith("cost")) {
         step.costItems = normalizeCostItems(step);
         const item = step.costItems[Number(input.dataset.index)];
