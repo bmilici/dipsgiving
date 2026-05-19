@@ -4009,7 +4009,11 @@
                   <div class="list-card">
                     ${link.url ? `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label || link.url)}</a>` : `<strong>${escapeHtml(link.label || "Help contact")}</strong>`}
                     ${link.phone ? `<a class="help-phone" href="${escapeHtml(phoneHref(link.phone))}">${escapeHtml(link.phone)}</a>` : ""}
-                    ${link.notes ? `<p>${escapeHtml(link.notes)}</p>` : ""}
+                    ${editor ? `
+                      <label>Call notes
+                        <textarea data-action="additionalHelpNotes" data-index="${index}" placeholder="Date called, who you spoke with, what was discussed">${escapeHtml(link.notes || "")}</textarea>
+                      </label>
+                    ` : (link.notes ? `<p>${escapeHtml(link.notes)}</p>` : "")}
                     ${editing ? `<div class="mini-actions"><button type="button" class="ghost" data-action="editAdditionalHelp" data-index="${index}">Edit</button><button type="button" class="ghost" data-action="removeAdditionalHelp" data-index="${index}">Remove</button></div>` : ""}
                   </div>
                 `).join("") || '<div class="empty">No additional help links yet.</div>'}
@@ -4845,7 +4849,7 @@
         renderSummary();
         return;
       }
-      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption", "newHelpLabel", "newHelpUrl", "newHelpPhone", "newHelpNotes"].includes(input.dataset.action)) return;
+      if (!card || !["notes", "cost", "hoursLogged", "estimatedTime", "videoUrl", "helpName", "helpWebsite", "helpPhone", "helpNotes", "costName", "costAmount", "costQuantity", "costNotes", "photoDamageNotes", "photoCaption", "newHelpLabel", "newHelpUrl", "newHelpPhone", "newHelpNotes", "additionalHelpNotes"].includes(input.dataset.action)) return;
       const { step } = findStep(card.dataset.phaseId, card.dataset.stepId);
       if (!step) return;
       preserveOpenContext(input);
@@ -4871,6 +4875,9 @@
         if (input.dataset.action === "helpWebsite") step.professionalHelp.website = input.value;
         if (input.dataset.action === "helpPhone") step.professionalHelp.phone = input.value;
         if (input.dataset.action === "helpNotes") step.professionalHelp.notes = input.value;
+      } else if (input.dataset.action === "additionalHelpNotes") {
+        const link = (step.additionalHelp || [])[Number(input.dataset.index)];
+        if (link) link.notes = input.value;
       } else if (input.dataset.action === "photoDamageNotes") {
         const damageEntry = transportDamageEntry(step, input.dataset.photoNeed);
         damageEntry.notes = input.value;
@@ -5131,13 +5138,10 @@
           if (label === null) return;
           const url = normalizeUrl(prompt("Help link URL", link.url || ""));
           const phone = normalizePhone(prompt("Help phone number", link.phone || ""));
-          const notes = prompt("Call notes", link.notes || "");
-          if (notes === null) return;
           if (!url && !phone) return;
           link.label = label.trim() || url.trim() || phone;
           link.url = url.trim();
           link.phone = phone;
-          link.notes = notes;
           recordHistory("Edited help", `${step.title}: ${link.label}`);
           saveState();
         }
