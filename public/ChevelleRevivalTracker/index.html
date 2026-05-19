@@ -1259,7 +1259,7 @@
       apiKey: "AIzaSyCwvSlbD8CT8723HwGMaSoUrknxLJB5xiU",
       authDomain: "dipsgiving.firebaseapp.com",
       projectId: "dipsgiving",
-      storageBucket: "dipsgiving.appspot.com",
+      storageBucket: "dipsgiving.firebasestorage.app",
       messagingSenderId: "434787110254",
       appId: "1:434787110254:web:9de56ea4948d2d3a06fcf",
       measurementId: "G-NYINL4SKN"
@@ -2487,7 +2487,7 @@
     const editingUpgradeIds = new Set();
     const openPhaseIds = new Set();
     const openStepIds = new Set();
-    let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null };
+    let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null, unsubscribe: null };
 
     function loadState() {
       try {
@@ -2827,8 +2827,22 @@
           auth: firebase.auth()
         };
         loadStateFromCloud();
+        startCloudSync();
+        if (isEditorMode()) queueCloudSave();
       } catch (error) {
         console.warn("Firebase could not initialize", error);
+      }
+    }
+
+    function applyRemoteState(remote, force = false) {
+      if (!remote) return;
+      const remoteState = normalizeState(remote);
+      const remoteTime = Date.parse(remoteState.updatedAt || "");
+      const localTime = Date.parse(state.updatedAt || "");
+      if (force || !localTime || remoteTime >= localTime) {
+        state = remoteState;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        render();
       }
     }
 
@@ -2837,18 +2851,20 @@
       try {
         const snapshot = await cloudDocRef().get();
         const remote = snapshot.exists && snapshot.data() && snapshot.data().state;
-        if (!remote) return;
-        const remoteState = normalizeState(remote);
-        const remoteTime = Date.parse(remoteState.updatedAt || "");
-        const localTime = Date.parse(state.updatedAt || "");
-        if (!localTime || remoteTime >= localTime) {
-          state = remoteState;
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          render();
-        }
+        applyRemoteState(remote, !isEditorMode());
       } catch (error) {
         console.warn("Firebase project load failed", error);
       }
+    }
+
+    function startCloudSync() {
+      if (!cloud.ready || cloud.unsubscribe) return;
+      cloud.unsubscribe = cloudDocRef().onSnapshot((snapshot) => {
+        const remote = snapshot.exists && snapshot.data() && snapshot.data().state;
+        applyRemoteState(remote, !isEditorMode());
+      }, (error) => {
+        console.warn("Firebase project live sync failed", error);
+      });
     }
 
     async function ensureFirebaseEditorAuth() {
@@ -2918,9 +2934,11 @@
     async function saveStateToCloud() {
       if (!cloud.ready || cloud.saving || !isEditorMode()) return;
       cloud.saving = true;
+      let hadPendingPhotos = false;
       try {
         const signedIn = await ensureFirebaseEditorAuth();
         if (!signedIn) return;
+        hadPendingPhotos = allPhotoBuckets(state).some((bucket) => bucket.some((photo) => photo && photo.dataUrl && !photo.url));
         await uploadLocalPhotosToCloud();
         await cloudDocRef().set({
           state,
@@ -2928,6 +2946,9 @@
         }, { merge: true });
       } catch (error) {
         console.warn("Firebase project save failed", error);
+        if (hadPendingPhotos) {
+          alert("The photo was saved on this device, but it did not finish uploading to Firebase. Check your connection and try again.");
+        }
       } finally {
         cloud.saving = false;
       }
