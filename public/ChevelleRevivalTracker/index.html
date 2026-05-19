@@ -2577,6 +2577,8 @@
     const editingUpgradeIds = new Set();
     const openPhaseIds = new Set();
     const openStepIds = new Set();
+    const openSectionKeys = new Set();
+    const closedSectionKeys = new Set();
     let isRendering = false;
     let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null, unsubscribe: null };
 
@@ -2900,6 +2902,7 @@
     function saveState() {
       state.updatedAt = new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      syncOpenDetailsFromDom();
       render();
       queueCloudSave();
     }
@@ -3551,12 +3554,18 @@
       document.querySelectorAll(".phase-card").forEach((details) => {
         if (!details.dataset.phaseId) return;
         if (details.open) openPhaseIds.add(details.dataset.phaseId);
-        else openPhaseIds.delete(details.dataset.phaseId);
       });
       document.querySelectorAll(".step-card").forEach((details) => {
         if (!details.dataset.stepId) return;
         if (details.open) openStepIds.add(details.dataset.stepId);
-        else openStepIds.delete(details.dataset.stepId);
+      });
+      document.querySelectorAll(".step-card .section-box").forEach((details) => {
+        const key = sectionKeyFromDetails(details);
+        if (!key) return;
+        if (details.open) {
+          openSectionKeys.add(key);
+          closedSectionKeys.delete(key);
+        }
       });
     }
 
@@ -3565,6 +3574,22 @@
       const stepDetails = element && element.closest && element.closest(".step-card");
       if (phaseDetails && phaseDetails.dataset.phaseId && phaseDetails.open) openPhaseIds.add(phaseDetails.dataset.phaseId);
       if (stepDetails && stepDetails.dataset.stepId && stepDetails.open) openStepIds.add(stepDetails.dataset.stepId);
+      const sectionDetails = element && element.closest && element.closest(".section-box");
+      const sectionKey = sectionKeyFromDetails(sectionDetails);
+      if (sectionKey && sectionDetails.open) {
+        openSectionKeys.add(sectionKey);
+        closedSectionKeys.delete(sectionKey);
+      }
+    }
+
+    function sectionKey(step, name) {
+      return `${step.id}:${name}`;
+    }
+
+    function sectionKeyFromDetails(details) {
+      const stepDetails = details && details.closest && details.closest(".step-card");
+      const name = details && details.dataset && details.dataset.section;
+      return stepDetails && stepDetails.dataset.stepId && name ? `${stepDetails.dataset.stepId}:${name}` : "";
     }
 
     function renderPhases() {
@@ -3602,7 +3627,11 @@
       `).join("");
     }
 
-    function sectionOpen() {
+    function sectionOpen(step, name) {
+      if (!step || !name) return displayPrefs().compactSections ? "" : "open";
+      const key = sectionKey(step, name);
+      if (openSectionKeys.has(key)) return "open";
+      if (closedSectionKeys.has(key)) return "";
       return displayPrefs().compactSections ? "" : "open";
     }
 
@@ -3658,7 +3687,7 @@
       const warnings = (step.warnings || []).slice(0, 3);
       if (isStepEditing(step)) {
         return `
-          <details class="section-box" ${sectionOpen()}>
+          <details class="section-box" data-section="safety" ${sectionOpen(step, "safety")}>
             <summary><h4>Safety warnings</h4><span>${step.warnings.length}</span></summary>
             ${editableTextListTemplate(step, "warnings", step.warnings, "No safety warnings listed.")}
           </details>
@@ -3762,13 +3791,13 @@
               </label>
             </div>
 
-            <details class="section-box" ${sectionOpen()}>
+            <details class="section-box" data-section="checklist" ${sectionOpen(step, "checklist")}>
               <summary><h4>Checklist</h4><span>${stepCompletion(step)}%</span></summary>
               ${editableTextListTemplate(step, "checklist", step.checklist, "No checklist items yet.")}
             </details>
 
             <div class="grid-two">
-              <details class="section-box" ${sectionOpen()}>
+              <details class="section-box" data-section="tools" ${sectionOpen(step, "tools")}>
                 <summary><h4>Required tools</h4><span>${step.tools.length}</span></summary>
                 <div class="section-content">
                   ${step.tools.length ? step.tools.map((tool, index) => `
@@ -3785,7 +3814,7 @@
                   ${editing ? '<button type="button" class="secondary" data-action="addListItem" data-list="tools">Add item</button>' : ""}
                 </div>
               </details>
-              <details class="section-box" ${sectionOpen()}>
+              <details class="section-box" data-section="parts" ${sectionOpen(step, "parts")}>
                 <summary><h4>Parts / supplies</h4><span>${step.parts.length}</span></summary>
                 <div class="section-content">
                   ${step.parts.length ? step.parts.map((part, index) => `
@@ -3806,7 +3835,7 @@
 
             ${safetyTemplate(step)}
 
-            <details class="section-box" ${sectionOpen()}>
+            <details class="section-box" data-section="photos" ${sectionOpen(step, "photos")}>
               <summary><h4>Photos</h4><span>${photoSectionSummary(step)}</span></summary>
               ${editor ? `
                 <label class="tool-row">
@@ -3818,7 +3847,7 @@
               ${photoContentTemplate(phase, step)}
             </details>
 
-            <details class="section-box" ${sectionOpen()}>
+            <details class="section-box" data-section="costs" ${sectionOpen(step, "costs")}>
               <summary><h4>Itemized Costs</h4><span>${currency(stepCostTotals(step).subtotal)}</span></summary>
               ${editor ? `
                 <label class="tool-row">
@@ -3830,7 +3859,7 @@
             </details>
 
             ${editor ? `
-              <details class="section-box" ${sectionOpen()}>
+              <details class="section-box" data-section="notes" ${sectionOpen(step, "notes")}>
                 <summary><h4>Notes</h4><span>${step.publicNotes ? "Public" : "Private"}</span></summary>
                 <label class="tool-row">
                   <input type="checkbox" data-action="publicNotes" ${step.publicNotes ? "checked" : ""} />
@@ -3841,13 +3870,13 @@
                 </label>
               </details>
             ` : `
-              <details class="section-box" ${sectionOpen()}>
+              <details class="section-box" data-section="notes" ${sectionOpen(step, "notes")}>
                 <summary><h4>Notes</h4></summary>
                 ${step.publicNotes && step.notes ? `<p>${escapeHtml(step.notes)}</p>` : '<div class="empty">No public notes for this step yet.</div>'}
               </details>
             `}
 
-            <details class="section-box" ${sectionOpen()}>
+            <details class="section-box" data-section="help" ${sectionOpen(step, "help")}>
               <summary><h4>Additional Help</h4><span>${(step.additionalHelp || []).length}</span></summary>
               <div class="help-links">
                 ${(step.additionalHelp || []).map((link, index) => `
@@ -4714,6 +4743,16 @@
         if (details.open) openStepIds.add(details.dataset.stepId);
         else openStepIds.delete(details.dataset.stepId);
       }
+      if (details.classList.contains("section-box")) {
+        const key = sectionKeyFromDetails(details);
+        if (key && details.open) {
+          openSectionKeys.add(key);
+          closedSectionKeys.delete(key);
+        } else if (key) {
+          closedSectionKeys.add(key);
+          openSectionKeys.delete(key);
+        }
+      }
     }, true);
 
     document.addEventListener("click", (event) => {
@@ -4730,11 +4769,25 @@
       }
       const card = button.closest(".step-card");
       if (card && button.dataset.action === "expandStepSections") {
-        card.querySelectorAll(".section-box").forEach((section) => section.open = true);
+        card.querySelectorAll(".section-box").forEach((section) => {
+          section.open = true;
+          const key = sectionKeyFromDetails(section);
+          if (key) {
+            openSectionKeys.add(key);
+            closedSectionKeys.delete(key);
+          }
+        });
         return;
       }
       if (card && button.dataset.action === "collapseStepSections") {
-        card.querySelectorAll(".section-box").forEach((section) => section.open = false);
+        card.querySelectorAll(".section-box").forEach((section) => {
+          section.open = false;
+          const key = sectionKeyFromDetails(section);
+          if (key) {
+            closedSectionKeys.add(key);
+            openSectionKeys.delete(key);
+          }
+        });
         return;
       }
       if (button.dataset.action === "openPhoto") {
