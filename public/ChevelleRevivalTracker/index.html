@@ -826,8 +826,8 @@
 
     .photo-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 10px;
     }
 
     .photo-tile {
@@ -837,6 +837,8 @@
       border-radius: 8px;
       background: #f2eadf;
       aspect-ratio: 1;
+      min-height: 132px;
+      box-shadow: 0 7px 18px rgba(44, 31, 21, 0.08);
     }
 
     .photo-tile img {
@@ -844,12 +846,33 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      background: #efe5d8;
     }
 
-    .photo-tile button {
+    .photo-open {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: transparent;
+      cursor: zoom-in;
+    }
+
+    .photo-open:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: -4px;
+    }
+
+    .photo-remove {
       position: absolute;
       right: 4px;
       top: 4px;
+      z-index: 3;
       min-height: 30px;
       width: 30px;
       padding: 0;
@@ -921,6 +944,53 @@
 
     .modal-backdrop.active {
       display: grid;
+    }
+
+    .photo-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      place-items: center;
+      padding: 14px;
+      background: rgba(20, 16, 12, 0.86);
+    }
+
+    .photo-lightbox.active {
+      display: grid;
+    }
+
+    .photo-lightbox-panel {
+      display: grid;
+      gap: 10px;
+      width: min(1120px, 100%);
+    }
+
+    .photo-lightbox img {
+      width: 100%;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #16120f;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    .photo-lightbox-caption {
+      padding: 9px 11px;
+      border-radius: 8px;
+      color: #fffaf1;
+      background: rgba(0, 0, 0, 0.45);
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .photo-lightbox-close {
+      justify-self: end;
+      min-height: 42px;
+      width: auto;
+      padding: 9px 14px;
+      background: #fffaf1;
+      color: var(--ink);
     }
 
     .modal {
@@ -1157,6 +1227,14 @@
         <button type="button" class="danger" id="deleteStep">Delete</button>
       </div>
     </form>
+  </div>
+
+  <div class="photo-lightbox" id="photoLightbox" aria-hidden="true">
+    <div class="photo-lightbox-panel" role="dialog" aria-modal="true" aria-label="Photo preview">
+      <button type="button" class="photo-lightbox-close" id="photoLightboxClose">Close</button>
+      <img id="photoLightboxImage" alt="" />
+      <div class="photo-lightbox-caption" id="photoLightboxCaption"></div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
@@ -3091,9 +3169,10 @@
     }
 
     function isBeforeTransportStep(phase, step) {
-      const phaseTitle = String(phase && phase.title || "").toLowerCase();
       const stepTitle = String(step && step.title || "").toLowerCase();
-      return phaseTitle.startsWith("phase 0") || stepTitle.includes("before-transport") || stepTitle.includes("before transport");
+      return stepTitle === PHOTO_DOC_STEP_TITLE.toLowerCase()
+        || stepTitle.includes("before-transport photo")
+        || stepTitle.includes("before transport photo");
     }
 
     function isAfterTransportStep(phase, step) {
@@ -3125,6 +3204,41 @@
 
     function photoSrc(photo) {
       return photo && (photo.url || photo.dataUrl) || "";
+    }
+
+    function photoTileTemplate(photo, fallback = "Photo", removeHtml = "") {
+      const src = photoSrc(photo);
+      if (!src) return "";
+      const caption = photoCaptionText(photo, fallback);
+      const datedCaption = `${caption}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}`;
+      return `
+        <figure class="photo-tile">
+          <img src="${escapeHtml(src)}" alt="${escapeHtml(photo.name || photo.location || fallback)}" />
+          <button type="button" class="photo-open" data-action="openPhoto" data-photo-src="${escapeHtml(src)}" data-photo-caption="${escapeHtml(datedCaption)}" aria-label="Open photo"></button>
+          <figcaption class="photo-caption">${escapeHtml(datedCaption)}</figcaption>
+          ${removeHtml}
+        </figure>
+      `;
+    }
+
+    function openPhotoLightbox(src, caption = "") {
+      if (!src) return;
+      const lightbox = document.getElementById("photoLightbox");
+      const image = document.getElementById("photoLightboxImage");
+      const captionEl = document.getElementById("photoLightboxCaption");
+      image.src = src;
+      image.alt = caption || "Project photo";
+      captionEl.textContent = caption || "Project photo";
+      lightbox.classList.add("active");
+      lightbox.setAttribute("aria-hidden", "false");
+    }
+
+    function closePhotoLightbox() {
+      const lightbox = document.getElementById("photoLightbox");
+      const image = document.getElementById("photoLightboxImage");
+      lightbox.classList.remove("active");
+      lightbox.setAttribute("aria-hidden", "true");
+      image.removeAttribute("src");
     }
 
     function photoCategory(need) {
@@ -3179,13 +3293,7 @@
             </div>
           </div>
           <div class="photo-grid">
-            ${photosForNeed(step, need).map(({ photo, index }) => `
-              <figure class="photo-tile">
-                <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || need)}" />
-                <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, need))}</figcaption>
-                ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
-              </figure>
-            `).join("")}
+            ${photosForNeed(step, need).map(({ photo, index }) => photoTileTemplate(photo, need, isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "")).join("")}
           </div>
         </div>
       `;
@@ -3211,13 +3319,7 @@
           </div>
         </div>
         <div class="photo-grid">
-          ${(step.damagePhotos || []).map((photo, index) => `
-            <figure class="photo-tile">
-              <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" />
-              <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-              ${isStepEditing(step) ? `<button type="button" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : ""}
-            </figure>
-          `).join("")}
+          ${(step.damagePhotos || []).map((photo, index) => photoTileTemplate(photo, "Damage photo", isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove damage photo" data-action="removeDamagePhoto" data-index="${index}">x</button>` : "")).join("")}
         </div>
       `;
     }
@@ -3227,12 +3329,7 @@
         const photos = stepPublicPhotos(step);
         return photos.length ? `
           <div class="photo-grid">
-            ${photos.map(({ photo }) => `
-              <figure class="photo-tile">
-                <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || photo.need || step.title)}" />
-                <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-              </figure>
-            `).join("")}
+            ${photos.map(({ photo }) => photoTileTemplate(photo, photo.need || step.title || "Photo")).join("")}
           </div>
         ` : '<div class="empty">No public photos for this step yet.</div>';
       }
@@ -3251,13 +3348,7 @@
           <div class="photo-need-row">
             <strong>Other uploaded photos</strong>
             <div class="photo-grid">
-              ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => `
-                <figure class="photo-tile">
-                  <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || step.title)}" />
-                  <figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, step.title))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-                  ${isStepEditing(step) ? `<button type="button" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : ""}
-                </figure>
-              `).join("")}
+              ${step.photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => !photo.need).map(({ photo, index }) => photoTileTemplate(photo, step.title, isStepEditing(step) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removePhoto" data-index="${index}">x</button>` : "")).join("")}
             </div>
           </div>
         ` : ""}
@@ -3623,8 +3714,8 @@
         ...photos.map((photo) => ({ phase, step, photo })),
         ...damagePhotos.map((photo) => ({ phase, step, photo }))
       ]);
-      const beforePhotos = allPublicPhotos.filter(({ photo }) => photo.category === "Before Transport");
-      const afterPhotos = allPublicPhotos.filter(({ photo }) => photo.category === "After Transport");
+      const beforePhotos = allPublicPhotos.filter(({ phase, step, photo }) => photo.category === "Before Transport" && isBeforeTransportStep(phase, step));
+      const afterPhotos = allPublicPhotos.filter(({ phase, step, photo }) => photo.category === "After Transport" && isAfterTransportStep(phase, step));
       const comparison = (beforePhotos.length || afterPhotos.length) ? `
         <article class="list-card">
           <h3>Before / After Transport Comparison</h3>
@@ -3632,13 +3723,13 @@
             <div class="comparison-column">
               <h3>Before Transport</h3>
               <div class="photo-grid">
-                ${beforePhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.caption || photo.name || "Before transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Before"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No before photos yet.</div>'}
+                ${beforePhotos.map(({ photo }) => photoTileTemplate(photo, "Before transport")).join("") || '<div class="empty">No before photos yet.</div>'}
               </div>
             </div>
             <div class="comparison-column">
               <h3>After Transport</h3>
               <div class="photo-grid">
-                ${afterPhotos.map(({ photo }) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.caption || photo.name || "After transport")}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "After"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") || '<div class="empty">No after photos yet.</div>'}
+                ${afterPhotos.map(({ photo }) => photoTileTemplate(photo, "After transport")).join("") || '<div class="empty">No after photos yet.</div>'}
               </div>
             </div>
           </div>
@@ -3648,8 +3739,8 @@
         <article class="list-card">
           <h3>${escapeHtml(phase.title)} - ${escapeHtml(step.title)}</h3>
           <div class="photo-grid">
-            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || step.title)}" title="${escapeHtml(photo.need || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photoCaptionText(photo, "Photo"))}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
-            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => `<figure class="photo-tile"><img src="${photoSrc(photo)}" alt="${escapeHtml(photo.location || photo.name || step.title)}" title="${escapeHtml(photo.location || step.title)}" /><figcaption class="photo-caption">${escapeHtml(photo.caption || photo.location || "Damage photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption></figure>`).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? step.photos.map((photo) => photoTileTemplate(photo, photo.need || step.title || "Photo")).join("") : ""}
+            ${isEditorMode() || step.publicPhotos ? (step.damagePhotos || []).map((photo) => photoTileTemplate(photo, "Damage photo")).join("") : ""}
           </div>
         </article>
       `).join("") : '<div class="empty">No public photos yet.</div>';
@@ -3791,13 +3882,7 @@
       const photos = upgrade[key] || [];
       return photos.length ? `
         <div class="photo-grid">
-          ${photos.map((photo, index) => `
-            <figure class="photo-tile">
-              <img src="${photoSrc(photo)}" alt="${escapeHtml(photo.name || "Upgrade photo")}" />
-              <figcaption class="photo-caption">${escapeHtml(photo.caption || photo.name || "Photo")}${photo.addedAt ? ` - ${new Date(photo.addedAt).toLocaleDateString()}` : ""}</figcaption>
-              ${editingUpgradeIds.has(upgrade.id) ? `<button type="button" aria-label="Remove photo" data-action="removeUpgradePhoto" data-photo-key="${key}" data-index="${index}">x</button>` : ""}
-            </figure>
-          `).join("")}
+          ${photos.map((photo, index) => photoTileTemplate(photo, "Upgrade photo", editingUpgradeIds.has(upgrade.id) ? `<button type="button" class="photo-remove" aria-label="Remove photo" data-action="removeUpgradePhoto" data-photo-key="${key}" data-index="${index}">x</button>` : "")).join("")}
         </div>
       ` : '<div class="empty">No photos yet.</div>';
     }
@@ -4455,6 +4540,11 @@
         card.querySelectorAll(".section-box").forEach((section) => section.open = false);
         return;
       }
+      if (button.dataset.action === "openPhoto") {
+        event.preventDefault();
+        openPhotoLightbox(button.dataset.photoSrc, button.dataset.photoCaption || "");
+        return;
+      }
       if (!isEditorMode()) {
         event.preventDefault();
         requireEditor();
@@ -4686,6 +4776,13 @@
     document.getElementById("cancelEdit").addEventListener("click", closeStepModal);
     document.getElementById("stepModal").addEventListener("click", (event) => {
       if (event.target.id === "stepModal") closeStepModal();
+    });
+    document.getElementById("photoLightboxClose").addEventListener("click", closePhotoLightbox);
+    document.getElementById("photoLightbox").addEventListener("click", (event) => {
+      if (event.target.id === "photoLightbox") closePhotoLightbox();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePhotoLightbox();
     });
 
     document.getElementById("stepForm").addEventListener("submit", (event) => {
