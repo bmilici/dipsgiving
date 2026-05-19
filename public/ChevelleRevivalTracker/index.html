@@ -2407,6 +2407,8 @@
     let state = loadState();
     const editingStepIds = new Set();
     const editingUpgradeIds = new Set();
+    const openPhaseIds = new Set();
+    const openStepIds = new Set();
     let cloud = { ready: false, db: null, storage: null, auth: null, saving: false, timer: null };
 
     function loadState() {
@@ -3285,13 +3287,25 @@
       return phase ? phaseProgress(phase) : 0;
     }
 
+    function syncOpenDetailsFromDom() {
+      document.querySelectorAll(".phase-card").forEach((details) => {
+        if (!details.dataset.phaseId) return;
+        if (details.open) openPhaseIds.add(details.dataset.phaseId);
+        else openPhaseIds.delete(details.dataset.phaseId);
+      });
+      document.querySelectorAll(".step-card").forEach((details) => {
+        if (!details.dataset.stepId) return;
+        if (details.open) openStepIds.add(details.dataset.stepId);
+        else openStepIds.delete(details.dataset.stepId);
+      });
+    }
+
     function renderPhases() {
       const phaseList = document.getElementById("phaseList");
-      const openPhases = new Set([...phaseList.querySelectorAll(".phase-card[open]")].map((details) => details.dataset.phaseId));
-      const openSteps = new Set([...phaseList.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
+      syncOpenDetailsFromDom();
       const hasRenderedBefore = phaseList.children.length > 0;
       phaseList.innerHTML = state.phases.map((phase, index) => `
-        <details class="phase-card" ${(openPhases.has(phase.id) || (!hasRenderedBefore && index === 0)) ? "open" : ""} data-phase-id="${phase.id}">
+        <details class="phase-card" ${(openPhaseIds.has(phase.id) || (!hasRenderedBefore && index === 0)) ? "open" : ""} data-phase-id="${phase.id}">
           <summary>
             <div class="phase-title">
               <h2>${escapeHtml(phase.title)}</h2>
@@ -3443,8 +3457,7 @@
       const editor = isEditorMode();
       const editing = isStepEditing(step);
       const disabled = editDisabled();
-      const openSteps = new Set([...document.querySelectorAll(".step-card[open]")].map((details) => details.dataset.stepId));
-      const shouldOpen = openSteps.has(step.id) && !(displayPrefs().autoCollapseCompleted && step.status === "Done");
+      const shouldOpen = openStepIds.has(step.id);
       return `
         <details class="step-card ${isHelp ? "needs-help" : ""}" ${shouldOpen ? "open" : ""} data-phase-id="${phase.id}" data-step-id="${step.id}">
           <summary>
@@ -4407,6 +4420,19 @@
       updateDashboard();
       renderSummary();
     });
+
+    document.addEventListener("toggle", (event) => {
+      const details = event.target;
+      if (!(details instanceof HTMLDetailsElement)) return;
+      if (details.classList.contains("phase-card") && details.dataset.phaseId) {
+        if (details.open) openPhaseIds.add(details.dataset.phaseId);
+        else openPhaseIds.delete(details.dataset.phaseId);
+      }
+      if (details.classList.contains("step-card") && details.dataset.stepId) {
+        if (details.open) openStepIds.add(details.dataset.stepId);
+        else openStepIds.delete(details.dataset.stepId);
+      }
+    }, true);
 
     document.addEventListener("click", (event) => {
       const button = event.target.closest("button");
