@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
   const phrase = (request.nextUrl.searchParams.get("text") || "").trim();
 
   if (phrase) {
-    if (phrase.length > 140 || !/^[A-Za-z0-9 .,?!'’+-]+$/.test(phrase)) {
+    if (phrase.length > 240 || !/^[A-Za-z0-9 .,?!'’:+-]+$/.test(phrase)) {
       return Response.json({ error: "Text must be a short learning game phrase." }, { status: 400 });
     }
   } else if (ticket) {
