@@ -1,0 +1,1661 @@
+.taa-page {
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0;
+  color: #12243d;
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 30%),
+    linear-gradient(180deg, #9fddff 0%, #d6f5ff 34%, #356f93 35%, #254766 100%);
+  overflow-x: hidden;
+  padding: 14px;
+}
+
+.taa-page.is-playing {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.taa-topbar {
+  width: min(1120px, 100%);
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.taa-home-link,
+.taa-small-button,
+.taa-big-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #10213d;
+  background: #ffd44d;
+  font-family: inherit;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.taa-small-button { background: #ffffff; }
+.taa-big-button { min-height: 56px; padding: 14px 18px; font-size: 1.02rem; }
+.taa-repeat-button { min-height: 44px; font-size: 0.95rem; }
+
+.taa-home-link:hover,
+.taa-small-button:hover,
+.taa-big-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.taa-scoreboard {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  background: linear-gradient(180deg, rgba(30, 50, 75, 0.95), rgba(18, 36, 61, 0.98));
+  font-weight: 900;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28), 0 0 0 2px rgba(255, 212, 77, 0.28);
+}
+
+.taa-scoreboard.is-hidden { visibility: hidden; }
+
+.taa-level-select,
+.taa-game-wrap {
+  position: relative;
+  width: min(1120px, 100%);
+  min-height: min(74vh, 700px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.86);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 80% 12%, rgba(255, 212, 77, 0.22), transparent 20%),
+    linear-gradient(180deg, rgba(18, 36, 61, 0.18), rgba(18, 36, 61, 0.48));
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2), 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.taa-level-select {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: clamp(18px, 4vw, 34px);
+}
+
+.taa-level-select h1,
+.taa-title-row h1,
+.taa-screen h1 {
+  margin: 0;
+  color: white;
+  font-size: clamp(2rem, 6vw, 4.8rem);
+  line-height: 0.95;
+  text-shadow: 0 5px 0 rgba(0, 0, 0, 0.24);
+}
+
+.taa-level-subtitle {
+  max-width: 760px;
+  margin: 0;
+  color: white;
+  font-size: clamp(1.05rem, 2.3vw, 1.4rem);
+  font-weight: 800;
+}
+
+.taa-grade-select {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 249, 232, 0.94);
+}
+
+.taa-grade-select-title {
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.taa-grade-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taa-grade-option {
+  border: 2px solid rgba(18, 36, 61, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #12243d;
+  background: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.taa-grade-option.is-selected {
+  border-color: #12243d;
+  background: #ffd44d;
+}
+
+.taa-level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.taa-level-card {
+  min-height: 190px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  align-content: start;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 14px;
+  color: #12243d;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(255, 212, 77, 0.14) 0 30px, transparent 32px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 249, 232, 0.94));
+  text-align: left;
+  cursor: pointer;
+}
+
+.taa-level-card:hover { transform: translateY(-4px); }
+.taa-level-card strong { font-size: 1.25rem; }
+.taa-level-card span { font-weight: 800; }
+.taa-level-card em { align-self: end; font-style: normal; font-weight: 900; color: #2f78bf; }
+.taa-level-card.is-complete em { color: #18784a; }
+
+.taa-level-number {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: white;
+  background: #2f78bf;
+  font-weight: 900;
+}
+
+.taa-game-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 14px;
+  height: 100%;
+  min-height: min(74vh, 700px);
+  padding: 20px;
+}
+
+.taa-page.is-playing .taa-game-content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.taa-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.taa-title-row h1 {
+  max-width: min(700px, 78%);
+  border: 3px solid rgba(255, 255, 255, 0.72);
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: rgba(13, 35, 58, 0.72);
+  font-size: clamp(1.55rem, 4vw, 3.1rem);
+}
+
+.taa-grade-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #10213d;
+  background: #ffd44d;
+  font-size: 0.94rem;
+  font-weight: 900;
+}
+
+.taa-stars {
+  min-width: 126px;
+  color: #ffd44d;
+  font-size: clamp(1.25rem, 3.2vw, 2rem);
+  font-weight: 900;
+  text-align: right;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.24), 0 0 20px rgba(255, 212, 77, 0.4);
+}
+
+.taa-speech,
+.taa-feedback,
+.taa-sos-feedback {
+  min-height: 66px;
+  border: 3px solid rgba(255, 255, 255, 0.78);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: white;
+  background: rgba(18, 36, 61, 0.68);
+  font-size: clamp(1rem, 2.3vw, 1.35rem);
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.taa-feedback,
+.taa-sos-feedback {
+  min-height: 48px;
+  color: #10213d;
+  background: rgba(255, 249, 232, 0.94);
+}
+
+.taa-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 18px;
+  padding: clamp(18px, 5vw, 36px);
+  color: white;
+  text-align: center;
+  background: rgba(13, 35, 58, 0.86);
+}
+
+.taa-screen p {
+  max-width: 680px;
+  margin: 0;
+  font-size: clamp(1.05rem, 2.8vw, 1.5rem);
+  font-weight: 900;
+}
+
+.taa-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.taa-loading {
+  width: min(680px, 100%);
+  margin: 16vh auto;
+  border-radius: 8px;
+  padding: 24px;
+  color: white;
+  background: rgba(18, 36, 61, 0.84);
+  font-size: 1.2rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.taa-cabin-game {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255, 212, 77, 0.2), transparent 30%),
+    linear-gradient(180deg, #2f78bf 0 27%, #f6deb6 28%, #d0a676 58%, #8a5a35 59%, #6d4225 100%);
+}
+
+.taa-ship-top {
+  position: absolute;
+  inset: 0 0 70%;
+  background:
+    linear-gradient(90deg, transparent 0 11%, #d84631 11% 16%, transparent 16% 25%, #d84631 25% 30%, transparent 30%),
+    linear-gradient(180deg, transparent 0 53%, #fff7df 54% 70%, #12243d 71% 82%, #b23b2f 83% 100%);
+}
+
+.taa-hall {
+  position: absolute;
+  inset: 26% 0 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 78px),
+    repeating-linear-gradient(175deg, transparent 0 8px, rgba(0, 0, 0, 0.03) 9px 10px);
+}
+
+.taa-cabin-fixtures {
+  position: absolute;
+  top: calc(26% + 10px);
+  left: 4%;
+  right: 4%;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(12px, 3vw, 34px);
+  pointer-events: none;
+}
+
+.taa-cabin-fixtures span {
+  position: relative;
+  height: clamp(44px, 7vw, 72px);
+  border: 5px solid rgba(201, 162, 39, 0.95);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 8px, transparent 9px),
+    radial-gradient(circle at 50% 50%, rgba(116, 209, 255, 0.78) 0 24%, rgba(38, 98, 139, 0.88) 25% 55%, rgba(12, 38, 64, 0.9) 56% 100%);
+  box-shadow: 0 0 24px rgba(255, 212, 77, 0.48);
+}
+
+.taa-cabin-fixtures span::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 212, 77, 0.95), rgba(255, 179, 63, 0.38) 60%, transparent 70%);
+  transform: translateX(-50%);
+  box-shadow: 0 0 26px rgba(255, 212, 77, 0.78);
+}
+
+.taa-passenger-area {
+  display: grid;
+  grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.taa-passenger {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.taa-animal {
+  font-size: clamp(3.5rem, 9vw, 6rem);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.24);
+}
+
+.taa-ticket-repeat-button {
+  display: grid;
+  gap: 4px;
+  width: min(250px, 100%);
+  border: 4px dashed #b9792d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #12243d;
+  background: #fff9e8;
+  font-family: inherit;
+  font-weight: 900;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+}
+
+.taa-ticket-label { font-size: 0.86rem; text-transform: uppercase; }
+.taa-ticket-code { font-size: clamp(1.45rem, 4.8vw, 3rem); }
+
+.taa-doors,
+.taa-answer-grid,
+.taa-sos-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.taa-door-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(126px, 22vh, 210px);
+  border: 4px solid #c9a227;
+  border-top-width: 6px;
+  border-radius: 8px 8px 3px 3px;
+  color: #fff9e8;
+  background:
+    radial-gradient(circle at 78% 50%, rgba(255, 212, 77, 0.86) 0 8px, transparent 9px),
+    linear-gradient(180deg, rgba(53, 132, 204, 0.72), rgba(47, 120, 191, 0.58) 20%, rgba(29, 90, 148, 0.52) 80%, rgba(23, 63, 119, 0.62));
+  backdrop-filter: blur(2px) saturate(1.18);
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.3), 0 8px 0 rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+}
+
+.taa-door-button:hover { transform: translateY(-3px); }
+.taa-door-button.is-correct { background: linear-gradient(180deg, rgba(61, 187, 109, 0.82), rgba(24, 120, 74, 0.78)); }
+.taa-door-button.is-wrong { background: linear-gradient(180deg, rgba(240, 143, 104, 0.84), rgba(201, 77, 66, 0.82)); }
+
+.taa-door-code {
+  position: relative;
+  z-index: 1;
+  width: min(132px, 78%);
+  border: 2px solid #8b6914;
+  border-radius: 4px;
+  padding: 8px 16px;
+  color: #2a1a0a;
+  background: linear-gradient(180deg, rgba(255, 245, 185, 0.92), rgba(201, 162, 39, 0.78));
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.taa-engine-room {
+  background:
+    radial-gradient(circle at 70% 20%, rgba(255, 179, 63, 0.32), transparent 24%),
+    linear-gradient(180deg, #586170, #252a31);
+}
+
+.taa-engine-stage,
+.taa-cargo-stage,
+.taa-bridge-console,
+.taa-sos-console {
+  display: grid;
+  grid-template-columns: minmax(150px, 260px) minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.taa-engineer,
+.taa-boiler-panel,
+.taa-bridge-panel,
+.taa-radio-cabinet,
+.taa-cargo-helper {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.taa-helper-face,
+.taa-coal-visual,
+.taa-boiler-panel,
+.taa-bridge-panel,
+.taa-radio-cabinet,
+.taa-message-board {
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 249, 232, 0.94);
+  font-weight: 900;
+}
+
+.taa-number-card {
+  display: grid;
+  place-items: center;
+  min-height: 110px;
+  border-radius: 8px;
+  color: white;
+  background: #25364b;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  font-weight: 900;
+}
+
+.taa-coal-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.taa-coal-pieces span {
+  width: 22px;
+  height: 18px;
+  border-radius: 7px 8px 6px 9px;
+  background: #252a31;
+}
+
+.taa-furnace {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  border-radius: 50% 50% 8px 8px;
+  color: white;
+  background: radial-gradient(circle, rgba(255, 179, 63, calc(0.25 + var(--furnace-power) * 0.75)), #252a31 70%);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.taa-engine-meter,
+.taa-meter {
+  height: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.taa-engine-meter div,
+.taa-meter div {
+  height: 100%;
+  background: linear-gradient(90deg, #3dbb6d, #ffd44d, #f06b5f);
+  transition: width 240ms ease;
+}
+
+.taa-answer-button,
+.taa-sos-choice {
+  min-height: 76px;
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  border-radius: 8px;
+  color: #10213d;
+  background: #fff9e8;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.taa-answer-button.is-wrong,
+.taa-sos-choice.is-wrong { background: #fff0ec; border-color: #f06b5f; }
+
+.taa-cargo-yard {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 35%),
+    linear-gradient(180deg, #2f78bf 0 34%, #8a5a35 35% 100%);
+}
+
+.taa-cargo-content { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; }
+.taa-cargo-helper { grid-template-columns: 1fr auto auto; align-items: center; }
+.taa-cargo-stage { grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr); }
+
+.taa-cargo-belt,
+.taa-cargo-carts {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.taa-cargo-belt {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(18, 36, 61, 0.74);
+}
+
+.taa-cargo-item,
+.taa-cargo-cart {
+  min-height: 96px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  color: #12243d;
+  background: #fff9e8;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.taa-cargo-item.is-selected {
+  background: #ffd44d;
+  transform: translateY(-3px);
+}
+
+.taa-cargo-carts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.taa-cargo-cart { background: linear-gradient(180deg, #f6deb6, #b9792d); }
+
+.taa-bridge-deck {
+  background:
+    radial-gradient(circle at 85% 14%, rgba(255, 212, 77, 0.28), transparent 14%),
+    linear-gradient(180deg, #9fddff 0 28%, #08355a 29% 100%);
+}
+
+.taa-bridge-content { grid-template-rows: auto auto auto minmax(0, 1fr) auto; }
+.taa-bridge-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.taa-radar-screen {
+  position: relative;
+  overflow: hidden;
+  border: 5px solid #10213d;
+  border-radius: 8px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at center, rgba(88, 216, 255, 0.18), transparent 58%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 34px),
+    #08355a;
+}
+
+.taa-radar-screen.is-revealing { box-shadow: 0 0 28px rgba(88, 216, 255, 0.72); }
+
+.taa-ocean-grid {
+  display: grid;
+  gap: 8px;
+  height: 100%;
+}
+
+.taa-ocean-tile {
+  position: relative;
+  min-height: 68px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 8px;
+  color: white;
+  background: linear-gradient(180deg, #1b82b2, #0d4f78);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.taa-ocean-tile span {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  font-size: 0.7rem;
+}
+
+.taa-ocean-tile strong { font-size: clamp(1.1rem, 3vw, 1.8rem); }
+.taa-ocean-tile.is-safe,
+.taa-ocean-tile.is-next { background: linear-gradient(180deg, #39c779, #188d58); }
+.taa-ocean-tile.is-visited { background: linear-gradient(180deg, #ffd44d, #b9792d); color: #10213d; }
+.taa-ocean-tile.is-iceberg { background: linear-gradient(180deg, #bff5ff, #54a7cf); color: #10213d; }
+
+.taa-sos-station {
+  background:
+    radial-gradient(circle at 78% 20%, rgba(255, 212, 77, 0.22), transparent 20%),
+    linear-gradient(180deg, #173f77, #10213d);
+}
+
+.taa-sos-content { grid-template-rows: auto auto minmax(0, 1fr); }
+.taa-radio-dial {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 10px solid #8a5a35;
+  border-radius: 50%;
+  color: white;
+  background: radial-gradient(circle, #2f78bf, #10213d);
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.taa-morse-key,
+.taa-sos-tools {
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+  background: #10213d;
+  font-weight: 900;
+}
+
+.taa-message-board {
+  display: grid;
+  gap: 12px;
+}
+
+.taa-sos-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.taa-message-paper {
+  min-height: 150px;
+  border: 3px solid #b9792d;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fff9e8;
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+  font-weight: 900;
+}
+
+.taa-message-label {
+  margin-bottom: 8px;
+  color: #2f78bf;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.taa-sos-choice-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.taa-sos-choice.is-long { font-size: clamp(0.9rem, 2vw, 1.1rem); }
+
+@media (max-width: 760px) {
+  .taa-page { padding: 8px; }
+  .taa-topbar { gap: 6px; }
+  .taa-scoreboard { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 0.82rem; }
+  .taa-game-content { padding: 12px; gap: 10px; }
+  .taa-title-row { align-items: stretch; }
+  .taa-title-row h1 { max-width: 100%; font-size: clamp(1.45rem, 8vw, 2.25rem); }
+  .taa-stars { min-width: 92px; font-size: 1.2rem; }
+  .taa-passenger-area,
+  .taa-engine-stage,
+  .taa-cargo-stage,
+  .taa-bridge-console,
+  .taa-sos-console {
+    grid-template-columns: 1fr;
+  }
+  .taa-passenger {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    min-height: 0;
+  }
+  .taa-animal { font-size: 3rem; }
+  .taa-doors,
+  .taa-answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .taa-door-button { min-height: 112px; }
+  .taa-cargo-helper { grid-template-columns: 1fr; }
+  .taa-cargo-carts { grid-template-columns: 1fr; }
+  .taa-ocean-grid { gap: 5px; }
+  .taa-ocean-tile { min-height: 48px; }
+  .taa-cabin-fixtures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .taa-cabin-fixtures span:nth-child(n+4) { display: none; }
+}
+
+/* Immersive presentation pass: restore the original standalone game scale and depth. */
+body:has(.taa-page) > nav {
+  display: none;
+}
+
+body:has(.taa-page) {
+  background: #0d3654;
+}
+
+.taa-page {
+  --taa-stage-width: min(820px, calc(100vw - 28px));
+  --taa-stage-height: min(74vh, 680px);
+  --taa-ink: #10213d;
+  --taa-panel: #fff9e8;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 20% 25%, rgba(255, 255, 255, 0.38) 0 72px, transparent 74px),
+    radial-gradient(ellipse at 78% 28%, rgba(255, 255, 255, 0.32) 0 62px, transparent 64px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), transparent 31%),
+    linear-gradient(180deg, #9fddff 0%, #d7f5ff 34%, #356f93 34.3%, #173c5c 100%);
+  padding: 14px;
+}
+
+.taa-page::after {
+  content: "";
+  position: fixed;
+  inset: 34% 0 auto;
+  height: 3px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 7px 18px rgba(255, 255, 255, 0.22);
+}
+
+.taa-topbar {
+  width: var(--taa-stage-width);
+}
+
+.taa-level-select,
+.taa-game-wrap {
+  width: var(--taa-stage-width);
+  min-height: var(--taa-stage-height);
+  border-width: 3px;
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.2),
+    0 18px 54px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.taa-level-select {
+  min-height: 520px;
+  align-content: start;
+  gap: 12px;
+  padding: 28px;
+  background:
+    linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
+    linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
+    url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+}
+
+.taa-level-select::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 35%),
+    radial-gradient(circle at 8% 12%, rgba(255, 212, 77, 0.42), transparent 13%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.3), transparent 42%, rgba(0, 0, 0, 0.12));
+}
+
+.taa-level-select > * {
+  position: relative;
+  z-index: 1;
+}
+
+.taa-level-select h1 {
+  max-width: 640px;
+  font-size: clamp(2.7rem, 5vw, 4.4rem);
+  letter-spacing: 0;
+}
+
+.taa-level-subtitle {
+  max-width: 520px;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  line-height: 1.35;
+}
+
+.taa-grade-select {
+  width: min(570px, 100%);
+  padding: 10px;
+  background: rgba(255, 249, 232, 0.94);
+}
+
+.taa-grade-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.taa-grade-option {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.taa-level-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.taa-level-card {
+  min-height: 180px;
+  padding: 12px;
+  gap: 6px;
+  border-color: rgba(255, 255, 255, 0.76);
+  background:
+    radial-gradient(circle at 76% 12%, rgba(255, 255, 255, 0.36) 0 24px, transparent 25px),
+    linear-gradient(180deg, rgba(255, 249, 232, 0.82), rgba(255, 249, 232, 0.72));
+  box-shadow:
+    inset 0 0 32px rgba(47, 120, 191, 0.16),
+    0 7px 0 rgba(0, 0, 0, 0.16);
+}
+
+.taa-level-number {
+  width: 34px;
+  height: 34px;
+}
+
+.taa-level-card strong {
+  font-size: clamp(1rem, 1.6vw, 1.28rem);
+  line-height: 1.05;
+}
+
+.taa-level-card span:not(.taa-level-number) {
+  font-size: 0.78rem;
+  line-height: 1.22;
+}
+
+.taa-level-card em {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: white;
+  background: #2f78bf;
+  font-size: 0.72rem;
+}
+
+.taa-game-wrap {
+  height: var(--taa-stage-height);
+  min-height: 520px;
+}
+
+.taa-game-content {
+  min-height: 0;
+  height: 100%;
+  padding: 14px;
+  gap: 10px;
+}
+
+.taa-title-row h1 {
+  width: fit-content;
+  max-width: 360px;
+  padding: 8px 12px;
+  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  line-height: 0.94;
+  background: rgba(13, 35, 58, 0.72);
+}
+
+.taa-grade-badge {
+  margin-top: 4px;
+  padding: 5px 9px;
+  font-size: 0.78rem;
+}
+
+.taa-stars {
+  min-width: 250px;
+  padding-top: 12px;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  -webkit-text-stroke: 0.5px rgba(18, 36, 61, 0.55);
+}
+
+.taa-speech {
+  min-height: 48px;
+  padding: 10px 12px;
+  font-size: clamp(1rem, 1.45vw, 1.15rem);
+  background: rgba(18, 36, 61, 0.78);
+}
+
+.taa-feedback,
+.taa-sos-feedback {
+  min-height: 42px;
+  align-self: end;
+}
+
+.taa-cabin-game {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 24%),
+    linear-gradient(180deg, #2f78bf 0 25%, #fff7df 25.2% 30%, #12243d 30.2% 34%, #b23b2f 34.2% 38%, #f6deb6 38.2% 65%, #8a5a35 65.2% 100%);
+}
+
+.taa-cabin-game::after,
+.taa-engine-room::after,
+.taa-cargo-yard::after,
+.taa-bridge-deck::after,
+.taa-sos-station::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 50%, rgba(18, 36, 61, 0.18) 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 56px);
+}
+
+.taa-ship-top {
+  inset: 0 0 72%;
+}
+
+.taa-hall {
+  inset: 38% 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 8%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 58px),
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.035) 0 1px, transparent 1px 6px);
+}
+
+.taa-cabin-fixtures {
+  top: 28%;
+  left: 5%;
+  right: 5%;
+  gap: clamp(18px, 3vw, 36px);
+}
+
+.taa-cabin-fixtures span {
+  height: 48px;
+  border-width: 4px;
+  box-shadow:
+    0 0 0 2px rgba(18, 36, 61, 0.34),
+    0 0 22px rgba(255, 212, 77, 0.45);
+}
+
+.taa-passenger-area {
+  align-self: end;
+  grid-template-columns: minmax(150px, 178px) minmax(0, 1fr);
+  align-items: end;
+  gap: 14px;
+  padding: 0 0 150px;
+}
+
+.taa-animal {
+  font-size: clamp(4.8rem, 8vw, 6.4rem);
+  line-height: 1;
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.16));
+}
+
+.taa-ticket-repeat-button {
+  min-height: 86px;
+  padding: 10px 12px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 12px, rgba(185, 121, 45, 0.15) 12px 14px),
+    rgba(255, 249, 232, 0.98);
+}
+
+.taa-ticket-code {
+  font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+}
+
+.taa-doors {
+  align-items: end;
+  gap: 10px;
+}
+
+.taa-door-button {
+  min-height: clamp(130px, 18vh, 165px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0 2px, transparent 3px),
+    linear-gradient(180deg, rgba(177, 197, 220, 0.82), rgba(96, 105, 136, 0.76));
+}
+
+.taa-door-button::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 12%;
+  right: 12%;
+  height: 18px;
+  border-radius: 5px;
+  background: rgba(214, 235, 255, 0.56);
+}
+
+.taa-door-code {
+  width: min(96px, 78%);
+  padding: 6px 10px;
+  font-size: clamp(1.8rem, 3.4vw, 2.5rem);
+}
+
+.taa-engine-room {
+  background:
+    linear-gradient(180deg, rgba(38, 60, 82, 0.82) 0 32%, rgba(18, 36, 61, 0.9) 32.2% 48%, rgba(90, 48, 26, 0.92) 48.2% 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 70px);
+}
+
+.taa-engine-room::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 9%, rgba(7, 23, 39, 0.6) 9% 13%, transparent 13% 28%, rgba(7, 23, 39, 0.62) 28% 32%, transparent 32%),
+    radial-gradient(circle at 18% 16%, #ffd44d 0 10px, transparent 11px),
+    radial-gradient(circle at 31% 12%, #9fddff 0 8px, transparent 9px);
+  pointer-events: none;
+}
+
+.taa-engine-content {
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+.taa-engine-stage {
+  grid-template-columns: 150px minmax(0, 1fr) 180px;
+  align-items: center;
+  align-self: end;
+  padding-bottom: 92px;
+}
+
+.taa-engineer,
+.taa-boiler-panel,
+.taa-coal-visual {
+  position: relative;
+  z-index: 2;
+}
+
+.taa-helper-face {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  color: transparent;
+  background:
+    radial-gradient(circle at 50% 40%, #ffd44d 0 34px, transparent 35px),
+    radial-gradient(circle at 50% 45%, #f6c188 0 52px, transparent 53px),
+    rgba(255, 249, 232, 0.1);
+  border: 0;
+  box-shadow: none;
+}
+
+.taa-engineer .taa-helper-face::after {
+  content: "👷";
+  color: initial;
+  font-size: 4.2rem;
+}
+
+.taa-coal-visual {
+  align-self: center;
+  min-height: 220px;
+  border: 5px solid #b9792d;
+  background: linear-gradient(180deg, #fff9e8, #f6deb6);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.22);
+}
+
+.taa-coal-label {
+  border-radius: 4px;
+  padding: 5px;
+  color: white;
+  background: #10213d;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.taa-number-card {
+  width: min(210px, 80%);
+  min-height: 92px;
+  margin: 56px auto 8px;
+  border: 3px dashed #ffd44d;
+  color: #10213d;
+  background: rgba(255, 249, 232, 0.98);
+}
+
+.taa-boiler-panel {
+  align-self: center;
+  border: 0;
+  background: transparent;
+}
+
+.taa-furnace {
+  min-height: 150px;
+  border: 6px solid #6d4225;
+  box-shadow: inset 0 -18px 0 rgba(185, 121, 45, 0.8), 0 0 30px rgba(255, 179, 63, 0.35);
+}
+
+.taa-answer-grid {
+  align-self: end;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px;
+}
+
+.taa-answer-button {
+  min-height: 86px;
+  border-radius: 50% / 36%;
+  color: white;
+  background:
+    radial-gradient(circle at 42% 28%, rgba(255, 255, 255, 0.5), transparent 28%),
+    linear-gradient(180deg, #586170, #252a31);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 900px) {
+  .taa-page {
+    --taa-stage-width: calc(100vw - 28px);
+    --taa-stage-height: min(78vh, 680px);
+  }
+
+  .taa-level-grid {
+    grid-template-columns: repeat(5, minmax(108px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+}
+
+/* Final parity sizing: preserve the original board aspect ratios at the rendered scale seen in local preview. */
+@media (min-width: 761px) {
+  .taa-page:not(.is-playing) .taa-topbar,
+  .taa-level-select {
+    width: min(1220px, calc(100vw - 28px)) !important;
+  }
+
+  .taa-level-select {
+    min-height: min(780px, calc(100dvh - 86px)) !important;
+    height: min(780px, calc(100dvh - 86px)) !important;
+    padding: clamp(28px, 3.6vw, 46px) clamp(28px, 3.6vw, 46px) clamp(18px, 2.4vw, 28px) !important;
+  }
+
+  .taa-page.is-playing .taa-topbar,
+  .taa-game-wrap {
+    width: min(1220px, calc(100vw - 28px)) !important;
+  }
+
+  .taa-game-wrap {
+    min-height: min(1015px, calc(100dvh - 86px)) !important;
+    height: min(1015px, calc(100dvh - 86px)) !important;
+  }
+
+  .taa-level-select h1 {
+    font-size: clamp(4.8rem, 6.8vw, 6.7rem) !important;
+  }
+
+  .taa-level-subtitle {
+    max-width: 760px !important;
+    font-size: clamp(1.24rem, 1.85vw, 1.55rem) !important;
+  }
+
+  .taa-grade-select {
+    width: min(760px, 100%) !important;
+  }
+
+  .taa-grade-option {
+    min-height: 54px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .taa-level-card {
+    min-height: clamp(250px, 29vh, 320px) !important;
+    padding: clamp(14px, 1.6vw, 20px) !important;
+  }
+
+  .taa-level-number {
+    width: 46px !important;
+    height: 46px !important;
+    font-size: 1.12rem !important;
+  }
+
+  .taa-level-card strong {
+    font-size: clamp(1.42rem, 1.9vw, 1.75rem) !important;
+  }
+
+  .taa-level-card span:not(.taa-level-number):not(.taa-level-play) {
+    font-size: clamp(0.9rem, 1.08vw, 1.05rem) !important;
+  }
+
+  .taa-level-play {
+    min-height: 58px !important;
+    font-size: 1.05rem !important;
+  }
+
+  .taa-cabin-game .taa-title-row {
+    min-height: clamp(126px, 18vh, 170px) !important;
+  }
+
+  .taa-title-row h1 {
+    max-width: 430px !important;
+    font-size: clamp(2.3rem, 3.8vw, 4rem) !important;
+  }
+
+  .taa-speech {
+    min-height: 58px !important;
+    font-size: clamp(1.08rem, 1.65vw, 1.32rem) !important;
+  }
+
+  .taa-passenger-area {
+    padding-top: clamp(145px, 22vh, 230px) !important;
+    padding-bottom: clamp(145px, 20vh, 220px) !important;
+    grid-template-columns: minmax(170px, 240px) minmax(0, 1fr) !important;
+  }
+
+  .taa-animal {
+    font-size: clamp(5.8rem, 9vw, 8.2rem) !important;
+  }
+
+  .taa-ticket-repeat-button {
+    min-height: 104px !important;
+  }
+
+  .taa-door-button {
+    min-height: clamp(155px, 22vh, 220px) !important;
+  }
+
+  .taa-door-code {
+    font-size: clamp(2.1rem, 3.8vw, 3.1rem) !important;
+  }
+}
+
+/* Original level-select scale: the React cards should fill the hero, not read as a mini dashboard. */
+.taa-page:not(.is-playing) .taa-topbar,
+.taa-level-select {
+  width: min(920px, calc(100vw - 28px)) !important;
+}
+
+.taa-level-select {
+  min-height: min(560px, calc(100dvh - 86px)) !important;
+  height: min(560px, calc(100dvh - 86px)) !important;
+  gap: 12px !important;
+  padding: 28px 28px 16px !important;
+  background-position: center !important;
+}
+
+.taa-level-select h1 {
+  max-width: 720px !important;
+  font-size: clamp(3.6rem, 5.8vw, 5.15rem) !important;
+  line-height: 0.92 !important;
+}
+
+.taa-level-subtitle {
+  max-width: 620px !important;
+  font-size: clamp(1.08rem, 1.55vw, 1.26rem) !important;
+  line-height: 1.32 !important;
+}
+
+.taa-grade-select {
+  width: min(620px, 100%) !important;
+  padding: 10px 12px !important;
+}
+
+.taa-grade-options {
+  gap: 8px !important;
+}
+
+.taa-grade-option {
+  min-height: 44px !important;
+  font-size: 0.92rem !important;
+}
+
+.taa-level-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  align-items: stretch !important;
+}
+
+.taa-level-card {
+  min-height: 220px !important;
+  grid-template-rows: auto auto minmax(38px, auto) auto auto !important;
+  padding: 12px !important;
+  gap: 7px !important;
+}
+
+.taa-level-number {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 1rem !important;
+}
+
+.taa-level-card strong {
+  font-size: clamp(1.24rem, 1.55vw, 1.45rem) !important;
+  line-height: 1.02 !important;
+}
+
+.taa-level-card span:not(.taa-level-number):not(.taa-level-play) {
+  font-size: 0.84rem !important;
+  line-height: 1.18 !important;
+}
+
+.taa-level-card em {
+  width: fit-content !important;
+  max-width: 100% !important;
+  font-size: 0.74rem !important;
+  white-space: nowrap !important;
+}
+
+.taa-level-play {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  margin-top: auto !important;
+  border-radius: 8px !important;
+  color: #10213d !important;
+  background: linear-gradient(180deg, #ffe276, #ffd44d) !important;
+  font-size: 0.94rem !important;
+  font-weight: 900 !important;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+@media (min-width: 1180px) {
+  .taa-page:not(.is-playing) .taa-topbar,
+  .taa-level-select {
+    width: min(980px, calc(100vw - 28px)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .taa-page:not(.is-playing) .taa-topbar,
+  .taa-level-select {
+    width: calc(100vw - 16px) !important;
+  }
+
+  .taa-level-select {
+    height: auto !important;
+    min-height: calc(100dvh - 82px) !important;
+    padding: 18px !important;
+  }
+
+  .taa-level-select h1 {
+    font-size: clamp(2.6rem, 12vw, 3.8rem) !important;
+  }
+
+  .taa-level-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .taa-level-card {
+    min-height: 132px !important;
+    grid-template-rows: auto auto auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .taa-page {
+    --taa-stage-width: calc(100vw - 16px);
+    --taa-stage-height: calc(100dvh - 82px);
+    padding: 8px;
+  }
+
+  .taa-level-select {
+    min-height: var(--taa-stage-height);
+    padding: 18px;
+  }
+
+  .taa-level-select h1 {
+    font-size: clamp(2.25rem, 11vw, 3.4rem);
+  }
+
+  .taa-grade-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .taa-level-grid {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .taa-level-card {
+    min-height: 118px;
+  }
+
+  .taa-game-wrap {
+    min-height: var(--taa-stage-height);
+    height: var(--taa-stage-height);
+  }
+
+  .taa-title-row h1 {
+    max-width: 72vw;
+    font-size: clamp(1.5rem, 8vw, 2.2rem);
+  }
+
+  .taa-stars {
+    min-width: 92px;
+    padding-top: 8px;
+  }
+
+  .taa-passenger-area {
+    grid-template-columns: 1fr;
+    padding-bottom: 0;
+    align-self: stretch;
+  }
+
+  .taa-passenger {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .taa-doors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .taa-door-button {
+    min-height: clamp(96px, 18vh, 128px);
+  }
+
+  .taa-engine-stage {
+    grid-template-columns: 1fr;
+    padding-bottom: 0;
+  }
+
+  .taa-answer-grid {
+    gap: 10px;
+  }
+}
+
+/* Stage sizing correction: active games should feel like the original full playfield. */
+.taa-page {
+  --taa-select-width: min(820px, calc(100vw - 28px));
+  --taa-game-width: min(1120px, calc(100vw - 28px));
+  --taa-game-height: min(760px, calc(100dvh - 86px));
+  --taa-select-height: min(560px, calc(100dvh - 86px));
+}
+
+.taa-page:not(.is-playing) .taa-topbar,
+.taa-level-select {
+  width: var(--taa-select-width);
+}
+
+.taa-page.is-playing .taa-topbar,
+.taa-game-wrap {
+  width: var(--taa-game-width);
+}
+
+.taa-level-select {
+  min-height: var(--taa-select-height);
+  height: auto;
+}
+
+.taa-game-wrap {
+  min-height: 620px;
+  height: var(--taa-game-height);
+}
+
+.taa-page.is-playing .taa-game-content {
+  height: 100%;
+}
+
+.taa-cabin-game .taa-game-content {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.taa-cabin-game .taa-title-row {
+  min-height: 122px;
+}
+
+.taa-cabin-game .taa-speech {
+  margin-top: -4px;
+}
+
+.taa-cabin-fixtures {
+  top: 30%;
+  left: 4%;
+  right: 4%;
+}
+
+.taa-passenger-area {
+  align-self: stretch;
+  padding: clamp(110px, 19vh, 170px) 0 clamp(120px, 18vh, 170px);
+}
+
+.taa-passenger {
+  align-self: end;
+}
+
+.taa-doors {
+  align-self: end;
+}
+
+.taa-door-button {
+  min-height: clamp(145px, 21vh, 190px);
+}
+
+.taa-engine-room .taa-game-content {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.taa-engine-stage {
+  align-self: stretch;
+  padding: clamp(88px, 14vh, 132px) 0 clamp(96px, 14vh, 140px);
+}
+
+.taa-answer-grid {
+  align-self: end;
+}
+
+@media (max-width: 900px) {
+  .taa-page {
+    --taa-select-width: calc(100vw - 28px);
+    --taa-game-width: calc(100vw - 28px);
+    --taa-game-height: calc(100dvh - 86px);
+  }
+}
+
+@media (max-width: 760px) {
+  .taa-page {
+    --taa-select-width: calc(100vw - 16px);
+    --taa-game-width: calc(100vw - 16px);
+    --taa-game-height: calc(100dvh - 82px);
+    --taa-select-height: calc(100dvh - 82px);
+  }
+
+  .taa-game-wrap {
+    min-height: var(--taa-game-height);
+  }
+
+  .taa-cabin-game .taa-title-row {
+    min-height: auto;
+  }
+
+  .taa-cabin-fixtures {
+    top: 31%;
+  }
+
+  .taa-passenger-area {
+    padding: 0;
+  }
+
+  .taa-door-button {
+    min-height: clamp(96px, 18vh, 128px);
+  }
+
+  .taa-engine-stage {
+    padding: 0;
+  }
+}
+
+/* Hard lock the desktop/tablet game canvas so it scales like the original HTML game. */
+.taa-page:not(.is-playing) .taa-topbar,
+.taa-level-select {
+  width: min(820px, calc(100vw - 28px)) !important;
+}
+
+.taa-level-select {
+  min-height: min(520px, calc(100dvh - 86px)) !important;
+  height: min(520px, calc(100dvh - 86px)) !important;
+}
+
+.taa-page.is-playing .taa-topbar,
+.taa-game-wrap {
+  width: min(820px, calc(100vw - 28px)) !important;
+}
+
+.taa-game-wrap {
+  min-height: min(680px, calc(100dvh - 86px)) !important;
+  height: min(680px, calc(100dvh - 86px)) !important;
+}
+
+.taa-page.is-playing {
+  align-content: start;
+}
+
+.taa-page.is-playing .taa-game-content {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+.taa-cabin-game .taa-game-content {
+  grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+}
+
+.taa-cabin-game .taa-title-row {
+  min-height: 116px !important;
+}
+
+.taa-cabin-fixtures {
+  top: 28.5% !important;
+}
+
+.taa-passenger-area {
+  padding-top: clamp(110px, 19vh, 170px) !important;
+  padding-bottom: clamp(118px, 18vh, 160px) !important;
+}
+
+.taa-door-button {
+  min-height: clamp(132px, 19vh, 170px) !important;
+}
+
+.taa-engine-stage {
+  padding-top: clamp(82px, 13vh, 126px) !important;
+  padding-bottom: clamp(88px, 13vh, 132px) !important;
+}
+
+@media (min-width: 1180px) {
+  .taa-page.is-playing .taa-topbar,
+  .taa-game-wrap {
+    width: min(960px, calc(100vw - 28px)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .taa-page:not(.is-playing) .taa-topbar,
+  .taa-level-select,
+  .taa-page.is-playing .taa-topbar,
+  .taa-game-wrap {
+    width: calc(100vw - 16px) !important;
+  }
+
+  .taa-level-select,
+  .taa-game-wrap {
+    min-height: calc(100dvh - 82px) !important;
+    height: calc(100dvh - 82px) !important;
+  }
+
+  .taa-cabin-game .taa-title-row {
+    min-height: auto !important;
+  }
+
+  .taa-passenger-area,
+  .taa-engine-stage {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .taa-door-button {
+    min-height: clamp(96px, 18vh, 128px) !important;
+  }
+}

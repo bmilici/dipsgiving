@@ -7,56 +7,64 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   async rewrites() {
-    return [
-      {
-        source: "/NicoGames",
-        destination: "/NicoGames/index.html",
-      },
-      {
-        source: "/Games",
-        destination: "/Games/index.html",
-      },
-      {
-        source: "/games",
-        destination: "/Games/index.html",
-      },
-      {
-        source: "/dev/games",
-        destination: "/dev/games/index.html",
-      },
-      {
-        source: "/FirstGradeMath",
-        destination: "/FirstGradeMath/index.html",
-      },
-      {
-        source: "/firstgrademath",
-        destination: "/FirstGradeMath/index.html",
-      },
-      {
-        source: "/CheetahSafariAdventure",
-        destination: "/CheetahSafariAdventure/index.html",
-      },
-      {
-        source: "/cheetahsafariadventure",
-        destination: "/CheetahSafariAdventure/index.html",
-      },
-      {
-        source: "/TitanicAdventureAcademy",
-        destination: "/TitanicAdventureAcademy/index.html",
-      },
-      {
-        source: "/titanicadventureacademy",
-        destination: "/TitanicAdventureAcademy/index.html",
-      },
-      {
-        source: "/DesmondGame",
-        destination: "/DesmondGame/index.html",
-      },
-      {
-        source: "/desmondgame",
-        destination: "/DesmondGame/index.html",
-      },
-    ];
+    return {
+      beforeFiles: [
+        {
+          source: "/TitanicAdventureAcademy",
+          destination: "/titanic-adventure-academy",
+        },
+        {
+          source: "/titanicadventureacademy",
+          destination: "/titanic-adventure-academy",
+        },
+        {
+          source: "/TitanicAdventureAcademy/index.html",
+          destination: "/titanic-adventure-academy",
+        },
+      ],
+      afterFiles: [
+        {
+          source: "/NicoGames",
+          destination: "/NicoGames/index.html",
+        },
+        {
+          source: "/Games",
+          destination: "/Games/index.html",
+        },
+        {
+          source: "/games",
+          destination: "/Games/index.html",
+        },
+        {
+          source: "/dev/games",
+          destination: "/dev/games/index.html",
+        },
+        {
+          source: "/FirstGradeMath",
+          destination: "/FirstGradeMath/index.html",
+        },
+        {
+          source: "/firstgrademath",
+          destination: "/FirstGradeMath/index.html",
+        },
+        {
+          source: "/CheetahSafariAdventure",
+          destination: "/CheetahSafariAdventure/index.html",
+        },
+        {
+          source: "/cheetahsafariadventure",
+          destination: "/CheetahSafariAdventure/index.html",
+        },
+        {
+          source: "/DesmondGame",
+          destination: "/DesmondGame/index.html",
+        },
+        {
+          source: "/desmondgame",
+          destination: "/DesmondGame/index.html",
+        },
+      ],
+    };
   },
 };
 
