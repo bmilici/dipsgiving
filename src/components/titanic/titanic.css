@@ -149,7 +149,8 @@
   gap: 12px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(255, 249, 232, 0.96);
+  background: rgba(255, 249, 232, 0.75);
+  backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -971,10 +972,11 @@ body:has(.taa-page) {
   align-content: start;
   gap: 12px;
   padding: 28px;
+  padding-bottom: 36px;
   background:
     linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
     linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
-    url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+    url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat;
 }
 
 .taa-level-select::before {
@@ -1008,7 +1010,8 @@ body:has(.taa-page) {
 .taa-grade-select {
   width: min(570px, 100%);
   padding: 10px;
-  background: rgba(255, 249, 232, 0.94);
+  background: rgba(255, 249, 232, 0.75);
+  backdrop-filter: blur(8px);
 }
 
 .taa-grade-options {
