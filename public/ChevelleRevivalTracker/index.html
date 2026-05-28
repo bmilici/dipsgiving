@@ -266,6 +266,15 @@
       text-transform: uppercase;
     }
 
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
     .progress-shell {
       height: 18px;
       overflow: hidden;
@@ -1212,8 +1221,13 @@
         <div class="progress-shell" aria-hidden="true"><div class="progress-bar" id="overallBar"></div></div>
       </div>
       <div class="stat"><b id="doneCount">0</b><span>Steps Done</span></div>
-      <div class="stat"><b id="totalCost">$0</b><span>Total Cost</span></div>
-      <div class="stat"><b id="purchasedCost">$0</b><span>Purchased Total</span></div>
+      <div class="stat">
+        <b id="currentStepTime">0m</b>
+        <span>On Current Step</span>
+        <small id="currentStepName">Current step: none</small>
+      </div>
+      <div class="stat editor-only"><b id="totalCost">$0</b><span>Total Cost</span></div>
+      <div class="stat editor-only"><b id="purchasedCost">$0</b><span>Purchased Total</span></div>
     </section>
 
     <nav class="tabs" aria-label="Tracker sections">
@@ -2503,6 +2517,7 @@
         publicPhotos: false,
         publicCosts: false,
         status: index === 0 ? "In Progress" : "Not Started",
+        currentStepStartedAt: index === 0 ? new Date().toISOString() : "",
         needsHelp: false,
         professionalHelp: { name: "", website: "", phone: "", notes: "" },
         completedDate: "",
@@ -2618,6 +2633,16 @@
       return sampleData();
     }
 
+    function stepStartedFromHistory(data, step) {
+      const prefix = `${step.title}:`;
+      const entry = (data.history || []).find((item) =>
+        item.message === "Changed status"
+        && String(item.detail || "").startsWith(prefix)
+        && String(item.detail || "").endsWith(" to In Progress")
+      );
+      return entry ? entry.date : "";
+    }
+
     function normalizeState(data) {
       data.toolsOwned = data.toolsOwned || {};
       data.suppliesOwned = data.suppliesOwned || {};
@@ -2676,6 +2701,10 @@
           step.stopConditions = Array.isArray(step.stopConditions) && step.stopConditions.length ? step.stopConditions : (stopConditionMap[step.title] || []);
           step.likelyOutcomes = step.likelyOutcomes || likelyOutcomesFor(step.title);
           step.status = STATUS_OPTIONS.includes(step.status) ? step.status : "Not Started";
+          const historyStartedAt = step.status === "In Progress" ? stepStartedFromHistory(data, step) : "";
+          step.currentStepStartedAt = step.status === "In Progress"
+            ? (historyStartedAt && (!step.currentStepStartedAt || Date.parse(historyStartedAt) < Date.parse(step.currentStepStartedAt)) ? historyStartedAt : (step.currentStepStartedAt || new Date().toISOString()))
+            : "";
           step.needsHelp = Boolean(step.needsHelp || step.status === "Needs Help");
           step.professionalHelp = step.professionalHelp || { name: "", website: "", phone: "", notes: "" };
           step.professionalHelp.name = step.professionalHelp.name || "";
@@ -3577,6 +3606,33 @@
       return Math.round(phase.steps.reduce((sum, step) => sum + stepCompletion(step), 0) / phase.steps.length);
     }
 
+    function currentStepInfo() {
+      return allSteps().find(({ step }) => step.status === "In Progress") || null;
+    }
+
+    function formatElapsedSince(startedAt) {
+      const started = Date.parse(startedAt || "");
+      if (!started) return "0m";
+      const elapsedSeconds = Math.max(0, Math.floor((Date.now() - started) / 1000));
+      const days = Math.floor(elapsedSeconds / 86400);
+      const hours = Math.floor((elapsedSeconds % 86400) / 3600);
+      const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+      const seconds = elapsedSeconds % 60;
+      if (days) return `${days}d ${hours}h`;
+      if (hours) return `${hours}h ${minutes}m`;
+      if (minutes) return `${minutes}m ${seconds}s`;
+      return `${seconds}s`;
+    }
+
+    function updateCurrentStepTimer() {
+      const active = currentStepInfo();
+      const timeEl = document.getElementById("currentStepTime");
+      const nameEl = document.getElementById("currentStepName");
+      if (!timeEl || !nameEl) return;
+      timeEl.textContent = active ? formatElapsedSince(active.step.currentStepStartedAt) : "0m";
+      nameEl.textContent = active ? `Current step: ${active.phase.title} - ${active.step.title}` : "Current step: none";
+    }
+
     function updateDashboard() {
       const steps = allSteps().map((item) => item.step);
       const total = steps.length || 1;
@@ -3588,6 +3644,7 @@
       document.getElementById("doneCount").textContent = `${done}/${steps.length}`;
       document.getElementById("totalCost").textContent = currency(costs.subtotal);
       document.getElementById("purchasedCost").textContent = currency(costs.purchased);
+      updateCurrentStepTimer();
     }
 
     function phaseProgressByNumber(number) {
@@ -4491,6 +4548,8 @@
       if (action === "status") {
         const oldStatus = step.status;
         step.status = value;
+        if (oldStatus !== value && value === "In Progress") step.currentStepStartedAt = new Date().toISOString();
+        if (oldStatus !== value && oldStatus === "In Progress" && value !== "In Progress") step.currentStepStartedAt = "";
         step.needsHelp = value === "Needs Help" ? true : step.needsHelp;
         if (value === "Done" && !step.completedDate) step.completedDate = new Date().toISOString().slice(0, 10);
         if (oldStatus !== value) recordHistory("Changed status", `${step.title}: ${oldStatus} to ${value}`);
@@ -4751,9 +4810,14 @@
         if (input.checked) recordHistory("Completed checklist item", `${step.title}: ${step.checklist[Number(input.dataset.index)].text}`);
         if (step.checklist.every((item) => item.done)) {
           step.status = "Done";
+          step.currentStepStartedAt = "";
           step.completedDate = step.completedDate || new Date().toISOString().slice(0, 10);
         } else if (step.status === "Done") {
           step.status = "In Progress";
+          step.currentStepStartedAt = step.currentStepStartedAt || new Date().toISOString();
+        } else if (step.status === "Not Started" && step.checklist.some((item) => item.done)) {
+          step.status = "In Progress";
+          step.currentStepStartedAt = new Date().toISOString();
         }
         saveState();
       } else if (action === "photoCheck") {
@@ -5153,6 +5217,7 @@
         }
         if (button.dataset.action === "markDone") {
           step.status = "Done";
+          step.currentStepStartedAt = "";
           step.completedDate = new Date().toISOString().slice(0, 10);
           step.checklist = normalizeChecklist(step.checklist).map((item) => ({ ...item, done: true }));
           recordHistory("Marked step done", step.title);
@@ -5336,6 +5401,7 @@
     state.phases.forEach((phase) => phase.steps.forEach((step) => step.checklist = normalizeChecklist(step.checklist)));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     render();
+    setInterval(updateCurrentStepTimer, 1000);
     initFirebaseCloud();
   </script>
 </body>
