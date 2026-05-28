@@ -1345,7 +1345,7 @@ body:has(.taa-page) {
 
   .taa-level-select {
     min-height: min(780px, calc(100dvh - 86px)) !important;
-    height: min(780px, calc(100dvh - 86px)) !important;
+    height: auto !important;
     padding: clamp(28px, 3.6vw, 46px) clamp(28px, 3.6vw, 46px) clamp(18px, 2.4vw, 28px) !important;
   }
 
@@ -1446,7 +1446,7 @@ body:has(.taa-page) {
 
 .taa-level-select {
   min-height: min(560px, calc(100dvh - 86px)) !important;
-  height: min(560px, calc(100dvh - 86px)) !important;
+  height: auto !important;
   gap: 12px !important;
   padding: 28px 28px 16px !important;
   background-position: center !important;
@@ -1762,7 +1762,7 @@ body:has(.taa-page) {
 
 .taa-level-select {
   min-height: min(520px, calc(100dvh - 86px)) !important;
-  height: min(520px, calc(100dvh - 86px)) !important;
+  height: auto !important;
 }
 
 .taa-page.is-playing .taa-topbar,
