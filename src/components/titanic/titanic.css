@@ -784,8 +784,8 @@ body:has(.taa-page) {
 }
 
 .taa-page {
-  --taa-stage-width: min(820px, calc(100vw - 28px));
-  --taa-stage-height: min(74vh, 680px);
+  --taa-stage-width: min(1120px, calc(100vw - 28px));
+  --taa-stage-height: min(74vh, 700px);
   --taa-ink: #10213d;
   --taa-panel: #fff9e8;
   position: relative;
@@ -817,13 +817,11 @@ body:has(.taa-page) {
   min-height: var(--taa-stage-height);
   border-width: 3px;
   box-shadow:
-    0 5px 0 rgba(0, 0, 0, 0.2),
     0 18px 54px rgba(0, 0, 0, 0.24),
     inset 0 0 0 1px rgba(255, 255, 255, 0.24);
 }
 
 .taa-level-select {
-  min-height: 520px;
   align-content: start;
   gap: 12px;
   padding: 28px;
