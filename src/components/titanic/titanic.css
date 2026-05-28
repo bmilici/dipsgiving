@@ -105,11 +105,11 @@
 .taa-game-wrap {
   position: relative;
   width: min(1120px, 100%);
-  min-height: min(74vh, 700px);
+  min-height: min(80vh, 780px);
   margin: 0 auto;
   overflow: hidden;
   border: 4px solid rgba(255, 255, 255, 0.86);
-  border-radius: 8px;
+  border-radius: 12px;
   background:
     radial-gradient(circle at 80% 12%, rgba(255, 212, 77, 0.22), transparent 20%),
     linear-gradient(180deg, rgba(18, 36, 61, 0.18), rgba(18, 36, 61, 0.48));
@@ -119,8 +119,8 @@
 .taa-level-select {
   display: grid;
   align-content: start;
-  gap: 18px;
-  padding: clamp(18px, 4vw, 34px);
+  gap: 20px;
+  padding: clamp(20px, 4vw, 36px);
 }
 
 .taa-level-select h1,
@@ -195,18 +195,18 @@
 
 .taa-level-card {
   min-height: 0;
-  display: grid;
-  gap: 6px;
-  justify-items: start;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   border: 3px solid rgba(255, 255, 255, 0.85);
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px 12px;
   color: #12243d;
   background:
     radial-gradient(circle at 90% 10%, rgba(255, 212, 77, 0.14) 0 30px, transparent 32px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 249, 232, 0.95));
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -218,28 +218,29 @@
 }
 
 .taa-level-card strong { 
-  font-size: 1.1rem; 
-  line-height: 1.1;
+  font-size: 1.05rem; 
+  line-height: 1.15;
 }
 
 .taa-level-desc { 
   font-weight: 600; 
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #555;
-  line-height: 1.25;
+  line-height: 1.3;
+  flex-grow: 1;
 }
 
 .taa-level-status {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  margin-top: auto;
   font-style: normal;
   font-weight: 700;
   font-size: 0.72rem;
   color: white;
   background: #2f78bf;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
 }
 
@@ -270,13 +271,13 @@
   justify-content: center;
   gap: 4px;
   width: 100%;
-  margin-top: 6px;
+  margin-top: auto;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #ffd44d;
   color: #10213d;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: background 0.15s ease;
 }
 
@@ -858,37 +859,37 @@
   }
   
   .taa-level-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
   
   .taa-level-card {
-    padding: 10px;
-    gap: 4px;
+    padding: 14px 10px;
+    gap: 6px;
   }
   
   .taa-level-card strong {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
   
   .taa-level-desc {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
   }
   
   .taa-level-status {
-    font-size: 0.65rem;
-    padding: 4px 8px;
+    font-size: 0.68rem;
+    padding: 4px 10px;
   }
   
   .taa-level-play {
-    padding: 8px 10px;
-    font-size: 0.8rem;
+    padding: 10px;
+    font-size: 0.85rem;
   }
   
   .taa-level-number {
-    width: 30px;
-    height: 30px;
-    font-size: 0.85rem;
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
   
   .taa-passenger-area,

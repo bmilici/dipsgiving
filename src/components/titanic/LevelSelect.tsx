@@ -54,7 +54,7 @@ export default function LevelSelect({ grade, progress, onGradeChange, onSelectLe
                 ) : (
                   <>
                     <Star className="taa-status-icon" />
-                    {gradeConfigs[grade].label}: Available
+                    {gradeConfigs[grade].label}
                   </>
                 )}
               </em>
