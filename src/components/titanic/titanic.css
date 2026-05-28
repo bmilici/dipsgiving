@@ -34,69 +34,41 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   min-height: 42px;
   border: 0;
-  border-radius: 12px;
-  padding: 10px 16px;
+  border-radius: 8px;
+  padding: 10px 14px;
   color: #10213d;
   background: #ffd44d;
   font-family: inherit;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 900;
   text-decoration: none;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  transition: transform 0.15s ease, filter 0.15s ease;
-}
-
-.taa-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
 }
 
 .taa-small-button { background: #ffffff; }
-.taa-big-button { min-height: 56px; padding: 14px 20px; font-size: 1.02rem; border-radius: 14px; }
+.taa-big-button { min-height: 56px; padding: 14px 18px; font-size: 1.02rem; }
 .taa-repeat-button { min-height: 44px; font-size: 0.95rem; }
 
 .taa-home-link:hover,
 .taa-small-button:hover,
 .taa-big-button:hover {
   transform: translateY(-2px);
-  filter: brightness(1.06);
-}
-
-.taa-home-link:active,
-.taa-small-button:active,
-.taa-big-button:active {
-  transform: translateY(1px);
+  filter: brightness(1.04);
 }
 
 .taa-scoreboard {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
   border: 2px solid rgba(255, 255, 255, 0.92);
-  border-radius: 14px;
-  padding: 10px 16px;
+  border-radius: 8px;
+  padding: 8px 12px;
   color: white;
   background: linear-gradient(180deg, rgba(30, 50, 75, 0.95), rgba(18, 36, 61, 0.98));
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 900;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28), 0 0 0 2px rgba(255, 212, 77, 0.28);
-}
-
-.taa-score-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.taa-score-icon {
-  width: 16px;
-  height: 16px;
-  color: #ffd44d;
 }
 
 .taa-scoreboard.is-hidden { visibility: hidden; }
@@ -105,26 +77,22 @@
 .taa-game-wrap {
   position: relative;
   width: min(1120px, 100%);
+  min-height: min(74vh, 700px);
   margin: 0 auto;
-  border: none;
-  border-radius: 12px;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.86);
+  border-radius: 8px;
   background:
     radial-gradient(circle at 80% 12%, rgba(255, 212, 77, 0.22), transparent 20%),
     linear-gradient(180deg, rgba(18, 36, 61, 0.18), rgba(18, 36, 61, 0.48));
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
-}
-
-.taa-game-wrap {
-  border: 4px solid rgba(255, 255, 255, 0.86);
-  min-height: min(80vh, 780px);
-  overflow: hidden;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2), 0 24px 60px rgba(0, 0, 0, 0.18);
 }
 
 .taa-level-select {
   display: grid;
   align-content: start;
-  gap: 20px;
-  padding: clamp(20px, 4vw, 36px);
+  gap: 18px;
+  padding: clamp(18px, 4vw, 34px);
 }
 
 .taa-level-select h1,
@@ -147,152 +115,77 @@
 
 .taa-grade-select {
   display: grid;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 16px;
-  background: rgba(255, 249, 232, 0.75);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 249, 232, 0.94);
 }
 
 .taa-grade-select-title {
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: 0.86rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #666;
 }
 
 .taa-grade-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .taa-grade-option {
-  border: 2px solid rgba(18, 36, 61, 0.15);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border: 2px solid rgba(18, 36, 61, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
   color: #12243d;
   background: white;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 900;
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.taa-grade-option:hover {
-  border-color: rgba(18, 36, 61, 0.3);
-  background: #f8f8f8;
 }
 
 .taa-grade-option.is-selected {
   border-color: #12243d;
   background: #ffd44d;
-  box-shadow: 0 2px 8px rgba(255, 212, 77, 0.4);
 }
 
 .taa-level-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 14px;
 }
 
 .taa-level-card {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 190px;
+  display: grid;
   gap: 8px;
-  border: 3px solid rgba(255, 255, 255, 0.85);
-  border-radius: 12px;
-  padding: 16px 12px;
+  justify-items: start;
+  align-content: start;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 14px;
   color: #12243d;
   background:
     radial-gradient(circle at 90% 10%, rgba(255, 212, 77, 0.14) 0 30px, transparent 32px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 249, 232, 0.95));
-  text-align: center;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 249, 232, 0.94));
+  text-align: left;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.taa-level-card:hover { 
-  transform: translateY(-4px); 
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-}
-
-.taa-level-card strong { 
-  font-size: 1.05rem; 
-  line-height: 1.15;
-}
-
-.taa-level-desc { 
-  font-weight: 600; 
-  font-size: 0.78rem;
-  color: #555;
-  line-height: 1.3;
-  flex-grow: 1;
-}
-
-.taa-level-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-style: normal;
-  font-weight: 700;
-  font-size: 0.72rem;
-  color: white;
-  background: #2f78bf;
-  padding: 5px 12px;
-  border-radius: 999px;
-}
-
-.taa-level-card.is-complete .taa-level-status { 
-  background: #18784a; 
-}
-
-.taa-status-icon {
-  width: 12px;
-  height: 12px;
-}
+.taa-level-card:hover { transform: translateY(-4px); }
+.taa-level-card strong { font-size: 1.25rem; }
+.taa-level-card span { font-weight: 800; }
+.taa-level-card em { align-self: end; font-style: normal; font-weight: 900; color: #2f78bf; }
+.taa-level-card.is-complete em { color: #18784a; }
 
 .taa-level-number {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   color: white;
   background: #2f78bf;
-  font-weight: 800;
-  font-size: 1rem;
-}
-
-.taa-level-play {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  margin-top: auto;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #ffd44d;
-  color: #10213d;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: background 0.15s ease;
-}
-
-.taa-level-card:hover .taa-level-play {
-  background: #ffdd66;
-}
-
-.taa-play-icon {
-  width: 16px;
-  height: 16px;
+  font-weight: 900;
 }
 
 .taa-game-content {
@@ -812,91 +705,12 @@
 
 @media (max-width: 760px) {
   .taa-page { padding: 8px; }
-  .taa-topbar { gap: 8px; }
-  
-  .taa-home-link,
-  .taa-small-button {
-    padding: 8px 12px;
-    min-height: 38px;
-    font-size: 0.85rem;
-  }
-  
-  .taa-home-link span,
-  .taa-small-button span {
-    display: none;
-  }
-  
-  .taa-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .taa-scoreboard { 
-    flex-direction: row; 
-    gap: 12px; 
-    padding: 8px 12px;
-    font-size: 0.8rem; 
-  }
-  
-  .taa-score-item {
-    gap: 4px;
-  }
-  
+  .taa-topbar { gap: 6px; }
+  .taa-scoreboard { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 0.82rem; }
   .taa-game-content { padding: 12px; gap: 10px; }
   .taa-title-row { align-items: stretch; }
   .taa-title-row h1 { max-width: 100%; font-size: clamp(1.45rem, 8vw, 2.25rem); }
   .taa-stars { min-width: 92px; font-size: 1.2rem; }
-  
-  .taa-grade-select {
-    padding: 12px;
-  }
-  
-  .taa-grade-options {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-  
-  .taa-grade-option {
-    padding: 10px 12px;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-  
-  .taa-level-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .taa-level-card {
-    padding: 14px 10px;
-    gap: 6px;
-  }
-  
-  .taa-level-card strong {
-    font-size: 1rem;
-  }
-  
-  .taa-level-desc {
-    font-size: 0.75rem;
-  }
-  
-  .taa-level-status {
-    font-size: 0.68rem;
-    padding: 4px 10px;
-  }
-  
-  .taa-level-play {
-    padding: 10px;
-    font-size: 0.85rem;
-  }
-  
-  .taa-level-number {
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
-  }
-  
   .taa-passenger-area,
   .taa-engine-stage,
   .taa-cargo-stage,
@@ -964,19 +778,20 @@ body:has(.taa-page) {
   min-height: var(--taa-stage-height);
   border-width: 3px;
   box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.2),
     0 18px 54px rgba(0, 0, 0, 0.24),
     inset 0 0 0 1px rgba(255, 255, 255, 0.24);
 }
 
 .taa-level-select {
+  min-height: 520px;
   align-content: start;
   gap: 12px;
   padding: 28px;
-  padding-bottom: 36px;
   background:
     linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
     linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
-    url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat;
+    url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
 }
 
 .taa-level-select::before {
@@ -1010,8 +825,7 @@ body:has(.taa-page) {
 .taa-grade-select {
   width: min(570px, 100%);
   padding: 10px;
-  background: rgba(255, 249, 232, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 249, 232, 0.94);
 }
 
 .taa-grade-options {
@@ -1345,7 +1159,7 @@ body:has(.taa-page) {
 
   .taa-level-select {
     min-height: min(780px, calc(100dvh - 86px)) !important;
-    height: auto !important;
+    height: min(780px, calc(100dvh - 86px)) !important;
     padding: clamp(28px, 3.6vw, 46px) clamp(28px, 3.6vw, 46px) clamp(18px, 2.4vw, 28px) !important;
   }
 
@@ -1446,7 +1260,7 @@ body:has(.taa-page) {
 
 .taa-level-select {
   min-height: min(560px, calc(100dvh - 86px)) !important;
-  height: auto !important;
+  height: min(560px, calc(100dvh - 86px)) !important;
   gap: 12px !important;
   padding: 28px 28px 16px !important;
   background-position: center !important;
@@ -1571,10 +1385,6 @@ body:has(.taa-page) {
   .taa-level-select {
     min-height: var(--taa-stage-height);
     padding: 18px;
-    background:
-      linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
-      linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
-      url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat !important;
   }
 
   .taa-level-select h1 {
@@ -1658,10 +1468,6 @@ body:has(.taa-page) {
 .taa-level-select {
   min-height: var(--taa-select-height);
   height: auto;
-  background:
-    linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
-    linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
-    url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat;
 }
 
 .taa-game-wrap {
@@ -1770,7 +1576,7 @@ body:has(.taa-page) {
 
 .taa-level-select {
   min-height: min(520px, calc(100dvh - 86px)) !important;
-  height: auto !important;
+  height: min(520px, calc(100dvh - 86px)) !important;
 }
 
 .taa-page.is-playing .taa-topbar,

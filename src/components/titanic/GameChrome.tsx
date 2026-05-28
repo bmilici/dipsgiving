@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Home, LayoutGrid, Trophy, Zap } from "lucide-react";
 import { roundsPerGame } from "./lib/constants";
 import { starText } from "./lib/helpers";
 import type { LevelKey } from "./lib/types";
@@ -19,25 +18,13 @@ export default function GameChrome({ activeLevel, round, stars, onLevelSelect, c
   return (
     <main className={`taa-page ${isPlaying ? "is-playing" : ""}`}>
       <div className="taa-topbar">
-        <Link className="taa-home-link" href="/">
-          <Home className="taa-icon" />
-          <span>Home</span>
-        </Link>
+        <Link className="taa-home-link" href="/games">Home</Link>
         {isPlaying ? (
-          <button className="taa-small-button" type="button" onClick={onLevelSelect}>
-            <LayoutGrid className="taa-icon" />
-            <span>Levels</span>
-          </button>
+          <button className="taa-small-button" type="button" onClick={onLevelSelect}>Level Select</button>
         ) : <span />}
         <div className={`taa-scoreboard ${isPlaying ? "" : "is-hidden"}`} aria-live="polite">
-          <div className="taa-score-item">
-            <Zap className="taa-score-icon" />
-            <span>Round <strong>{Math.min(round + 1, roundsPerGame)}</strong>/{roundsPerGame}</span>
-          </div>
-          <div className="taa-score-item">
-            <Trophy className="taa-score-icon" />
-            <span><strong>{stars}</strong> Stars</span>
-          </div>
+          <span>Round: <strong>{Math.min(round + 1, roundsPerGame)}</strong>/<strong>{roundsPerGame}</strong></span>
+          <span>Stars: <strong>{stars}</strong></span>
         </div>
       </div>
       {children}
