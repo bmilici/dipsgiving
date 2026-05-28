@@ -968,7 +968,6 @@ body:has(.taa-page) {
 }
 
 .taa-level-select {
-  min-height: 520px;
   align-content: start;
   gap: 12px;
   padding: 28px;
