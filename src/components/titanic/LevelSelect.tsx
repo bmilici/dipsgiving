@@ -1,5 +1,6 @@
 "use client";
 
+import { Star, CheckCircle2, Play } from "lucide-react";
 import { gradeConfigs, levels } from "./lib/constants";
 import { completionFor } from "./lib/helpers";
 import type { GradeKey, LevelKey, ProgressMap } from "./lib/types";
@@ -43,9 +44,24 @@ export default function LevelSelect({ grade, progress, onGradeChange, onSelectLe
             >
               <span className="taa-level-number">{level.number}</span>
               <strong>{level.title}</strong>
-              <span>{level.subtitle}</span>
-              <em>{status.completed ? `${status.bestStars} star best` : `${gradeConfigs[grade].label}: Available`}</em>
-              <span className="taa-level-play">Play</span>
+              <span className="taa-level-desc">{level.subtitle}</span>
+              <em className="taa-level-status">
+                {status.completed ? (
+                  <>
+                    <CheckCircle2 className="taa-status-icon" />
+                    {status.bestStars} Star Best
+                  </>
+                ) : (
+                  <>
+                    <Star className="taa-status-icon" />
+                    {gradeConfigs[grade].label}: Available
+                  </>
+                )}
+              </em>
+              <span className="taa-level-play">
+                <Play className="taa-play-icon" />
+                Play
+              </span>
             </button>
           );
         })}
