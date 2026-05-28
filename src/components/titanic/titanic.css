@@ -106,7 +106,7 @@
   position: relative;
   width: min(1120px, 100%);
   margin: 0 auto;
-  border: 4px solid rgba(255, 255, 255, 0.86);
+  border: none;
   border-radius: 12px;
   background:
     radial-gradient(circle at 80% 12%, rgba(255, 212, 77, 0.22), transparent 20%),
@@ -115,6 +115,7 @@
 }
 
 .taa-game-wrap {
+  border: 4px solid rgba(255, 255, 255, 0.86);
   min-height: min(80vh, 780px);
   overflow: hidden;
 }
@@ -1657,6 +1658,10 @@ body:has(.taa-page) {
 .taa-level-select {
   min-height: var(--taa-select-height);
   height: auto;
+  background:
+    linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
+    linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
+    url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat;
 }
 
 .taa-game-wrap {
