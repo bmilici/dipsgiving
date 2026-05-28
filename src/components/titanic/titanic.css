@@ -1570,6 +1570,10 @@ body:has(.taa-page) {
   .taa-level-select {
     min-height: var(--taa-stage-height);
     padding: 18px;
+    background:
+      linear-gradient(90deg, rgba(9, 27, 47, 0.18), rgba(9, 27, 47, 0.08)),
+      linear-gradient(180deg, rgba(10, 25, 43, 0.18), rgba(10, 25, 43, 0.72)),
+      url("/TitanicAdventureAcademy/all-aboard-loading.webp") top center / cover no-repeat !important;
   }
 
   .taa-level-select h1 {
