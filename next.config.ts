@@ -8,20 +8,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return {
-      beforeFiles: [
-        {
-          source: "/TitanicAdventureAcademy",
-          destination: "/titanic-adventure-academy",
-        },
-        {
-          source: "/titanicadventureacademy",
-          destination: "/titanic-adventure-academy",
-        },
-        {
-          source: "/TitanicAdventureAcademy/index.html",
-          destination: "/titanic-adventure-academy",
-        },
-      ],
+      beforeFiles: [],
       afterFiles: [
         {
           source: "/NicoGames",
@@ -54,6 +41,14 @@ const nextConfig: NextConfig = {
         {
           source: "/cheetahsafariadventure",
           destination: "/CheetahSafariAdventure/index.html",
+        },
+        {
+          source: "/TitanicAdventureAcademy",
+          destination: "/TitanicAdventureAcademy/index.html",
+        },
+        {
+          source: "/titanicadventureacademy",
+          destination: "/TitanicAdventureAcademy/index.html",
         },
         {
           source: "/DesmondGame",
