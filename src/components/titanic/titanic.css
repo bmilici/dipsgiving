@@ -91,8 +91,12 @@
 .taa-level-select {
   display: grid;
   align-content: start;
-  gap: 18px;
+  gap: 20px;
   padding: clamp(18px, 4vw, 34px);
+  background:
+    linear-gradient(180deg, rgba(13, 35, 58, 0.24), rgba(13, 35, 58, 0.88)),
+    url("/TitanicAdventureAcademy/all-aboard-loading.webp") center / cover;
+  color: white;
 }
 
 .taa-level-select h1,
@@ -116,66 +120,104 @@
 .taa-grade-select {
   display: grid;
   gap: 10px;
-  padding: 14px;
-  border-radius: 8px;
-  background: rgba(255, 249, 232, 0.94);
+  width: min(720px, 100%);
 }
 
 .taa-grade-select-title {
-  font-size: 0.86rem;
+  color: white;
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
   font-weight: 900;
-  text-transform: uppercase;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
 }
 
 .taa-grade-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .taa-grade-option {
-  border: 2px solid rgba(18, 36, 61, 0.2);
+  min-height: 54px;
+  border: 3px solid rgba(255, 255, 255, 0.76);
   border-radius: 8px;
-  padding: 10px 12px;
   color: #12243d;
-  background: white;
-  font-weight: 900;
+  background: rgba(255, 249, 232, 0.94);
+  box-shadow: 0 3px 0 rgba(18, 36, 61, 0.16);
   cursor: pointer;
+  font-family: inherit;
+  font-size: clamp(0.92rem, 2vw, 1.08rem);
+  font-weight: 900;
 }
 
 .taa-grade-option.is-selected {
-  border-color: #12243d;
-  background: #ffd44d;
+  color: white;
+  background: #2f78bf;
+  box-shadow: 0 3px 0 rgba(18, 36, 61, 0.2), inset 0 0 0 3px rgba(255, 212, 77, 0.9);
 }
 
 .taa-level-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
 .taa-level-card {
-  min-height: 190px;
   display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
   gap: 8px;
-  justify-items: start;
-  align-content: start;
-  border: 3px solid rgba(255, 255, 255, 0.8);
+  min-height: 230px;
+  border: 3px solid rgba(255, 255, 255, 0.76);
   border-radius: 8px;
   padding: 14px;
   color: #12243d;
   background:
-    radial-gradient(circle at 90% 10%, rgba(255, 212, 77, 0.14) 0 30px, transparent 32px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 249, 232, 0.94));
+    radial-gradient(circle at 90% 10%, rgba(255, 212, 77, 0.12) 0 30px, transparent 32px),
+    radial-gradient(circle at 10% 90%, rgba(47, 120, 191, 0.08) 0 25px, transparent 27px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 249, 232, 0.94));
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18), 0 12px 28px rgba(0, 0, 0, 0.1);
   text-align: left;
   cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.taa-level-card:hover { transform: translateY(-4px); }
-.taa-level-card strong { font-size: 1.25rem; }
-.taa-level-card span { font-weight: 800; }
-.taa-level-card em { align-self: end; font-style: normal; font-weight: 900; color: #2f78bf; }
-.taa-level-card.is-complete em { color: #18784a; }
+.taa-level-card:hover {
+  transform: translateY(-6px) rotate(-1deg);
+  box-shadow: 0 14px 0 rgba(0, 0, 0, 0.15), 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.taa-level-card:active { transform: translateY(-2px); }
+.taa-level-card strong { font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.05; }
+.taa-level-card span { color: #213958; font-size: 1rem; font-weight: 800; }
+
+.taa-level-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  align-self: end;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: white;
+  background: #2f78bf;
+  font-size: 0.85rem;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.taa-level-card.is-complete .taa-level-status { background: #3dbb6d; }
+
+.taa-level-play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 8px;
+  background: #ffd44d;
+  color: #10213d;
+  font-weight: 900;
+  font-size: 1rem;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
 
 .taa-level-number {
   display: grid;

@@ -44,7 +44,9 @@ export default function LevelSelect({ grade, progress, onGradeChange, onSelectLe
               <span className="taa-level-number">{level.number}</span>
               <strong>{level.title}</strong>
               <span>{level.subtitle}</span>
-              <em>{status.completed ? `${status.bestStars} star best` : `${gradeConfigs[grade].label}: Available`}</em>
+              <span className="taa-level-status">
+                {status.completed ? `${status.bestStars} Star Best` : `${gradeConfigs[grade].label}: Available`}
+              </span>
               <span className="taa-level-play">Play</span>
             </button>
           );
