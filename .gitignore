@@ -36,6 +36,7 @@ yarn-error.log*
 # local secrets
 /secrets/
 /public/Keys/
+/public/TitanicAdventureAcademy/index.html
 /local-only/
 
 # vercel
