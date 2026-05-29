@@ -596,6 +596,65 @@
       gap: 6px;
       min-height: 210px;
       padding-top: 12px;
+      position: relative;
+    }
+
+    .animal-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .animal-speech-bubble {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #fff9e6 0%, #fff5d6 100%);
+      border: 3px solid var(--brass);
+      border-radius: 16px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      margin-bottom: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .animal-speech-bubble.is-visible {
+      opacity: 1;
+    }
+
+    .animal-speech-bubble::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      border-top-color: var(--brass);
+    }
+
+    .animal-speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-top-color: #fff5d6;
+      margin-top: -3px;
+      z-index: 1;
+    }
+
+    .animal-speech-bubble .cabin-clue {
+      color: var(--accent);
+      font-weight: 700;
     }
 
     .animal {
@@ -3000,6 +3059,18 @@
         padding-top: 2px;
       }
       body.is-playing .animal { font-size: 3.05rem; }
+      body.is-playing .animal-speech-bubble {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        margin-bottom: 4px;
+      }
+      body.is-playing .animal-speech-bubble::after {
+        border-width: 7px;
+      }
+      body.is-playing .animal-speech-bubble::before {
+        border-width: 5px;
+        margin-top: -2px;
+      }
       body.is-playing .ticket-repeat-button {
         min-width: 0;
         width: 100%;
@@ -3396,7 +3467,10 @@
         <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
         <div class="passenger-area">
           <div class="passenger" aria-live="polite">
-            <div id="animal" class="animal" aria-hidden="true">🐻</div>
+            <div class="animal-container">
+              <div id="animalSpeechBubble" class="animal-speech-bubble" aria-hidden="true">Help me find cabin...</div>
+              <div id="animal" class="animal" aria-hidden="true">🐻</div>
+            </div>
             <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
               <span class="ticket-label">Ticket Clue</span>
               <span id="ticketCode" class="ticket-code">Repeat</span>
@@ -3935,6 +4009,7 @@
     const speechEl = document.getElementById("speech");
     const repeatButton = document.getElementById("repeatButton");
     const animalEl = document.getElementById("animal");
+    const animalSpeechBubble = document.getElementById("animalSpeechBubble");
     const ticketCodeEl = document.getElementById("ticketCode");
     const doorsEl = document.getElementById("doors");
     const feedbackEl = document.getElementById("feedback");
@@ -4972,6 +5047,19 @@
       return question && question.questionType === "exactMatch" ? "" : question ? question.visualTicketText || "Repeat" : "Repeat";
     }
 
+    function getAnimalSpeechText(question) {
+      if (!question) return "Help me find my cabin!";
+      if (question.questionType === "exactMatch") {
+        return "Help me find my cabin!";
+      }
+      // For math/logic questions, show the clue
+      const clue = question.visualTicketText || "";
+      if (clue) {
+        return 'Help me find cabin <span class="cabin-clue">' + clue + '</span>!';
+      }
+      return "Help me find my cabin!";
+    }
+
     function buildGameRounds() {
       // Add 4th/5th grade later by extending cabinGradeConfigs and adding builders
       // to cabinQuestionBuilders; the game loop consumes the same question shape.
@@ -5004,6 +5092,7 @@
       feedbackEl.textContent = "";
       setFeedbackTone(feedbackEl, "");
       animalEl.classList.remove("is-happy", "is-sad");
+      animalSpeechBubble.classList.remove("is-visible");
       speechEl.textContent = "Tap Start Boarding to begin " + config.label + " captain training.";
       cabinGradeBadge.textContent = config.label;
       startScreenText.textContent = config.intro + " Help each animal passenger board by using the cabin ticket clue to match the correct door.";
@@ -5116,6 +5205,8 @@
       setFeedbackTone(feedbackEl, "");
       animalEl.classList.remove("is-happy", "is-sad");
       animalEl.textContent = animals[currentRound % animals.length];
+      animalSpeechBubble.innerHTML = getAnimalSpeechText(currentTicket);
+      animalSpeechBubble.classList.add("is-visible");
       speechEl.textContent = getCabinVisiblePrompt(currentTicket);
       ticketCodeEl.textContent = getCabinTicketText(currentTicket);
       updateCabinHud();
@@ -5179,6 +5270,7 @@
       acceptingAnswers = false;
       completeCabinGrade(stars);
       finalStars.textContent = String(stars);
+      animalSpeechBubble.classList.remove("is-visible");
       endScreen.hidden = false;
       speakText("Great job, Captain! You earned " + stars + " stars in " + cabinGradeConfigs[selectedCabinGrade].label + " Cabin Match.", speechEl);
     }
