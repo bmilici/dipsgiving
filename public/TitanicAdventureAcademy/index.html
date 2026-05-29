@@ -3022,9 +3022,12 @@
         border-width: 3px;
       }
       body.is-playing .game-content {
-        gap: 8px;
-        padding: 8px;
+        gap: 10px;
+        padding: 10px;
         overflow: visible;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
       }
       body.is-playing .title-row {
         display: grid;
@@ -3034,70 +3037,71 @@
       }
       body.is-playing .title-row h1 {
         max-width: 100%;
-        padding: 7px 9px;
-        font-size: clamp(1.15rem, 6vw, 1.75rem);
-        line-height: 1;
+        padding: 6px 8px;
+        font-size: clamp(1.1rem, 5.5vw, 1.6rem);
+        line-height: 1.1;
       }
       body.is-playing .grade-badge {
-        margin-top: 4px;
-        padding: 4px 8px;
-        font-size: 0.78rem;
+        margin-top: 3px;
+        padding: 3px 6px;
+        font-size: 0.72rem;
       }
       body.is-playing .stars {
-        max-width: 96px;
-        font-size: 1.05rem;
+        max-width: 90px;
+        font-size: 0.95rem;
         line-height: 1.1;
       }
       body.is-playing .speech {
-        min-height: 46px;
-        padding: 8px 10px;
-        font-size: 0.96rem;
+        min-height: 38px;
+        padding: 6px 10px;
+        font-size: 0.88rem;
       }
       body.is-playing .passenger-area {
         display: grid;
-        grid-template-columns: 92px minmax(0, 1fr);
+        grid-template-columns: 100px minmax(0, 1fr);
         align-items: start;
-        gap: 8px;
+        gap: 12px;
         overflow: visible;
         position: relative;
         z-index: 5;
+        flex: 1;
       }
       body.is-playing .passenger {
         min-height: 0;
-        padding-top: 6px;
+        padding-top: 4px;
         overflow: visible;
         position: relative;
         z-index: 5;
       }
       body.is-playing .animal-container {
         flex-direction: column-reverse;
-        align-items: flex-start;
+        align-items: center;
         overflow: visible;
         position: relative;
         z-index: 10;
       }
-      body.is-playing .animal { font-size: 2.8rem; }
+      body.is-playing .animal { font-size: 3rem; }
       body.is-playing .animal-speech-bubble {
         position: relative;
         bottom: auto;
         left: auto;
         transform: none;
-        font-size: 0.6rem;
-        padding: 3px 5px;
-        margin-top: 2px;
+        font-size: 0.65rem;
+        padding: 4px 6px;
+        margin-top: 4px;
         margin-bottom: 0;
         white-space: normal;
-        max-width: 78px;
+        max-width: 90px;
         z-index: 10;
         text-align: center;
-        line-height: 1.15;
+        line-height: 1.2;
         border-width: 2px;
         border-radius: 10px;
       }
       body.is-playing .animal-speech-bubble::after {
         top: auto;
         bottom: 100%;
-        border-width: 5px;
+        border-width: 6px;
         border-top-color: transparent;
         border-bottom-color: var(--brass);
       }
@@ -3106,7 +3110,7 @@
         bottom: 100%;
         margin-top: 0;
         margin-bottom: -2px;
-        border-width: 3px;
+        border-width: 4px;
         border-top-color: transparent;
         border-bottom-color: #fff5d6;
       }
@@ -3127,14 +3131,22 @@
       body.is-playing .ticket-repeat-button {
         min-width: 0;
         width: 100%;
-        padding: 8px 6px;
+        padding: 6px 5px;
         border-width: 3px;
       }
-      body.is-playing .ticket-label { font-size: 0.68rem; }
-      body.is-playing .ticket-code { font-size: 1rem; }
-      body.is-playing .ticket-code::before { font-size: 1.85rem; }
+      body.is-playing .ticket-label { font-size: 0.65rem; }
+      body.is-playing .ticket-code { font-size: 1.1rem; }
+      body.is-playing .ticket-code::before { font-size: 1.6rem; }
+      body.is-playing .answer-grid {
+        gap: 10px;
+        flex: 1;
+        align-content: stretch;
+      }
       .door-button { min-height: 142px; }
-      body.is-playing .door-button { min-height: clamp(86px, 18vh, 122px); }
+      body.is-playing .door-button { 
+        min-height: clamp(120px, 30vh, 180px);
+        height: 100%;
+      }
       body.is-playing .door-code {
         width: min(96px, 82%);
         padding: 8px 5px;
