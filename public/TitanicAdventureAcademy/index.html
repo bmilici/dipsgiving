@@ -3082,17 +3082,22 @@
         bottom: auto;
         left: auto;
         transform: none;
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         padding: 3px 5px;
         margin-top: 2px;
         margin-bottom: 0;
         white-space: normal;
-        max-width: 82px;
+        max-width: 78px;
         z-index: 10;
+        text-align: center;
+        line-height: 1.15;
+        border-width: 2px;
+        border-radius: 10px;
       }
       body.is-playing .animal-speech-bubble::after {
         top: auto;
         bottom: 100%;
+        border-width: 5px;
         border-top-color: transparent;
         border-bottom-color: var(--brass);
       }
@@ -3101,20 +3106,23 @@
         bottom: 100%;
         margin-top: 0;
         margin-bottom: -2px;
+        border-width: 3px;
         border-top-color: transparent;
         border-bottom-color: #fff5d6;
       }
-        text-align: center;
-        line-height: 1.15;
-        border-width: 2px;
-        border-radius: 10px;
+      body.is-playing .cabin-fixtures {
+        display: none;
       }
-      body.is-playing .animal-speech-bubble::after {
-        border-width: 5px;
+      body.is-playing .hall {
+        inset: 0 0 0;
+        background:
+          linear-gradient(180deg, rgba(201, 162, 39, 0.5) 0 2px, transparent 3px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 15%, transparent 85%, rgba(0, 0, 0, 0.18)),
+          linear-gradient(180deg, #f6deb6 0%, #d0a676 40%, #8a5a35 41%, #6d4225 100%);
       }
-      body.is-playing .animal-speech-bubble::before {
-        border-width: 3px;
-        margin-top: -2px;
+      body.is-playing .hall::before,
+      body.is-playing .hall::after {
+        display: none;
       }
       body.is-playing .ticket-repeat-button {
         min-width: 0;
