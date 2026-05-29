@@ -2964,6 +2964,10 @@
       .title-row h1 { max-width: 100%; }
       .stars { min-width: 0; text-align: left; }
       .passenger { min-height: 0; }
+      .animal-speech-bubble {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+      }
       .doors,
       .answer-grid,
       .cargo-carts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3020,6 +3024,7 @@
       body.is-playing .game-content {
         gap: 8px;
         padding: 8px;
+        overflow: visible;
       }
       body.is-playing .title-row {
         display: grid;
@@ -3053,22 +3058,62 @@
         grid-template-columns: 92px minmax(0, 1fr);
         align-items: start;
         gap: 8px;
+        overflow: visible;
+        position: relative;
+        z-index: 5;
       }
       body.is-playing .passenger {
         min-height: 0;
-        padding-top: 2px;
+        padding-top: 6px;
+        overflow: visible;
+        position: relative;
+        z-index: 5;
       }
-      body.is-playing .animal { font-size: 3.05rem; }
+      body.is-playing .animal-container {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        overflow: visible;
+        position: relative;
+        z-index: 10;
+      }
+      body.is-playing .animal { font-size: 2.8rem; }
       body.is-playing .animal-speech-bubble {
-        font-size: 0.8rem;
-        padding: 5px 10px;
-        margin-bottom: 4px;
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        font-size: 0.65rem;
+        padding: 3px 5px;
+        margin-top: 2px;
+        margin-bottom: 0;
+        white-space: normal;
+        max-width: 82px;
+        z-index: 10;
       }
       body.is-playing .animal-speech-bubble::after {
-        border-width: 7px;
+        top: auto;
+        bottom: 100%;
+        border-top-color: transparent;
+        border-bottom-color: var(--brass);
       }
       body.is-playing .animal-speech-bubble::before {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: -2px;
+        border-top-color: transparent;
+        border-bottom-color: #fff5d6;
+      }
+        text-align: center;
+        line-height: 1.15;
+        border-width: 2px;
+        border-radius: 10px;
+      }
+      body.is-playing .animal-speech-bubble::after {
         border-width: 5px;
+      }
+      body.is-playing .animal-speech-bubble::before {
+        border-width: 3px;
         margin-top: -2px;
       }
       body.is-playing .ticket-repeat-button {
