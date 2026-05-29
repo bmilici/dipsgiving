@@ -41,7 +41,9 @@
       inset: 0;
       z-index: 3;
       pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 50%, rgba(18, 36, 61, 0.18) 100%);
+      background: 
+        radial-gradient(ellipse at center, transparent 40%, rgba(18, 36, 61, 0.15) 70%, rgba(10, 20, 35, 0.35) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, 0.15) 100%);
     }
 
     * { box-sizing: border-box; }
@@ -388,14 +390,11 @@
       position: absolute;
       inset: 26% 0 0;
       background:
-        linear-gradient(180deg, rgba(201, 162, 39, 0.4) 0 3px, transparent 4px),
-        radial-gradient(circle at 10% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 36% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 64% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 90% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
+        linear-gradient(180deg, rgba(201, 162, 39, 0.5) 0 3px, transparent 4px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.22)),
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 78px),
-        repeating-linear-gradient(175deg, transparent 0 8px, rgba(0, 0, 0, 0.03) 9px 10px),
+        repeating-linear-gradient(90deg, rgba(62, 35, 18, 0.15) 0 3px, transparent 3px 60px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 60px),
+        repeating-linear-gradient(175deg, transparent 0 8px, rgba(0, 0, 0, 0.04) 9px 10px),
         linear-gradient(180deg, #f6deb6 0%, #d0a676 58%, #8a5a35 59%, #6d4225 100%);
     }
 
@@ -404,11 +403,12 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 10% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 36% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 64% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 90% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px);
-      animation: sconcePulse 2.5s ease-in-out infinite alternate;
+        radial-gradient(ellipse 80px 120px at 10% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 30% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 50% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 70% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 90% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%);
+      animation: sconceGlow 3s ease-in-out infinite;
       pointer-events: none;
     }
 
@@ -420,19 +420,7 @@
       right: 0;
       height: 14%;
       pointer-events: none;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 20% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 20% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 20% 50%, var(--brass) 0 32px, transparent 33px),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 50% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 50% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 50% 50%, var(--brass) 0 32px, transparent 33px),
-        radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 80% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 80% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 80% 50%, var(--brass) 0 32px, transparent 33px);
+      background: none;
     }
 
     .cabin-fixtures {
@@ -453,27 +441,48 @@
       border: 5px solid rgba(201, 162, 39, 0.95);
       border-radius: 999px;
       background:
-        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 8px, transparent 9px),
-        radial-gradient(circle at 50% 50%, rgba(116, 209, 255, 0.78) 0 24%, rgba(38, 98, 139, 0.88) 25% 55%, rgba(12, 38, 64, 0.9) 56% 100%);
+        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95) 0 6px, transparent 7px),
+        radial-gradient(circle at 65% 70%, rgba(255, 255, 255, 0.3) 0 4px, transparent 5px),
+        radial-gradient(circle at 50% 50%, rgba(135, 206, 235, 0.7) 0 20%, rgba(70, 130, 180, 0.85) 21% 45%, rgba(25, 60, 100, 0.92) 46% 70%, rgba(10, 30, 50, 0.95) 71% 100%);
       box-shadow:
-        0 0 0 2px rgba(18, 36, 61, 0.38),
-        0 0 24px rgba(255, 212, 77, 0.48),
-        inset 0 0 0 4px rgba(255, 255, 255, 0.16);
-      opacity: 0.96;
+        0 0 0 2px rgba(18, 36, 61, 0.5),
+        0 0 0 4px rgba(201, 162, 39, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      opacity: 0.98;
+    }
+
+    .cabin-fixtures span::before {
+      content: "";
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 14px;
+      background:
+        linear-gradient(180deg, rgba(201, 162, 39, 0.9) 0%, rgba(160, 120, 30, 0.9) 100%);
+      border-radius: 3px 3px 0 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .cabin-fixtures span::after {
       content: "";
       position: absolute;
       left: 50%;
-      bottom: -22px;
-      width: 18px;
-      height: 18px;
+      bottom: -26px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 212, 77, 0.95), rgba(255, 179, 63, 0.38) 60%, transparent 70%);
+      background: 
+        radial-gradient(circle at 50% 40%, rgba(255, 240, 200, 1) 0%, rgba(255, 200, 100, 0.9) 30%, rgba(255, 160, 60, 0.6) 60%, transparent 75%);
       transform: translateX(-50%);
-      box-shadow: 0 0 26px rgba(255, 212, 77, 0.78);
-      animation: sconcePulse 2.5s ease-in-out infinite alternate;
+      box-shadow: 
+        0 0 20px 8px rgba(255, 200, 100, 0.5),
+        0 0 40px 16px rgba(255, 180, 80, 0.25),
+        0 8px 24px rgba(255, 180, 80, 0.3);
+      animation: sconceFlicker 4s ease-in-out infinite;
     }
 
     .game-content {
@@ -2200,6 +2209,46 @@
     @keyframes sconcePulse {
       0%, 100% { opacity: 0.6; }
       50% { opacity: 1; }
+    }
+
+    @keyframes sconceGlow {
+      0%, 100% { opacity: 0.7; }
+      25% { opacity: 0.9; }
+      50% { opacity: 1; }
+      75% { opacity: 0.85; }
+    }
+
+    @keyframes sconceFlicker {
+      0%, 100% { 
+        opacity: 0.9; 
+        transform: translateX(-50%) scale(1);
+        filter: brightness(1);
+      }
+      10% { 
+        opacity: 0.95; 
+        filter: brightness(1.05);
+      }
+      20% { 
+        opacity: 0.85; 
+        transform: translateX(-50%) scale(0.98);
+      }
+      30% { 
+        opacity: 1; 
+        filter: brightness(1.1);
+      }
+      50% { 
+        opacity: 0.92; 
+        transform: translateX(-50%) scale(1.02);
+        filter: brightness(1.05);
+      }
+      70% { 
+        opacity: 0.88; 
+        filter: brightness(0.98);
+      }
+      85% { 
+        opacity: 0.95; 
+        transform: translateX(-50%) scale(1);
+      }
     }
 
     @keyframes successBurst {
