@@ -41,7 +41,9 @@
       inset: 0;
       z-index: 3;
       pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 50%, rgba(18, 36, 61, 0.18) 100%);
+      background: 
+        radial-gradient(ellipse at center, transparent 40%, rgba(18, 36, 61, 0.15) 70%, rgba(10, 20, 35, 0.35) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 15%, transparent 85%, rgba(0, 0, 0, 0.15) 100%);
     }
 
     * { box-sizing: border-box; }
@@ -388,14 +390,11 @@
       position: absolute;
       inset: 26% 0 0;
       background:
-        linear-gradient(180deg, rgba(201, 162, 39, 0.4) 0 3px, transparent 4px),
-        radial-gradient(circle at 10% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 36% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 64% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
-        radial-gradient(circle at 90% 14%, rgba(255, 212, 77, 0.5) 0 11px, transparent 13px),
+        linear-gradient(180deg, rgba(201, 162, 39, 0.5) 0 3px, transparent 4px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.22)),
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 78px),
-        repeating-linear-gradient(175deg, transparent 0 8px, rgba(0, 0, 0, 0.03) 9px 10px),
+        repeating-linear-gradient(90deg, rgba(62, 35, 18, 0.15) 0 3px, transparent 3px 60px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 60px),
+        repeating-linear-gradient(175deg, transparent 0 8px, rgba(0, 0, 0, 0.04) 9px 10px),
         linear-gradient(180deg, #f6deb6 0%, #d0a676 58%, #8a5a35 59%, #6d4225 100%);
     }
 
@@ -404,11 +403,12 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at 10% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 36% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 64% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px),
-        radial-gradient(circle at 90% 14%, rgba(255, 212, 77, 0.18) 0 34px, transparent 36px);
-      animation: sconcePulse 2.5s ease-in-out infinite alternate;
+        radial-gradient(ellipse 80px 120px at 10% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 30% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 50% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 70% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 80px 120px at 90% 8%, rgba(255, 200, 120, 0.12) 0%, transparent 100%);
+      animation: sconceGlow 3s ease-in-out infinite;
       pointer-events: none;
     }
 
@@ -420,28 +420,76 @@
       right: 0;
       height: 14%;
       pointer-events: none;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 20% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 20% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 20% 50%, var(--brass) 0 32px, transparent 33px),
-        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 50% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 50% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 50% 50%, var(--brass) 0 32px, transparent 33px),
-        radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.34) 0 12px, transparent 13px),
-        radial-gradient(circle at 80% 50%, #4a90c2 0 24px, transparent 25px),
-        radial-gradient(circle at 80% 50%, #1a3a5c 0 28px, transparent 29px),
-        radial-gradient(circle at 80% 50%, var(--brass) 0 32px, transparent 33px);
+      background: none;
     }
 
-    /* cabin-fixtures removed - cleaner UI */
+    .cabin-fixtures {
+      position: absolute;
+      top: calc(26% + 10px);
+      left: 4%;
+      right: 4%;
+      z-index: 4;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(12px, 3vw, 34px);
+      pointer-events: none;
+    }
+
+    .cabin-fixtures span {
+      position: relative;
+      height: clamp(44px, 7vw, 72px);
+      border: 5px solid rgba(201, 162, 39, 0.95);
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95) 0 6px, transparent 7px),
+        radial-gradient(circle at 65% 70%, rgba(255, 255, 255, 0.3) 0 4px, transparent 5px),
+        radial-gradient(circle at 50% 50%, rgba(135, 206, 235, 0.7) 0 20%, rgba(70, 130, 180, 0.85) 21% 45%, rgba(25, 60, 100, 0.92) 46% 70%, rgba(10, 30, 50, 0.95) 71% 100%);
+      box-shadow:
+        0 0 0 2px rgba(18, 36, 61, 0.5),
+        0 0 0 4px rgba(201, 162, 39, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      opacity: 0.98;
+    }
+
+    .cabin-fixtures span::before {
+      content: "";
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 14px;
+      background:
+        linear-gradient(180deg, rgba(201, 162, 39, 0.9) 0%, rgba(160, 120, 30, 0.9) 100%);
+      border-radius: 3px 3px 0 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .cabin-fixtures span::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -26px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: 
+        radial-gradient(circle at 50% 40%, rgba(255, 240, 200, 1) 0%, rgba(255, 200, 100, 0.9) 30%, rgba(255, 160, 60, 0.6) 60%, transparent 75%);
+      transform: translateX(-50%);
+      box-shadow: 
+        0 0 20px 8px rgba(255, 200, 100, 0.5),
+        0 0 40px 16px rgba(255, 180, 80, 0.25),
+        0 8px 24px rgba(255, 180, 80, 0.3);
+      animation: sconceFlicker 4s ease-in-out infinite;
+    }
 
     .game-content {
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: auto auto 1fr auto;
       gap: 14px;
       min-height: min(74vh, 700px);
       padding: 20px;
@@ -523,70 +571,96 @@
     }
 
     .speech {
-      position: relative;
-      min-height: 54px;
-      border: 3px solid rgba(255, 255, 255, 0.9);
-      border-radius: 18px;
-      padding: 12px 16px;
-      color: var(--ink);
-      background: var(--panel);
-      font-size: clamp(1rem, 2.2vw, 1.35rem);
-      font-weight: 800;
-      line-height: 1.3;
-      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
-    }
-
-    /* Speech bubble tail pointing to animal */
-    .speech::before {
-      content: "";
-      position: absolute;
-      left: 24px;
-      bottom: -14px;
-      width: 0;
-      height: 0;
-      border-left: 14px solid transparent;
-      border-right: 14px solid transparent;
-      border-top: 14px solid var(--panel);
-      filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.1));
-    }
-    .speech::after {
-      content: "";
-      position: absolute;
-      left: 22px;
-      bottom: -4px;
-      width: 0;
-      height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-top: 6px solid rgba(255, 255, 255, 0.9);
+      min-height: 74px;
+      border: 3px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: white;
+      background: rgba(18, 36, 61, 0.62);
+      font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+      font-weight: 900;
+      line-height: 1.25;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
     }
 
     .passenger-area {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      align-items: start;
+      grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
+      align-items: center;
       gap: 16px;
-    }
-
-    .animal-speech-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-start;
     }
 
     .passenger {
       display: grid;
       justify-items: center;
       gap: 6px;
-      min-height: auto;
-      padding-top: 0;
+      min-height: 210px;
+      padding-top: 12px;
+      position: relative;
+    }
+
+    .animal-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .animal-speech-bubble {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #fff9e6 0%, #fff5d6 100%);
+      border: 3px solid var(--brass);
+      border-radius: 16px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      margin-bottom: 8px;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .animal-speech-bubble.is-visible {
+      opacity: 1;
+    }
+
+    .animal-speech-bubble::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      border-top-color: var(--brass);
+    }
+
+    .animal-speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-top-color: #fff5d6;
+      margin-top: -3px;
+      z-index: 1;
+    }
+
+    .animal-speech-bubble .cabin-clue {
+      color: var(--accent);
+      font-weight: 700;
     }
 
     .animal {
-      font-size: clamp(4rem, 12vw, 6rem);
+      font-size: clamp(5rem, 15vw, 8.5rem);
       line-height: 1;
-      filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.18));
       animation: characterBreathe 3s ease-in-out infinite;
       transition: transform 0.3s ease;
     }
@@ -648,10 +722,9 @@
     .doors,
     .answer-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
       align-items: stretch;
-      max-width: 600px;
     }
 
     .door-button {
@@ -2197,6 +2270,46 @@
       50% { opacity: 1; }
     }
 
+    @keyframes sconceGlow {
+      0%, 100% { opacity: 0.7; }
+      25% { opacity: 0.9; }
+      50% { opacity: 1; }
+      75% { opacity: 0.85; }
+    }
+
+    @keyframes sconceFlicker {
+      0%, 100% { 
+        opacity: 0.9; 
+        transform: translateX(-50%) scale(1);
+        filter: brightness(1);
+      }
+      10% { 
+        opacity: 0.95; 
+        filter: brightness(1.05);
+      }
+      20% { 
+        opacity: 0.85; 
+        transform: translateX(-50%) scale(0.98);
+      }
+      30% { 
+        opacity: 1; 
+        filter: brightness(1.1);
+      }
+      50% { 
+        opacity: 0.92; 
+        transform: translateX(-50%) scale(1.02);
+        filter: brightness(1.05);
+      }
+      70% { 
+        opacity: 0.88; 
+        filter: brightness(0.98);
+      }
+      85% { 
+        opacity: 0.95; 
+        transform: translateX(-50%) scale(1);
+      }
+    }
+
     @keyframes successBurst {
       0% { transform: scale(0.8); opacity: 1; box-shadow: 0 0 0 0 rgba(61, 187, 109, 0.6); }
       50% { transform: scale(1.05); box-shadow: 0 0 30px 15px rgba(61, 187, 109, 0.3); }
@@ -2851,6 +2964,10 @@
       .title-row h1 { max-width: 100%; }
       .stars { min-width: 0; text-align: left; }
       .passenger { min-height: 0; }
+      .animal-speech-bubble {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+      }
       .doors,
       .answer-grid,
       .cargo-carts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2873,14 +2990,7 @@
       }
       .level-grid { grid-template-columns: 1fr; }
       .grade-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      body.is-playing {
-        overflow-y: auto;
-      }
       body.is-playing .page { padding: 6px; }
-      body.is-playing .page {
-        min-height: 100dvh;
-        height: auto;
-      }
       body.is-playing .topbar { gap: 6px; margin-bottom: 6px; }
       body.is-playing .home-link,
       body.is-playing .small-button {
@@ -2910,17 +3020,14 @@
       }
       body.is-playing .game-wrap {
         border-width: 3px;
-        min-height: calc(100dvh - 92px);
-        height: auto;
-        overflow: hidden;
       }
       body.is-playing .game-content {
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        gap: 8px;
-        padding: 8px;
-        min-height: calc(100dvh - 98px);
-        height: auto;
+        gap: 10px;
+        padding: 10px;
         overflow: visible;
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
       }
       body.is-playing .title-row {
         display: grid;
@@ -2930,81 +3037,120 @@
       }
       body.is-playing .title-row h1 {
         max-width: 100%;
-        padding: 7px 9px;
-        font-size: clamp(1.15rem, 6vw, 1.75rem);
-        line-height: 1;
+        padding: 6px 8px;
+        font-size: clamp(1.1rem, 5.5vw, 1.6rem);
+        line-height: 1.1;
       }
       body.is-playing .grade-badge {
-        margin-top: 4px;
-        padding: 4px 8px;
-        font-size: 0.78rem;
+        margin-top: 3px;
+        padding: 3px 6px;
+        font-size: 0.72rem;
       }
       body.is-playing .stars {
-        max-width: 96px;
-        font-size: 1.05rem;
+        max-width: 90px;
+        font-size: 0.95rem;
         line-height: 1.1;
       }
       body.is-playing .speech {
-        min-height: 40px;
-        padding: 8px 10px;
-        font-size: 0.92rem;
-        border-radius: 12px;
-      }
-      body.is-playing .speech::before {
-        left: 16px;
-        bottom: -10px;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-top: 10px solid var(--panel);
-      }
-      body.is-playing .speech::after {
-        left: 14px;
-        bottom: -3px;
-        border-left: 12px solid transparent;
-        border-right: 12px solid transparent;
-        border-top: 4px solid rgba(255, 255, 255, 0.9);
-      }
-      body.is-playing .animal-speech-group {
-        gap: 4px;
+        min-height: 38px;
+        padding: 6px 10px;
+        font-size: 0.88rem;
       }
       body.is-playing .passenger-area {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: 100px minmax(0, 1fr);
         align-items: start;
-        gap: 8px;
-        min-height: 0;
+        gap: 12px;
+        overflow: visible;
+        position: relative;
+        z-index: 5;
+        flex: 1;
       }
       body.is-playing .passenger {
         min-height: 0;
-        padding-top: 2px;
+        padding-top: 4px;
+        overflow: visible;
+        position: relative;
+        z-index: 5;
       }
-      body.is-playing .animal { font-size: 3.05rem; }
+      body.is-playing .animal-container {
+        flex-direction: column-reverse;
+        align-items: center;
+        overflow: visible;
+        position: relative;
+        z-index: 10;
+      }
+      body.is-playing .animal { font-size: 3rem; }
+      body.is-playing .animal-speech-bubble {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        transform: none;
+        font-size: 0.65rem;
+        padding: 4px 6px;
+        margin-top: 4px;
+        margin-bottom: 0;
+        white-space: normal;
+        max-width: 90px;
+        z-index: 10;
+        text-align: center;
+        line-height: 1.2;
+        border-width: 2px;
+        border-radius: 10px;
+      }
+      body.is-playing .animal-speech-bubble::after {
+        top: auto;
+        bottom: 100%;
+        border-width: 6px;
+        border-top-color: transparent;
+        border-bottom-color: var(--brass);
+      }
+      body.is-playing .animal-speech-bubble::before {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: -2px;
+        border-width: 4px;
+        border-top-color: transparent;
+        border-bottom-color: #fff5d6;
+      }
+      body.is-playing .cabin-fixtures {
+        display: none;
+      }
+      body.is-playing .hall {
+        inset: 0 0 0;
+        background:
+          linear-gradient(180deg, rgba(201, 162, 39, 0.5) 0 2px, transparent 3px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.18), transparent 15%, transparent 85%, rgba(0, 0, 0, 0.18)),
+          linear-gradient(180deg, #f6deb6 0%, #d0a676 40%, #8a5a35 41%, #6d4225 100%);
+      }
+      body.is-playing .hall::before,
+      body.is-playing .hall::after {
+        display: none;
+      }
       body.is-playing .ticket-repeat-button {
         min-width: 0;
         width: 100%;
-        padding: 8px 6px;
+        padding: 6px 5px;
         border-width: 3px;
       }
-      body.is-playing .ticket-label { font-size: 0.68rem; }
-      body.is-playing .ticket-code { font-size: 1rem; }
-      body.is-playing .ticket-code::before { font-size: 1.85rem; }
+      body.is-playing .ticket-label { font-size: 0.65rem; }
+      body.is-playing .ticket-code { font-size: 1.1rem; }
+      body.is-playing .ticket-code::before { font-size: 1.6rem; }
+      body.is-playing .answer-grid {
+        gap: 10px;
+        flex: 1;
+        align-content: stretch;
+      }
       .door-button { min-height: 142px; }
-      body.is-playing .doors {
-        gap: 8px;
-      }
-      body.is-playing .door-button {
-        min-height: clamp(76px, 16dvh, 108px);
-        border-width: 3px;
-        border-top-width: 5px;
-      }
-      body.is-playing .door-button::before {
-        inset: 9px 12px auto;
-        height: 16px;
+      body.is-playing .door-button { 
+        min-height: clamp(120px, 30vh, 180px);
+        height: 100%;
       }
       body.is-playing .door-code {
-        width: min(82px, 82%);
-        padding: 7px 5px;
-        font-size: clamp(1.22rem, 6.4vw, 1.82rem);
+        width: min(96px, 82%);
+        padding: 8px 5px;
+        font-size: clamp(1.35rem, 7vw, 2rem);
       }
       body.is-playing .feedback {
         min-height: 34px;
@@ -3374,7 +3520,7 @@
     <section id="cabinGame" class="game-wrap" aria-label="Level 1 Cabin Match game" hidden>
       <div class="ship-top" aria-hidden="true"></div>
       <div class="hall" aria-hidden="true"></div>
-      <!-- removed cabin-fixtures -->
+      <div class="cabin-fixtures" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <div class="game-content">
         <div class="title-row">
           <div>
@@ -3383,16 +3529,17 @@
           </div>
           <div id="starDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
         </div>
+        <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
         <div class="passenger-area">
-          <div class="animal-speech-group">
-            <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
-            <div class="passenger" aria-live="polite">
+          <div class="passenger" aria-live="polite">
+            <div class="animal-container">
+              <div id="animalSpeechBubble" class="animal-speech-bubble" aria-hidden="true">Help me find cabin...</div>
               <div id="animal" class="animal" aria-hidden="true">🐻</div>
-              <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
-                <span class="ticket-label">Ticket Clue</span>
-                <span id="ticketCode" class="ticket-code">Repeat</span>
-              </button>
             </div>
+            <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
+              <span class="ticket-label">Ticket Clue</span>
+              <span id="ticketCode" class="ticket-code">Repeat</span>
+            </button>
           </div>
           <div id="doors" class="doors" aria-label="Cabin choices"></div>
         </div>
@@ -3927,6 +4074,7 @@
     const speechEl = document.getElementById("speech");
     const repeatButton = document.getElementById("repeatButton");
     const animalEl = document.getElementById("animal");
+    const animalSpeechBubble = document.getElementById("animalSpeechBubble");
     const ticketCodeEl = document.getElementById("ticketCode");
     const doorsEl = document.getElementById("doors");
     const feedbackEl = document.getElementById("feedback");
@@ -4964,6 +5112,19 @@
       return question && question.questionType === "exactMatch" ? "" : question ? question.visualTicketText || "Repeat" : "Repeat";
     }
 
+    function getAnimalSpeechText(question) {
+      if (!question) return "Help me find my cabin!";
+      if (question.questionType === "exactMatch") {
+        return "Help me find my cabin!";
+      }
+      // For math/logic questions, show the clue
+      const clue = question.visualTicketText || "";
+      if (clue) {
+        return 'Help me find cabin <span class="cabin-clue">' + clue + '</span>!';
+      }
+      return "Help me find my cabin!";
+    }
+
     function buildGameRounds() {
       // Add 4th/5th grade later by extending cabinGradeConfigs and adding builders
       // to cabinQuestionBuilders; the game loop consumes the same question shape.
@@ -4996,6 +5157,7 @@
       feedbackEl.textContent = "";
       setFeedbackTone(feedbackEl, "");
       animalEl.classList.remove("is-happy", "is-sad");
+      animalSpeechBubble.classList.remove("is-visible");
       speechEl.textContent = "Tap Start Boarding to begin " + config.label + " captain training.";
       cabinGradeBadge.textContent = config.label;
       startScreenText.textContent = config.intro + " Help each animal passenger board by using the cabin ticket clue to match the correct door.";
@@ -5108,6 +5270,8 @@
       setFeedbackTone(feedbackEl, "");
       animalEl.classList.remove("is-happy", "is-sad");
       animalEl.textContent = animals[currentRound % animals.length];
+      animalSpeechBubble.innerHTML = getAnimalSpeechText(currentTicket);
+      animalSpeechBubble.classList.add("is-visible");
       speechEl.textContent = getCabinVisiblePrompt(currentTicket);
       ticketCodeEl.textContent = getCabinTicketText(currentTicket);
       updateCabinHud();
@@ -5171,6 +5335,7 @@
       acceptingAnswers = false;
       completeCabinGrade(stars);
       finalStars.textContent = String(stars);
+      animalSpeechBubble.classList.remove("is-visible");
       endScreen.hidden = false;
       speakText("Great job, Captain! You earned " + stars + " stars in " + cabinGradeConfigs[selectedCabinGrade].label + " Cabin Match.", speechEl);
     }
