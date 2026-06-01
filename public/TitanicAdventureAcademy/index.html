@@ -435,52 +435,13 @@
         radial-gradient(circle at 80% 50%, var(--brass) 0 32px, transparent 33px);
     }
 
-    .cabin-fixtures {
-      position: absolute;
-      top: calc(26% + 10px);
-      left: 4%;
-      right: 4%;
-      z-index: 4;
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: clamp(12px, 3vw, 34px);
-      pointer-events: none;
-    }
-
-    .cabin-fixtures span {
-      position: relative;
-      height: clamp(44px, 7vw, 72px);
-      border: 5px solid rgba(201, 162, 39, 0.95);
-      border-radius: 999px;
-      background:
-        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9) 0 8px, transparent 9px),
-        radial-gradient(circle at 50% 50%, rgba(116, 209, 255, 0.78) 0 24%, rgba(38, 98, 139, 0.88) 25% 55%, rgba(12, 38, 64, 0.9) 56% 100%);
-      box-shadow:
-        0 0 0 2px rgba(18, 36, 61, 0.38),
-        0 0 24px rgba(255, 212, 77, 0.48),
-        inset 0 0 0 4px rgba(255, 255, 255, 0.16);
-      opacity: 0.96;
-    }
-
-    .cabin-fixtures span::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: -22px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 212, 77, 0.95), rgba(255, 179, 63, 0.38) 60%, transparent 70%);
-      transform: translateX(-50%);
-      box-shadow: 0 0 26px rgba(255, 212, 77, 0.78);
-      animation: sconcePulse 2.5s ease-in-out infinite alternate;
-    }
+    /* cabin-fixtures removed - cleaner UI */
 
     .game-content {
       position: relative;
       z-index: 2;
       display: grid;
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: auto 1fr auto;
       gap: 14px;
       min-height: min(74vh, 700px);
       padding: 20px;
@@ -562,37 +523,70 @@
     }
 
     .speech {
-      min-height: 74px;
-      border: 3px solid rgba(255, 255, 255, 0.78);
-      border-radius: 8px;
-      padding: 14px 16px;
-      color: white;
-      background: rgba(18, 36, 61, 0.62);
-      font-size: clamp(1.05rem, 2.4vw, 1.5rem);
-      font-weight: 900;
-      line-height: 1.25;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      position: relative;
+      min-height: 54px;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      padding: 12px 16px;
+      color: var(--ink);
+      background: var(--panel);
+      font-size: clamp(1rem, 2.2vw, 1.35rem);
+      font-weight: 800;
+      line-height: 1.3;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    /* Speech bubble tail pointing to animal */
+    .speech::before {
+      content: "";
+      position: absolute;
+      left: 24px;
+      bottom: -14px;
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 14px solid var(--panel);
+      filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.1));
+    }
+    .speech::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      bottom: -4px;
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 6px solid rgba(255, 255, 255, 0.9);
     }
 
     .passenger-area {
       display: grid;
-      grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
-      align-items: center;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
       gap: 16px;
+    }
+
+    .animal-speech-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-start;
     }
 
     .passenger {
       display: grid;
       justify-items: center;
       gap: 6px;
-      min-height: 210px;
-      padding-top: 12px;
+      min-height: auto;
+      padding-top: 0;
     }
 
     .animal {
-      font-size: clamp(5rem, 15vw, 8.5rem);
+      font-size: clamp(4rem, 12vw, 6rem);
       line-height: 1;
-      filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.18));
       animation: characterBreathe 3s ease-in-out infinite;
       transition: transform 0.3s ease;
     }
@@ -654,9 +648,10 @@
     .doors,
     .answer-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 16px;
       align-items: stretch;
+      max-width: 600px;
     }
 
     .door-button {
@@ -2919,11 +2914,8 @@
         height: auto;
         overflow: hidden;
       }
-      body.is-playing .cabin-fixtures {
-        display: none;
-      }
       body.is-playing .game-content {
-        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto;
         gap: 8px;
         padding: 8px;
         min-height: calc(100dvh - 98px);
@@ -2953,13 +2945,31 @@
         line-height: 1.1;
       }
       body.is-playing .speech {
-        min-height: 46px;
+        min-height: 40px;
         padding: 8px 10px;
-        font-size: 0.96rem;
+        font-size: 0.92rem;
+        border-radius: 12px;
+      }
+      body.is-playing .speech::before {
+        left: 16px;
+        bottom: -10px;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid var(--panel);
+      }
+      body.is-playing .speech::after {
+        left: 14px;
+        bottom: -3px;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-top: 4px solid rgba(255, 255, 255, 0.9);
+      }
+      body.is-playing .animal-speech-group {
+        gap: 4px;
       }
       body.is-playing .passenger-area {
         display: grid;
-        grid-template-columns: 92px minmax(0, 1fr);
+        grid-template-columns: auto minmax(0, 1fr);
         align-items: start;
         gap: 8px;
         min-height: 0;
@@ -3364,7 +3374,7 @@
     <section id="cabinGame" class="game-wrap" aria-label="Level 1 Cabin Match game" hidden>
       <div class="ship-top" aria-hidden="true"></div>
       <div class="hall" aria-hidden="true"></div>
-      <div class="cabin-fixtures" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      <!-- removed cabin-fixtures -->
       <div class="game-content">
         <div class="title-row">
           <div>
@@ -3373,14 +3383,16 @@
           </div>
           <div id="starDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
         </div>
-        <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
         <div class="passenger-area">
-          <div class="passenger" aria-live="polite">
-            <div id="animal" class="animal" aria-hidden="true">🐻</div>
-            <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
-              <span class="ticket-label">Ticket Clue</span>
-              <span id="ticketCode" class="ticket-code">Repeat</span>
-            </button>
+          <div class="animal-speech-group">
+            <div id="speech" class="speech" aria-live="polite">Tap Start Boarding to begin captain training.</div>
+            <div class="passenger" aria-live="polite">
+              <div id="animal" class="animal" aria-hidden="true">🐻</div>
+              <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
+                <span class="ticket-label">Ticket Clue</span>
+                <span id="ticketCode" class="ticket-code">Repeat</span>
+              </button>
+            </div>
           </div>
           <div id="doors" class="doors" aria-label="Cabin choices"></div>
         </div>
