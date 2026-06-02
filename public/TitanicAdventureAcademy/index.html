@@ -988,11 +988,21 @@
     }
 
     .engine-content .title-row h1 {
-      background: rgba(18, 36, 61, 0.95);
-      border-color: rgba(201, 162, 39, 0.7);
+      background: linear-gradient(180deg, #1a3a5c 0%, #0d2339 100%);
+      border: 3px solid #c9a227;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 5px 0 rgba(0, 0, 0, 0.3);
       box-shadow: 
-        0 8px 0 rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        0 8px 0 rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 20px rgba(201, 162, 39, 0.3);
+    }
+
+    .engine-content .title-row .grade-badge {
+      background: linear-gradient(180deg, #2a4a6c 0%, #1a3a5c 100%);
+      border: 2px solid #c9a227;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .engine-stage {
@@ -7416,7 +7426,7 @@
       const endTop = toRect.top - radarRect.top + toRect.height / 2;
       const ship = document.createElement("span");
       ship.className = "bridge-ship-ghost";
-      ship.textContent = "🚢";
+      ship.textContent = "��";
       ship.style.left = startLeft + "px";
       ship.style.top = startTop + "px";
       radarScreen.appendChild(ship);
