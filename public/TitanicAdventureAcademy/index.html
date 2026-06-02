@@ -4483,7 +4483,6 @@
     let activeLevel = "select";
     let voiceAudio = null;
     let audioContext = null;
-    const ttsVoiceCacheVersion = "aoede-gemini-2026-06-02";
     const ttsAudioCache = new Map();
     const ttsAudioPromises = new Map();
     let googleTtsUnavailable = false;
@@ -4804,7 +4803,7 @@
     }
 
     function ttsCacheKey(text) {
-      return ttsVoiceCacheVersion + ":" + text.toLowerCase().replace(/\s+/g, " ").trim();
+      return text.toLowerCase().replace(/\s+/g, " ").trim();
     }
 
     function hasTextToSpeechAudio(text) {
@@ -4837,7 +4836,7 @@
       if (googleTtsUnavailable) throw new Error("Google TTS endpoint is unavailable");
 
       const audioPromise = (async () => {
-        const query = new URLSearchParams({ text, voice: ttsVoiceCacheVersion });
+        const query = new URLSearchParams({ text });
         const response = await fetch("/api/text-to-speech?" + query.toString());
         if (!response.ok) {
           if (response.status === 404) googleTtsUnavailable = true;
