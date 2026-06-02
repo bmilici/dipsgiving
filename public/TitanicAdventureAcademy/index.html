@@ -987,6 +987,61 @@
       grid-template-rows: auto auto minmax(0, 1fr) auto auto;
     }
 
+    .engine-room .title-row {
+      position: relative;
+      z-index: 10;
+    }
+
+    #coalGame .title-row h1,
+    #coalGame.game-wrap .title-row h1,
+    section.engine-room .title-row h1 {
+      background: #0a1423 !important;
+      border: 3px solid #ff9f50 !important;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 0 20px rgba(255, 140, 50, 0.3) !important;
+      text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.9),
+        0 0 16px rgba(255, 180, 80, 0.6);
+      color: #fff8e0 !important;
+    }
+
+    #coalGame .grade-badge,
+    #coalGame.game-wrap .grade-badge,
+    section.engine-room .grade-badge {
+      background: linear-gradient(180deg, #ff8c30 0%, #e85a30 100%) !important;
+      border: 2px solid #fff8e0 !important;
+      color: #fff !important;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 140, 50, 0.4) !important;
+      font-weight: 800;
+    }
+
+    #coalGame .speech,
+    #coalGame.game-wrap .speech,
+    section.engine-room .speech {
+      position: relative;
+      z-index: 10;
+      background: #0a1423 !important;
+      border: 3px solid #ff9f50 !important;
+      color: #fff8e0 !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 16px rgba(255, 140, 50, 0.2) !important;
+    }
+
+    #coalGame .stars,
+    #coalGame.game-wrap .stars,
+    section.engine-room .stars {
+      background: #0a1423 !important;
+      border: 2px solid #ff9f50 !important;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5) !important;
+      color: #ffd700 !important;
+    }
+
     .engine-stage {
       display: grid;
       grid-template-columns: minmax(150px, 230px) minmax(220px, 1fr) minmax(170px, 250px);
@@ -3812,7 +3867,7 @@
           <div class="passenger" aria-live="polite">
             <div class="animal-container">
               <div id="animalSpeechBubble" class="animal-speech-bubble" aria-hidden="true">Help me find cabin...</div>
-              <div id="animal" class="animal" aria-hidden="true">🐻</div>
+              <div id="animal" class="animal" aria-hidden="true">����</div>
             </div>
             <button id="repeatButton" class="ticket-repeat-button" type="button" aria-label="Repeat the cabin ticket audio">
               <span class="ticket-label">Ticket Clue</span>
@@ -3852,14 +3907,14 @@
     <section id="coalGame" class="game-wrap engine-room" aria-label="Level 2 Engine Room Coal Count game" hidden>
       <div class="steam-puff" id="steamPuff" aria-hidden="true"></div>
       <div class="game-content engine-content">
-        <div class="title-row">
+        <div class="title-row" style="position: relative; z-index: 10;">
           <div>
-            <h1>Engine Room Coal Count</h1>
-            <div id="coalGradeBadge" class="grade-badge">Kindergarten</div>
+            <h1 style="background: #0a1423; border: 3px solid #ff9f50; box-shadow: 0 4px 16px rgba(0,0,0,0.7), 0 0 20px rgba(255,140,50,0.3); color: #fff8e0;">Engine Room Coal Count</h1>
+            <div id="coalGradeBadge" class="grade-badge" style="background: linear-gradient(180deg, #ff8c30 0%, #e85a30 100%); border: 2px solid #fff8e0; color: #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.5);">Kindergarten</div>
           </div>
-          <div id="coalStarDisplay" class="stars" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
+          <div id="coalStarDisplay" class="stars" style="background: #0a1423; border: 2px solid #ff9f50; color: #ffd700;" aria-label="Stars earned">☆☆☆☆☆☆☆☆☆☆</div>
         </div>
-        <div id="coalSpeech" class="speech" aria-live="polite">Tap Start Engine to begin math training.</div>
+        <div id="coalSpeech" class="speech" style="background: #0a1423; border: 3px solid #ff9f50; color: #fff8e0;" aria-live="polite">Tap Start Engine to begin math training.</div>
         <div class="engine-stage">
           <div class="engineer">
             <div class="engineer-container">
