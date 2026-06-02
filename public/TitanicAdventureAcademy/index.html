@@ -4917,10 +4917,11 @@
       if (visibleElement) visibleElement.textContent = text;
       const requestId = speechRequestId;
       const fallbackMs = options && options.fallbackMs;
+      const allowBrowserFallback = options && options.allowBrowserFallback === true;
       let audioAssetPromise = null;
       try {
         audioAssetPromise = getTextToSpeechAudio(text);
-        const audioAsset = fallbackMs
+        const audioAsset = fallbackMs && allowBrowserFallback
           ? await Promise.race([audioAssetPromise, waitFor(fallbackMs).then(() => null)])
           : await audioAssetPromise;
         if (requestId !== speechRequestId) return;
@@ -4928,6 +4929,7 @@
         await playReusableVoiceAudio(audioAsset.url);
       } catch (error) {
         if (audioAssetPromise) audioAssetPromise.catch(() => {});
+        if (!allowBrowserFallback) return;
         try {
           if (requestId !== speechRequestId) return;
           await speakWithBrowserVoice(text);
