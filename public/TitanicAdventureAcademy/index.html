@@ -4916,16 +4916,12 @@
     async function speakText(text, visibleElement, options) {
       if (visibleElement) visibleElement.textContent = text;
       const requestId = speechRequestId;
-      const fallbackMs = options && options.fallbackMs;
-      const allowBrowserFallback = options && options.allowBrowserFallback === true;
+      const allowBrowserFallback = !options || options.allowBrowserFallback !== false;
       let audioAssetPromise = null;
       try {
         audioAssetPromise = getTextToSpeechAudio(text);
-        const audioAsset = fallbackMs && allowBrowserFallback
-          ? await Promise.race([audioAssetPromise, waitFor(fallbackMs).then(() => null)])
-          : await audioAssetPromise;
+        const audioAsset = await audioAssetPromise;
         if (requestId !== speechRequestId) return;
-        if (!audioAsset) throw new Error("Voice audio is still warming up");
         await playReusableVoiceAudio(audioAsset.url);
       } catch (error) {
         if (audioAssetPromise) audioAssetPromise.catch(() => {});
