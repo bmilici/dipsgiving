@@ -1024,6 +1024,7 @@
       font-weight: 700;
       color: var(--ink);
       white-space: nowrap;
+      text-shadow: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       margin-bottom: 8px;
       opacity: 0;
@@ -6003,10 +6004,6 @@
         pileSizes.forEach((pileSize, pileIndex) => {
           const pile = document.createElement("span");
           pile.className = "coal-pile";
-          const label = document.createElement("span");
-          label.className = "coal-pile-label";
-          label.textContent = pileSize === 5 ? "5" : "+" + pileSize;
-          pile.appendChild(label);
           for (let i = 0; i < pileSize; i += 1) {
             const piece = document.createElement("span");
             piece.className = "coal-piece";
