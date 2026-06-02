@@ -4861,7 +4861,7 @@
       audio.currentTime = 0;
 
       await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error("Voice audio did not start")), 1400);
+        const timeout = setTimeout(() => reject(new Error("Voice audio did not start")), 5000);
         const cleanup = () => {
           clearTimeout(timeout);
           audio.removeEventListener("playing", handlePlaying);
@@ -4918,11 +4918,10 @@
       const requestId = speechRequestId;
       const allowBrowserFallback = !options || options.allowBrowserFallback !== false;
       let audioAssetPromise = null;
+      let audioAsset = null;
       try {
         audioAssetPromise = getTextToSpeechAudio(text);
-        const audioAsset = await audioAssetPromise;
-        if (requestId !== speechRequestId) return;
-        await playReusableVoiceAudio(audioAsset.url);
+        audioAsset = await audioAssetPromise;
       } catch (error) {
         if (audioAssetPromise) audioAssetPromise.catch(() => {});
         if (!allowBrowserFallback) return;
@@ -4932,6 +4931,12 @@
         } catch (speechError) {
           // On-screen text always remains available if voice cannot play.
         }
+      }
+      if (!audioAsset || requestId !== speechRequestId) return;
+      try {
+        await playReusableVoiceAudio(audioAsset.url);
+      } catch (error) {
+        // Keep the Google voice consistent. A repeat tap can retry playback.
       }
     }
 
@@ -6073,11 +6078,10 @@
       coalStartScreen.hidden = true;
       coalEndScreen.hidden = true;
       coalFeedback.textContent = "";
-      await Promise.all([
-        timebox(unlockAudioContext(), 700),
-        timebox(unlockVoiceAudio(), 700),
-        timebox(coalFirstPromptPromise || preloadCoalPrompts(), 3200),
-      ]);
+      coalSpeech.textContent = "Getting the next coal clue ready.";
+      await timebox(unlockAudioContext(), 700);
+      await timebox(unlockVoiceAudio(), 700);
+      await timebox(coalFirstPromptPromise || preloadCoalPrompts(), 3200);
       preloadRemainingCoalPrompts();
       nextCoalRound();
     }
