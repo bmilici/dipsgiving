@@ -104,8 +104,12 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const padding = isCompare ? "px-1 py-1" : "px-2 py-2";
   const rowPadding = isCompare ? "py-0.5" : "py-1.5";
 
+  // Use a slightly taller aspect ratio to fit both larger image and attacks
+  const cardAspect = "aspect-[2.5/4]";
+  const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
+
   return (
-    <article className={`flex flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? "aspect-[2.5/3.5]" : "aspect-[2.5/3.5] max-w-sm"}`}>
+    <article className={`flex flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? cardAspect : `${cardAspect} max-w-sm`}`}>
       {/* Header - Type, Name, HP */}
       <header className={`flex items-center justify-between gap-0.5 bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"}`}>
         <span className={`rounded bg-emerald-600 px-1 py-0.5 ${headerTextSize} font-bold text-white`}>{card.drinkemonType || "Type"}</span>
@@ -113,8 +117,8 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
         <span className={`${hpSize} font-black text-red-600`}>HP:{card.hp || "-"}</span>
       </header>
 
-      {/* Card Image - reduced height */}
-      <div className={`relative ${isCompare ? "mx-1 mt-0.5" : "mx-2 mt-1"} aspect-[16/9] flex-shrink-0 overflow-hidden border-2 border-[#fffdf4] bg-slate-200`}>
+      {/* Card Image - matches original card proportions */}
+      <div className={`relative ${isCompare ? "mx-1 mt-0.5" : "mx-2 mt-1"} ${imageAspect} flex-shrink-0 overflow-hidden border-2 border-[#fffdf4] bg-slate-200`}>
         <img
           src={cardImageSrc(card)}
           alt=""
