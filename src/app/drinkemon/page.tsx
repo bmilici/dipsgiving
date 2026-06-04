@@ -108,16 +108,30 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const cardAspect = "aspect-[2.5/4]";
   const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
 
+  // Dynamic type badge colors based on creature type
+  const typeColors: Record<string, string> = {
+    Reptile: "bg-emerald-600",
+    Fish: "bg-blue-500",
+    Bird: "bg-yellow-500 text-slate-900",
+    Mammal: "bg-orange-500",
+    Mammall: "bg-orange-500", // Handle typo in data
+    Insect: "bg-lime-600",
+    Ghost: "bg-purple-600",
+    Plant: "bg-green-700",
+    Mecha: "bg-slate-500",
+  };
+  const typeBgColor = typeColors[card.drinkemonType || ""] || "bg-slate-600";
+
   return (
     <article className={`flex flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? cardAspect : `${cardAspect} max-w-sm`}`}>
       {/* Header - Type, Name, HP */}
       <header className={`flex items-center justify-between gap-0.5 bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"}`}>
-        <span className={`rounded bg-emerald-600 px-1 py-0.5 ${headerTextSize} font-bold text-white`}>{card.drinkemonType || "Type"}</span>
+        <span className={`rounded ${typeBgColor} px-1 py-0.5 ${headerTextSize} font-bold ${typeBgColor.includes("text-") ? "" : "text-white"}`}>{card.drinkemonType || "Type"}</span>
         <strong className={`flex-1 text-center ${nameSize} font-black uppercase tracking-tight text-slate-900 truncate px-0.5`}>{card.name || "Unnamed"}</strong>
         <span className={`${hpSize} font-black text-red-600`}>HP:{card.hp || "-"}</span>
       </header>
 
-      {/* Card Image - matches original card proportions */}
+      {/* Card Image - matches original card proportions, sharp corners */}
       <div className={`relative ${isCompare ? "mx-1 mt-0.5" : "mx-2 mt-1"} ${imageAspect} flex-shrink-0 overflow-hidden border-2 border-[#fffdf4] bg-slate-200`}>
         <img
           src={cardImageSrc(card)}
