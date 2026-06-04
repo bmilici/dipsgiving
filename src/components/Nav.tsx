@@ -16,7 +16,6 @@ export default function Nav() {
     { href: "/dips", label: "Dip List" },
     { href: "/vote", label: "Vote" },
     { href: "/winners", label: "Champions" },
-    { href: "/drinkemon", label: "Drinkemon" },
   ];
 
   return (
