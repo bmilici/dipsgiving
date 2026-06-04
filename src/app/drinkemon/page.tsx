@@ -38,9 +38,13 @@ type Card = {
   isOpForm?: boolean;
   commonFormName?: string;
   gameplayReviewStatus?: string;
+  virtualArtRegion?: ArtRegion;
 };
 
 type ViewMode = "original" | "virtual" | "compare";
+type ArtRegion = { x: number; y: number; width: number; height: number };
+
+const defaultArtRegion: ArtRegion = { x: 0.13, y: 0.22, width: 0.74, height: 0.39 };
 
 function cardImageSrc(card: Card) {
   const path = card.imagePath.startsWith("/cards/")
@@ -83,6 +87,7 @@ function uniqueSorted(values: Array<string | number | undefined>) {
 
 function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean }) {
   const incomplete = isIncomplete(card);
+  const crop = card.virtualArtRegion || defaultArtRegion;
 
   return (
     <article className={`overflow-hidden rounded-xl border-[10px] border-[#151821] bg-[#f3c5c1] shadow-lg ${compact ? "max-w-sm" : ""}`}>
@@ -92,8 +97,18 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
         <em className="text-right not-italic font-black text-red-600">HP {card.hp || "-"}</em>
       </header>
 
-      <div className="mx-3 mt-3 aspect-[1.35/1] overflow-hidden border-2 border-amber-50 bg-slate-200">
-        <img src={cardImageSrc(card)} alt="" className="h-full w-full object-cover" />
+      <div className="relative mx-3 mt-3 aspect-[1.35/1] overflow-hidden border-2 border-amber-50 bg-slate-200">
+        <img
+          src={cardImageSrc(card)}
+          alt=""
+          className="absolute max-w-none object-cover"
+          style={{
+            left: `${(-crop.x / crop.width) * 100}%`,
+            top: `${(-crop.y / crop.height) * 100}%`,
+            width: `${100 / crop.width}%`,
+            height: `${100 / crop.height}%`,
+          }}
+        />
       </div>
 
       <div className="p-3 text-sm text-slate-950">
