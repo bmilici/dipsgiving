@@ -633,7 +633,7 @@
       "name": "POSIFLUFF",
       "generation": 1,
       "imagePath": "/cards/gen1/7C9EC96A0F40C866D7B37950EE4DFD97_PVF8.jpg",
-      "drinkemonType": "Mammall",
+      "drinkemonType": "Mammal",
       "hp": 140,
       "attacks": [
         {
@@ -1986,7 +1986,7 @@
       "name": "KUR-GNASH",
       "generation": 1,
       "imagePath": "/cards/gen1/D69726A965D0D18FC9BE7E852843A906_PVF22.jpg",
-      "drinkemonType": "Mammall",
+      "drinkemonType": "Mammal",
       "hp": 230,
       "attacks": [
         {
@@ -2588,7 +2588,7 @@
       "name": "KIMIGARIX",
       "generation": 1,
       "imagePath": "/cards/gen1/4BE86D9A7B902BB178874A7EF096A0BF_PVF28.jpg",
-      "drinkemonType": "Mammall",
+      "drinkemonType": "Mammal",
       "hp": 120,
       "attacks": [
         {
@@ -2985,7 +2985,7 @@
       "name": "ERABICA",
       "generation": 1,
       "imagePath": "/cards/gen1/9945C7328CD1C7CEDAE5D08B526507D6_PVF32.jpg",
-      "drinkemonType": "Mammall",
+      "drinkemonType": "Mammal",
       "hp": 130,
       "attacks": [
         {
