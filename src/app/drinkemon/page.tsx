@@ -97,14 +97,14 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
   return (
     <article className={`flex flex-col overflow-hidden rounded-lg border-4 border-amber-600 bg-[#f5e6c8] shadow-lg ${compact ? "aspect-[2.5/3.5]" : "aspect-[2.5/3.5] max-w-sm"}`}>
       {/* Header - Type, Name, HP */}
-      <header className="flex items-center justify-between gap-1 bg-gradient-to-r from-amber-200 to-amber-100 px-2 py-1.5">
+      <header className="flex items-center justify-between gap-1 bg-gradient-to-r from-amber-200 to-amber-100 px-2 py-1">
         <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{card.drinkemonType || "Type"}</span>
         <strong className="flex-1 text-center text-xs font-black uppercase tracking-tight text-slate-900 truncate px-1">{card.name || "Unnamed"}</strong>
         <span className="text-xs font-black text-red-600">HP:{card.hp || "-"}</span>
       </header>
 
-      {/* Card Image */}
-      <div className="relative mx-2 mt-1.5 aspect-[4/3] flex-shrink-0 overflow-hidden rounded border-2 border-amber-700/50 bg-slate-200">
+      {/* Card Image - reduced height */}
+      <div className="relative mx-2 mt-1 aspect-[16/9] flex-shrink-0 overflow-hidden rounded border-2 border-amber-700/50 bg-slate-200">
         <img
           src={cardImageSrc(card)}
           alt=""
@@ -118,26 +118,26 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
         />
       </div>
 
-      {/* Attacks Section */}
-      <div className="flex flex-1 flex-col overflow-hidden px-2 py-1.5 text-[8px]">
+      {/* Attacks Section - takes remaining space */}
+      <div className="flex flex-1 flex-col px-2 py-1 text-[9px]">
         {/* Table Header */}
-        <div className="grid grid-cols-[36px_1fr_1.2fr] gap-1 border-b border-amber-700/40 pb-0.5 font-bold text-amber-800">
+        <div className="grid grid-cols-[40px_1fr_1.4fr] gap-1 border-b border-amber-700/40 pb-1 font-bold text-amber-800">
           <span>Cost</span>
           <span>Attack</span>
           <span>Effect</span>
         </div>
 
         {incomplete ? (
-          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[8px] font-semibold text-slate-700">
+          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[9px] font-semibold text-slate-700">
             Card data incomplete.
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-1 flex-col justify-start">
             {card.attacks.slice(0, 3).map((attack, index) => (
-              <div key={attack.id || index} className="grid grid-cols-[36px_1fr_1.2fr] gap-1 border-b border-amber-700/20 py-0.5">
+              <div key={attack.id || index} className="grid grid-cols-[40px_1fr_1.4fr] gap-1 border-b border-amber-700/20 py-1">
                 <span className="text-slate-700">{costLabel(attack.cost)}</span>
                 <span className="font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
-                <span className="text-slate-600 leading-tight">{attackEffectText(attack) || "-"}</span>
+                <span className="text-slate-600 leading-snug">{attackEffectText(attack) || "-"}</span>
               </div>
             ))}
           </div>
