@@ -119,25 +119,25 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
       </div>
 
       {/* Attacks Section */}
-      <div className="flex flex-1 flex-col overflow-hidden px-2 py-1.5 text-[10px]">
+      <div className="flex flex-1 flex-col overflow-hidden px-2 py-1.5 text-[8px]">
         {/* Table Header */}
-        <div className="grid grid-cols-[50px_1fr_auto] gap-1 border-b border-amber-700/40 pb-1 font-bold text-amber-800">
+        <div className="grid grid-cols-[36px_1fr_1.2fr] gap-1 border-b border-amber-700/40 pb-0.5 font-bold text-amber-800">
           <span>Cost</span>
           <span>Attack</span>
           <span>Effect</span>
         </div>
 
         {incomplete ? (
-          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[10px] font-semibold text-slate-700">
+          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[8px] font-semibold text-slate-700">
             Card data incomplete.
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
             {card.attacks.slice(0, 3).map((attack, index) => (
-              <div key={attack.id || index} className="grid grid-cols-[50px_1fr_auto] gap-1 border-b border-amber-700/20 py-1">
+              <div key={attack.id || index} className="grid grid-cols-[36px_1fr_1.2fr] gap-1 border-b border-amber-700/20 py-0.5">
                 <span className="text-slate-700">{costLabel(attack.cost)}</span>
-                <span className="font-semibold text-slate-900 underline truncate">{attack.name || `Attack ${index + 1}`}</span>
-                <span className="text-slate-600 text-right max-w-[60px] truncate" title={attackEffectText(attack) || "-"}>{attackEffectText(attack) || "-"}</span>
+                <span className="font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
+                <span className="text-slate-600 leading-tight">{attackEffectText(attack) || "-"}</span>
               </div>
             ))}
           </div>
