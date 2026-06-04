@@ -99,13 +99,13 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const headerTextSize = isCompare ? "text-[6px]" : "text-[10px]";
   const nameSize = isCompare ? "text-[8px]" : "text-xs";
   const hpSize = isCompare ? "text-[8px]" : "text-xs";
-  const gridCols = isCompare ? "grid-cols-[28px_1fr_1fr]" : "grid-cols-[48px_1fr_1.4fr]";
-  const gap = isCompare ? "gap-0.5" : "gap-1.5";
+  const gridCols = isCompare ? "grid-cols-[28px_0.8fr_1.2fr]" : "grid-cols-[44px_0.8fr_1.6fr]";
+  const gap = isCompare ? "gap-0.5" : "gap-1";
   const padding = isCompare ? "px-1 py-1" : "px-2 py-2";
   const rowPadding = isCompare ? "py-0.5" : "py-1.5";
 
   // Use a slightly taller aspect ratio to fit both larger image and attacks
-  const cardAspect = "aspect-[2.5/4]";
+  const cardAspect = "aspect-[2.5/3.8]";
   const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
 
   // Dynamic type badge colors based on creature type
