@@ -90,19 +90,48 @@ function uniqueSorted(values: Array<string | number | undefined>) {
   return Array.from(new Set(values.filter(Boolean).map(String))).sort();
 }
 
-function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean }) {
+function VirtualCard({ card, compact = false, isCompare = false }: { card: Card; compact?: boolean; isCompare?: boolean }) {
   const incomplete = isIncomplete(card);
   const crop = card.virtualArtRegion || defaultArtRegion;
 
+  // Use smaller sizes when in compare mode (side-by-side view)
+  const textSize = isCompare ? "text-[7px]" : "text-[11px]";
+  const headerTextSize = isCompare ? "text-[6px]" : "text-[10px]";
+  const nameSize = isCompare ? "text-[8px]" : "text-xs";
+  const hpSize = isCompare ? "text-[8px]" : "text-xs";
+  const gridCols = isCompare ? "grid-cols-[28px_0.8fr_1.2fr]" : "grid-cols-[44px_0.8fr_1.6fr]";
+  const gap = isCompare ? "gap-0.5" : "gap-1";
+  const padding = isCompare ? "px-1 py-1" : "px-2 py-2";
+  const rowPadding = isCompare ? "py-0.5" : "py-1.5";
+
+  // Use a slightly taller aspect ratio to fit both larger image and attacks
+  const cardAspect = "aspect-[2.5/3.8]";
+  const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
+
+  // Dynamic type badge colors based on creature type
+  const typeColors: Record<string, string> = {
+    Reptile: "bg-emerald-600",
+    Fish: "bg-blue-500",
+    Bird: "bg-yellow-500 text-slate-900",
+    Mammal: "bg-orange-500",
+    Insect: "bg-lime-600",
+    Ghost: "bg-purple-600",
+    Plant: "bg-green-700",
+    Mecha: "bg-slate-500",
+  };
+  const typeBgColor = typeColors[card.drinkemonType || ""] || "bg-slate-600";
+
   return (
-    <article className={`overflow-hidden rounded-xl border-[10px] border-[#151821] bg-[#f3c5c1] shadow-lg ${compact ? "max-w-sm" : ""}`}>
-      <header className="grid grid-cols-[0.9fr_1.8fr_0.8fr] items-center gap-2 bg-[#fffdf4] px-3 py-2 text-sm">
-        <span className="font-black text-emerald-700">{card.drinkemonType || "Type"}</span>
-        <strong className="text-center font-black uppercase tracking-wide text-slate-900">{card.name || "Unnamed"}</strong>
-        <em className="text-right not-italic font-black text-red-600">HP {card.hp || "-"}</em>
+    <article className={`flex flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? cardAspect : `${cardAspect} max-w-sm`}`}>
+      {/* Header - Type, Name, HP */}
+      <header className={`flex items-center justify-between gap-0.5 bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"}`}>
+        <span className={`rounded ${typeBgColor} px-1 py-0.5 ${headerTextSize} font-bold ${typeBgColor.includes("text-") ? "" : "text-white"}`}>{card.drinkemonType || "Type"}</span>
+        <strong className={`flex-1 text-center ${nameSize} font-black uppercase tracking-tight text-slate-900 truncate px-0.5`}>{card.name || "Unnamed"}</strong>
+        <span className={`${hpSize} font-black text-red-600`}>HP:{card.hp || "-"}</span>
       </header>
 
-      <div className="relative mx-3 mt-3 aspect-[1.35/1] overflow-hidden border-2 border-amber-50 bg-slate-200">
+      {/* Card Image - matches original card proportions, sharp corners */}
+      <div className={`relative ${isCompare ? "mx-1 mt-0.5" : "mx-2 mt-1"} ${imageAspect} flex-shrink-0 overflow-hidden border-2 border-[#fffdf4] bg-slate-200`}>
         <img
           src={cardImageSrc(card)}
           alt=""
@@ -116,24 +145,26 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
         />
       </div>
 
-      <div className="p-3 text-sm text-slate-950">
-        <div className="grid grid-cols-[0.75fr_1.25fr_1.7fr] gap-2 rounded-lg bg-[#fffdf4] px-2 py-1 font-black underline">
+      {/* Attacks Section - takes remaining space */}
+      <div className={`flex flex-1 flex-col ${padding} ${textSize}`}>
+        {/* Table Header */}
+        <div className={`grid ${gridCols} ${gap} bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"} font-bold text-slate-900 underline`}>
           <span>Cost</span>
           <span>Attack</span>
           <span>Effect</span>
         </div>
 
         {incomplete ? (
-          <div className="mt-3 rounded-lg border border-amber-900/20 bg-white/50 p-3 text-sm font-semibold text-slate-700">
-            Virtual card data is incomplete.
+          <div className={`mt-1 rounded border border-slate-900/20 bg-white/50 p-1 ${textSize} font-semibold text-slate-700`}>
+            Card data incomplete.
           </div>
         ) : (
-          <div>
+          <div className="flex flex-1 flex-col justify-evenly">
             {card.attacks.slice(0, 3).map((attack, index) => (
-              <div key={attack.id || index} className="grid grid-cols-[0.75fr_1.25fr_1.7fr] gap-2 border-b border-red-900/20 px-2 py-2">
-                <span>{costLabel(attack.cost)}</span>
-                <strong className="underline">{attack.name || `Attack ${index + 1}`}</strong>
-                <span>{attackEffectText(attack) || "-"}</span>
+              <div key={attack.id || index} className={`grid ${gridCols} ${gap} border-b border-slate-900/20 ${rowPadding}`}>
+                <span className="text-slate-800">{costLabel(attack.cost)}</span>
+                <span className="font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
+                <span className="text-red-700 leading-snug">{attackEffectText(attack) || "-"}</span>
               </div>
             ))}
           </div>
@@ -145,7 +176,7 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
 
 function CardDisplay({ card, viewMode }: { card: Card; viewMode: ViewMode }) {
   if (viewMode === "original") {
-    return <img src={cardImageSrc(card)} alt={card.name} className="w-full rounded-lg bg-orange-100 object-contain shadow-sm" />;
+    return <img src={cardImageSrc(card)} alt={card.name} className="aspect-[2.5/3.5] w-full rounded-lg bg-orange-100 object-cover shadow-sm" />;
   }
 
   if (viewMode === "virtual") {
@@ -154,8 +185,8 @@ function CardDisplay({ card, viewMode }: { card: Card; viewMode: ViewMode }) {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      <img src={cardImageSrc(card)} alt={card.name} className="w-full rounded-lg bg-orange-100 object-contain shadow-sm" />
-      <VirtualCard card={card} compact />
+      <img src={cardImageSrc(card)} alt={card.name} className="aspect-[2.5/3.5] w-full rounded-lg bg-orange-100 object-cover shadow-sm" />
+      <VirtualCard card={card} compact isCompare />
     </div>
   );
 }
@@ -214,8 +245,9 @@ export default function DrinkemonPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:py-10 lg:px-6">
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* Header section */}
+      <section className="mx-auto max-w-7xl px-4 pt-8 sm:pt-10 lg:px-6">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="mb-2 text-sm font-black uppercase tracking-[0.22em] text-orange-600">Drinkemon</p>
             <h1 className="text-4xl font-black tracking-tight text-orange-950 sm:text-5xl">Card Gallery</h1>
@@ -223,31 +255,45 @@ export default function DrinkemonPage() {
               Browse the approved Gen 1 Drinkemon cards. Gameplay is not live yet; this is the public card database preview.
             </p>
           </div>
-          <div className="inline-flex rounded-xl border border-orange-200 bg-white p-1 shadow-sm">
-            {(["original", "virtual", "compare"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setViewMode(mode)}
-                className={`rounded-lg px-4 py-2 text-sm font-black capitalize transition ${
-                  viewMode === mode ? "bg-orange-700 text-amber-50" : "text-orange-800 hover:bg-orange-50"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
         </div>
+      </section>
 
-        <section className="mb-6 rounded-2xl border border-orange-100 bg-white/90 p-4 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.5fr_repeat(5,1fr)]">
+      {/* Sticky filter bar */}
+      <div className="sticky top-0 z-50 border-b border-orange-200/50 bg-gradient-to-b from-orange-50 to-amber-50/95 backdrop-blur-sm">
+        <section className="mx-auto max-w-7xl px-4 py-3 lg:px-6">
+          {/* View mode toggle + card count */}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex rounded-xl border border-orange-200 bg-white p-1 shadow-sm">
+              {(["original", "virtual", "compare"] as ViewMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  className={`rounded-lg px-4 py-2 text-sm font-black capitalize transition ${
+                    viewMode === mode ? "bg-orange-700 text-amber-50" : "text-orange-800 hover:bg-orange-50"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-orange-100 px-3 py-1.5 text-sm font-black text-orange-700">
+                {filteredCards.length} / {cards.length} cards
+              </span>
+              {isLoading ? <span className="text-sm font-bold text-orange-600 animate-pulse">Loading...</span> : null}
+            </div>
+          </div>
+
+          {/* Filter row */}
+          <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-500" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search card or attack"
-                className="h-11 w-full rounded-xl border border-orange-200 bg-orange-50/60 pl-10 pr-3 font-semibold text-orange-950 outline-none focus:border-orange-500"
+                className="h-10 w-full rounded-lg border border-orange-200 bg-white pl-10 pr-3 text-sm font-semibold text-orange-950 outline-none focus:border-orange-500"
               />
             </label>
 
@@ -258,12 +304,10 @@ export default function DrinkemonPage() {
             <FilterSelect label="Effect" value={effectType} onChange={setEffectType} options={filterOptions.effectTypes} allLabel="All Effects" />
           </div>
         </section>
+      </div>
 
-        <div className="mb-4 flex items-center justify-between text-sm font-bold text-orange-800/75">
-          <span>{filteredCards.length} / {cards.length} cards</span>
-          {isLoading ? <span>Loading cards...</span> : null}
-        </div>
-
+      {/* Cards grid section */}
+      <section className="mx-auto max-w-7xl px-4 py-6 lg:px-6">
         {loadError ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-5 font-bold text-red-800">{loadError}</div>
         ) : null}
@@ -280,18 +324,9 @@ export default function DrinkemonPage() {
               key={card.id}
               type="button"
               onClick={() => setSelectedCard(card)}
-              className="group rounded-2xl border border-orange-100 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:border-orange-300 hover:shadow-lg"
+              className="group rounded-2xl border border-orange-100 bg-white p-2 text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-orange-300 hover:shadow-xl"
             >
               <CardDisplay card={card} viewMode={viewMode} />
-              <div className="mt-3">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-black text-orange-950">{card.name || "Unnamed Drinkemon"}</h2>
-                  <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-black text-orange-700">Gen {card.generation}</span>
-                </div>
-                <p className="mt-1 text-sm font-bold text-orange-700/80">
-                  {card.drinkemonType || "No type"} {card.isOpForm ? "• OP Form" : ""}
-                </p>
-              </div>
             </button>
           ))}
         </section>
@@ -320,12 +355,12 @@ function FilterSelect({
   value: string;
 }) {
   return (
-    <label className="grid gap-1">
-      <span className="text-xs font-black uppercase tracking-wide text-orange-700/75">{label}</span>
+    <label className="flex flex-col">
+      <span className="mb-0.5 text-[10px] font-black uppercase tracking-wide text-orange-600">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 rounded-xl border border-orange-200 bg-orange-50/60 px-3 font-bold text-orange-950 outline-none focus:border-orange-500"
+        className="h-10 rounded-lg border border-orange-200 bg-white px-2 text-sm font-bold text-orange-950 outline-none focus:border-orange-500"
       >
         <option value="all">{allLabel}</option>
         {options.map((option) => (
