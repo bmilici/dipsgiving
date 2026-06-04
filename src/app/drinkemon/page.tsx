@@ -94,7 +94,7 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const incomplete = isIncomplete(card);
   const crop = card.virtualArtRegion || defaultArtRegion;
 
-  // Use smaller sizes when in compare mode (side-by-side view)
+  // Use smaller sizes when in compare mode (side-by-side view), while letting cards grow to fit every attack.
   const textSize = isCompare ? "text-[7px]" : "text-[11px]";
   const headerTextSize = isCompare ? "text-[6px]" : "text-[10px]";
   const nameSize = isCompare ? "text-[8px]" : "text-xs";
@@ -104,8 +104,6 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const padding = isCompare ? "px-1 py-1" : "px-2 py-2";
   const rowPadding = isCompare ? "py-0.5" : "py-1.5";
 
-  // Use a slightly taller aspect ratio to fit both larger image and attacks
-  const cardAspect = "aspect-[2.5/3.8]";
   const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
 
   // Dynamic type badge colors based on creature type
@@ -122,12 +120,12 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const typeBgColor = typeColors[card.drinkemonType || ""] || "bg-slate-600";
 
   return (
-    <article className={`flex flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? cardAspect : `${cardAspect} max-w-sm`}`}>
+    <article className={`flex w-full flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? "" : "max-w-sm"}`}>
       {/* Header - Type, Name, HP */}
       <header className={`flex items-center justify-between gap-0.5 bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"}`}>
         <span className={`rounded ${typeBgColor} px-1 py-0.5 ${headerTextSize} font-bold ${typeBgColor.includes("text-") ? "" : "text-white"}`}>{card.drinkemonType || "Type"}</span>
-        <strong className={`flex-1 text-center ${nameSize} font-black uppercase tracking-tight text-slate-900 truncate px-0.5`}>{card.name || "Unnamed"}</strong>
-        <span className={`${hpSize} font-black text-red-600`}>HP:{card.hp || "-"}</span>
+        <strong className={`flex-1 truncate px-0.5 text-center [font-family:var(--font-cinzel)] ${nameSize} font-bold uppercase tracking-tight text-slate-900`}>{card.name || "Unnamed"}</strong>
+        <span className={`${hpSize} [font-family:var(--font-cinzel)] font-bold text-red-600`}>HP:{card.hp || "-"}</span>
       </header>
 
       {/* Card Image - matches original card proportions, sharp corners */}
@@ -146,7 +144,7 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
       </div>
 
       {/* Attacks Section - takes remaining space */}
-      <div className={`flex flex-1 flex-col ${padding} ${textSize}`}>
+      <div className={`flex flex-col ${padding} ${textSize}`}>
         {/* Table Header */}
         <div className={`grid ${gridCols} ${gap} bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"} font-bold text-slate-900 underline`}>
           <span>Cost</span>
@@ -159,12 +157,12 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
             Card data incomplete.
           </div>
         ) : (
-          <div className="flex flex-1 flex-col justify-evenly">
-            {card.attacks.slice(0, 3).map((attack, index) => (
+          <div className="flex flex-col">
+            {card.attacks.map((attack, index) => (
               <div key={attack.id || index} className={`grid ${gridCols} ${gap} border-b border-slate-900/20 ${rowPadding}`}>
-                <span className="text-slate-800">{costLabel(attack.cost)}</span>
-                <span className="font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
-                <span className="text-red-700 leading-snug">{attackEffectText(attack) || "-"}</span>
+                <span className="[font-family:var(--font-libre-franklin)] font-medium text-slate-800">{costLabel(attack.cost)}</span>
+                <span className="[font-family:var(--font-libre-franklin)] font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
+                <span className="leading-snug [font-family:var(--font-inter)] font-normal text-red-700">{attackEffectText(attack) || "-"}</span>
               </div>
             ))}
           </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Cinzel, Geist, Geist_Mono, Inter, Libre_Franklin } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav"; // ⬅️ bring back the top tabs
 
@@ -11,6 +11,24 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["700"],
+});
+
+const libreFranklin = Libre_Franklin({
+  variable: "--font-libre-franklin",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 const SITE = "https://dipsgiving.com";
@@ -60,7 +78,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-amber-50 text-orange-900`}
+        className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${libreFranklin.variable} ${inter.variable} antialiased bg-amber-50 text-orange-900`}
       >
         {/* Global tabs: About / RSVP / Register / Dip List */}
         <Nav />
