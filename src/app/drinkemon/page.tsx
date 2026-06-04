@@ -44,7 +44,12 @@ type Card = {
 type ViewMode = "original" | "virtual" | "compare";
 type ArtRegion = { x: number; y: number; width: number; height: number };
 
-const defaultArtRegion: ArtRegion = { x: 0.13, y: 0.22, width: 0.74, height: 0.39 };
+const defaultArtRegion: ArtRegion = {
+  x: 0.12748347355769235,
+  y: 0.1497879390324718,
+  width: 0.7441090745192307,
+  height: 0.4214557101833444,
+};
 
 function cardImageSrc(card: Card) {
   const path = card.imagePath.startsWith("/cards/")
