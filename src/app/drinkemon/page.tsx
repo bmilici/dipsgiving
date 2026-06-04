@@ -95,14 +95,16 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
   const crop = card.virtualArtRegion || defaultArtRegion;
 
   return (
-    <article className={`overflow-hidden rounded-xl border-[10px] border-[#151821] bg-[#f3c5c1] shadow-lg ${compact ? "max-w-sm" : ""}`}>
-      <header className="grid grid-cols-[0.9fr_1.8fr_0.8fr] items-center gap-2 bg-[#fffdf4] px-3 py-2 text-sm">
-        <span className="font-black text-emerald-700">{card.drinkemonType || "Type"}</span>
-        <strong className="text-center font-black uppercase tracking-wide text-slate-900">{card.name || "Unnamed"}</strong>
-        <em className="text-right not-italic font-black text-red-600">HP {card.hp || "-"}</em>
+    <article className={`flex flex-col overflow-hidden rounded-lg border-4 border-amber-600 bg-[#f5e6c8] shadow-lg ${compact ? "aspect-[2.5/3.5]" : "aspect-[2.5/3.5] max-w-sm"}`}>
+      {/* Header - Type, Name, HP */}
+      <header className="flex items-center justify-between gap-1 bg-gradient-to-r from-amber-200 to-amber-100 px-2 py-1.5">
+        <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{card.drinkemonType || "Type"}</span>
+        <strong className="flex-1 text-center text-xs font-black uppercase tracking-tight text-slate-900 truncate px-1">{card.name || "Unnamed"}</strong>
+        <span className="text-xs font-black text-red-600">HP:{card.hp || "-"}</span>
       </header>
 
-      <div className="relative mx-3 mt-3 aspect-[1.35/1] overflow-hidden border-2 border-amber-50 bg-slate-200">
+      {/* Card Image */}
+      <div className="relative mx-2 mt-1.5 aspect-[4/3] flex-shrink-0 overflow-hidden rounded border-2 border-amber-700/50 bg-slate-200">
         <img
           src={cardImageSrc(card)}
           alt=""
@@ -116,24 +118,26 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
         />
       </div>
 
-      <div className="p-3 text-sm text-slate-950">
-        <div className="grid grid-cols-[0.75fr_1.25fr_1.7fr] gap-2 rounded-lg bg-[#fffdf4] px-2 py-1 font-black underline">
+      {/* Attacks Section */}
+      <div className="flex flex-1 flex-col overflow-hidden px-2 py-1.5 text-[10px]">
+        {/* Table Header */}
+        <div className="grid grid-cols-[50px_1fr_auto] gap-1 border-b border-amber-700/40 pb-1 font-bold text-amber-800">
           <span>Cost</span>
           <span>Attack</span>
           <span>Effect</span>
         </div>
 
         {incomplete ? (
-          <div className="mt-3 rounded-lg border border-amber-900/20 bg-white/50 p-3 text-sm font-semibold text-slate-700">
-            Virtual card data is incomplete.
+          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[10px] font-semibold text-slate-700">
+            Card data incomplete.
           </div>
         ) : (
-          <div>
+          <div className="flex-1 overflow-y-auto">
             {card.attacks.slice(0, 3).map((attack, index) => (
-              <div key={attack.id || index} className="grid grid-cols-[0.75fr_1.25fr_1.7fr] gap-2 border-b border-red-900/20 px-2 py-2">
-                <span>{costLabel(attack.cost)}</span>
-                <strong className="underline">{attack.name || `Attack ${index + 1}`}</strong>
-                <span>{attackEffectText(attack) || "-"}</span>
+              <div key={attack.id || index} className="grid grid-cols-[50px_1fr_auto] gap-1 border-b border-amber-700/20 py-1">
+                <span className="text-slate-700">{costLabel(attack.cost)}</span>
+                <span className="font-semibold text-slate-900 underline truncate">{attack.name || `Attack ${index + 1}`}</span>
+                <span className="text-slate-600 text-right max-w-[60px] truncate" title={attackEffectText(attack) || "-"}>{attackEffectText(attack) || "-"}</span>
               </div>
             ))}
           </div>
@@ -145,7 +149,7 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
 
 function CardDisplay({ card, viewMode }: { card: Card; viewMode: ViewMode }) {
   if (viewMode === "original") {
-    return <img src={cardImageSrc(card)} alt={card.name} className="w-full rounded-lg bg-orange-100 object-contain shadow-sm" />;
+    return <img src={cardImageSrc(card)} alt={card.name} className="aspect-[2.5/3.5] w-full rounded-lg bg-orange-100 object-cover shadow-sm" />;
   }
 
   if (viewMode === "virtual") {
@@ -154,7 +158,7 @@ function CardDisplay({ card, viewMode }: { card: Card; viewMode: ViewMode }) {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      <img src={cardImageSrc(card)} alt={card.name} className="w-full rounded-lg bg-orange-100 object-contain shadow-sm" />
+      <img src={cardImageSrc(card)} alt={card.name} className="aspect-[2.5/3.5] w-full rounded-lg bg-orange-100 object-cover shadow-sm" />
       <VirtualCard card={card} compact />
     </div>
   );
