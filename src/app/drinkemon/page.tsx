@@ -119,22 +119,22 @@ function VirtualCard({ card, compact = false }: { card: Card; compact?: boolean 
       </div>
 
       {/* Attacks Section - takes remaining space */}
-      <div className="flex flex-1 flex-col px-2 py-1 text-[9px]">
+      <div className="flex flex-1 flex-col px-2 py-2 text-[11px]">
         {/* Table Header */}
-        <div className="grid grid-cols-[40px_1fr_1.4fr] gap-1 border-b border-amber-700/40 pb-1 font-bold text-amber-800">
+        <div className="grid grid-cols-[48px_1fr_1.4fr] gap-1.5 border-b-2 border-amber-700/40 pb-1.5 font-bold text-amber-800">
           <span>Cost</span>
           <span>Attack</span>
           <span>Effect</span>
         </div>
 
         {incomplete ? (
-          <div className="mt-1 rounded border border-amber-900/20 bg-white/50 p-2 text-[9px] font-semibold text-slate-700">
+          <div className="mt-2 rounded border border-amber-900/20 bg-white/50 p-3 text-[11px] font-semibold text-slate-700">
             Card data incomplete.
           </div>
         ) : (
-          <div className="flex flex-1 flex-col justify-start">
+          <div className="flex flex-1 flex-col justify-evenly">
             {card.attacks.slice(0, 3).map((attack, index) => (
-              <div key={attack.id || index} className="grid grid-cols-[40px_1fr_1.4fr] gap-1 border-b border-amber-700/20 py-1">
+              <div key={attack.id || index} className="grid grid-cols-[48px_1fr_1.4fr] gap-1.5 border-b border-amber-700/20 py-1.5">
                 <span className="text-slate-700">{costLabel(attack.cost)}</span>
                 <span className="font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
                 <span className="text-slate-600 leading-snug">{attackEffectText(attack) || "-"}</span>
