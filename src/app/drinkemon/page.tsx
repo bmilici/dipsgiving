@@ -94,17 +94,17 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const incomplete = isIncomplete(card);
   const crop = card.virtualArtRegion || defaultArtRegion;
 
-  // Use smaller sizes when in compare mode (side-by-side view), while letting cards grow to fit every attack.
-  const textSize = isCompare ? "text-[7px]" : "text-[11px]";
-  const headerTextSize = isCompare ? "text-[6px]" : "text-[10px]";
+  // Compare mode keeps the same card layout, just scaled down for the side-by-side browser grid.
+  const textSize = isCompare ? "text-[8px]" : "text-[11px]";
+  const headerTextSize = isCompare ? "text-[7px]" : "text-[10px]";
   const nameSize = isCompare ? "text-[8px]" : "text-xs";
   const hpSize = isCompare ? "text-[8px]" : "text-xs";
-  const gridCols = isCompare ? "grid-cols-[28px_0.8fr_1.2fr]" : "grid-cols-[44px_0.8fr_1.6fr]";
+  const gridCols = isCompare ? "grid-cols-[34px_0.8fr_1.6fr]" : "grid-cols-[44px_0.8fr_1.6fr]";
   const gap = isCompare ? "gap-0.5" : "gap-1";
   const padding = isCompare ? "px-1 py-1" : "px-2 py-2";
   const rowPadding = isCompare ? "py-0.5" : "py-1.5";
 
-  const imageAspect = isCompare ? "aspect-[4/3]" : "aspect-[1.35/1]";
+  const imageAspect = "aspect-[1.35/1]";
 
   // Dynamic type badge colors based on creature type
   const typeColors: Record<string, string> = {
@@ -120,7 +120,7 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
   const typeBgColor = typeColors[card.drinkemonType || ""] || "bg-slate-600";
 
   return (
-    <article className={`flex w-full flex-col overflow-hidden rounded-lg border-[6px] border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? "" : "max-w-sm"}`}>
+    <article className={`flex w-full flex-col overflow-hidden rounded-lg ${isCompare ? "border-[5px]" : "border-[6px]"} border-[#1a1a2e] bg-[#f3c5c1] shadow-lg ${compact ? "" : "max-w-sm"}`}>
       {/* Header - Type, Name, HP */}
       <header className={`flex items-center justify-between gap-0.5 bg-[#fffdf4] ${isCompare ? "px-1 py-0.5" : "px-2 py-1"}`}>
         <span className={`rounded ${typeBgColor} px-1 py-0.5 ${headerTextSize} font-bold ${typeBgColor.includes("text-") ? "" : "text-white"}`}>{card.drinkemonType || "Type"}</span>
@@ -182,7 +182,7 @@ function CardDisplay({ card, viewMode }: { card: Card; viewMode: ViewMode }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-[minmax(0,0.92fr)_minmax(0,1fr)] items-start gap-2">
       <img src={cardImageSrc(card)} alt={card.name} className="aspect-[2.5/3.5] w-full rounded-lg bg-orange-100 object-cover shadow-sm" />
       <VirtualCard card={card} compact isCompare />
     </div>
@@ -316,7 +316,7 @@ export default function DrinkemonPage() {
           </div>
         ) : null}
 
-        <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <section className={`grid gap-5 ${viewMode === "compare" ? "sm:grid-cols-2 xl:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"}`}>
           {filteredCards.map((card) => (
             <button
               key={card.id}
