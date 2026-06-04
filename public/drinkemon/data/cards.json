@@ -1,0 +1,6416 @@
+{
+  "cards": [
+    {
+      "id": "gen1-pvf-001",
+      "name": "KNOBUTOPS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/BFC82F075EF024D3679453AEB905A073_PVF1 (1).jpg",
+      "drinkemonType": "Reptile",
+      "hp": 110,
+      "attacks": [
+        {
+          "id": "attack-1780525735110-ehrxs2",
+          "name": "Nose Horn",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": ""
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525735110-lue3u5",
+          "name": "Li Charge",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": ""
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525735110-lc57lb",
+          "name": "Armored Tank",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": ""
+          },
+          "maxUses": 1,
+          "effectText": "Subtract 20 damage from all attacks done to your Drinkemon next time you're attacked",
+          "effects": [
+            {
+              "id": "effect-1780526180772-arqgfc",
+              "type": "damage_reduction",
+              "targetScope": "all_friendly_drinkemon",
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "duration": 1,
+              "trigger": "next_time_attacked",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-002",
+      "name": "QUEEN POUCH COBRA",
+      "generation": 1,
+      "imagePath": "/cards/gen1/F88FB79DDC1E8BFE956AF549DA373791_PVF2.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 130,
+      "attacks": [
+        {
+          "id": "attack-1780525735731-7odm2d",
+          "name": "Pouch Snakes",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": ""
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525735731-y155s1",
+          "name": "Lethal Venom",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": ""
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780526410585-0t1lxm",
+          "name": "Royal Pain",
+          "cost": {
+            "type": "shotgun",
+            "value": 1,
+            "description": "1 Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "Kill one Bird Drinkeman on your opponent's team.",
+          "effects": [
+            {
+              "id": "effect-1780526479585-oi3m44",
+              "type": "instant_kill",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "Bird",
+              "unit": "",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "Kill one Bird Drinkeman on your opponent's team.",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-004",
+      "name": "SPINOTHIMIMUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/F64CD518D5E9A27B06F8E414C73A5AA0_PVF4.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 90,
+      "attacks": [
+        {
+          "id": "attack-1780525737021-9w1hws",
+          "name": "Sickle Slice",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525737021-o2mxbz",
+          "name": "Horn Hunter",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780526800528-ls9ml1",
+          "name": "Feelin’ Horny",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Make 1 opponent take his/her pants off",
+          "effects": [
+            {
+              "id": "effect-1780526849478-0yfmv4",
+              "type": "hidden_choice",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "Check",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-005",
+      "name": "DIPTHISICUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/5BB510EE7A0A08CD40C570B55D8D80BE_PVF5.jpg",
+      "drinkemonType": "Fish",
+      "hp": 100,
+      "attacks": [
+        {
+          "id": "attack-1780525737485-wynkk3",
+          "name": "Big Eyes",
+          "cost": {
+            "type": "seconds",
+            "value": 3,
+            "description": "3 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "10",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 10,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525737485-8r32s5",
+          "name": "Head Feelers",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525737485-7gdtmm",
+          "name": "High Pressure",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent gets to roll 3 dice. If they roll an even number they drink for 40 seconds",
+          "effects": [
+            {
+              "id": "effect-1780527074991-19qopj",
+              "type": "dice_roll",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 3,
+              "unit": "d6",
+              "method": "dice_roll",
+              "trigger": "immediate",
+              "notes": "Opponent gets to roll 3 dice. If they roll an even number they drink for 40 seconds",
+              "requiresDigitalConversion": true
+            },
+            {
+              "id": "effect-1780527304454-w1353t",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "seconds",
+              "method": "",
+              "duration": 40,
+              "trigger": "custom",
+              "notes": "Opponent gets to roll 3 dice. If they roll an even number they drink for 40 seconds",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-006",
+      "name": "BLACK-DIAMOND SPIDER",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E1BC103FF1273EC6BC459FE2E2A61C28_PVF6.jpg",
+      "drinkemonType": "Insect",
+      "hp": 90,
+      "attacks": [
+        {
+          "id": "attack-1780525738104-pv4rxr",
+          "name": "Claw Snap",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525738104-tbfl14",
+          "name": "Spider Bite",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525738104-4ub6dw",
+          "name": "Arachnophobia",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "Opponents choice: Shot, Shot-gun or Paintstick",
+          "effects": [
+            {
+              "id": "effect-1780527541083-evkot6",
+              "type": "choice",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "method": "Shot, Shot-gun or Paintstick",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-007",
+      "name": "INJECTIVOUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/C45E4DBED4F05783D8E3916B04927113_PVF7.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525738658-khmmzr",
+          "name": "Broken Beer Bottle",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525738658-a33ku9",
+          "name": "Hypodermic Needle",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780527708068-lnt20t",
+          "name": "Noxious Fumes",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Make opponent drink for 10 seconds and take 1 shot",
+          "effects": [
+            {
+              "id": "effect-1780527766436-wto4uk",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "seconds",
+              "method": "drink",
+              "duration": 10,
+              "trigger": "immediate",
+              "notes": "10 seconds",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780527863502-zsevog",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "1",
+              "method": "shot",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-008",
+      "name": "POSIFLUFF",
+      "generation": 1,
+      "imagePath": "/cards/gen1/7C9EC96A0F40C866D7B37950EE4DFD97_PVF8.jpg",
+      "drinkemonType": "Mammall",
+      "hp": 140,
+      "attacks": [
+        {
+          "id": "attack-1780525739201-zgvwzw",
+          "name": "Body Slam",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525739201-6652og",
+          "name": "Heavy Uppercut",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "effect-1780528198722-x6uqb7",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525739201-gpxcqg",
+          "name": "Don't Worry Be Happy",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "You and 1 other player dent drink for the next attack",
+          "effects": [
+            {
+              "id": "ocr-effect-3-damage",
+              "type": "dont_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "",
+              "method": "",
+              "duration": 1,
+              "trigger": "next_turn",
+              "notes": "You and 1 other player dent drink for the next attack",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780529230093-vn7aub",
+              "type": "dont_drink",
+              "targetScope": "self",
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "You and 1 other player dent drink for the next attack",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-009",
+      "name": "GERONTOLODON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/81B709B7E8BE871FE2F9568AA8AFF21D_PVF9.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 130,
+      "attacks": [
+        {
+          "id": "attack-1780525739745-7mwjx7",
+          "name": "Staff Blast",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525739745-1pianq",
+          "name": "Geriatric Fuck",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780529305661-83i2wx",
+          "name": "Old Man",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Take an opponents Drinkemon's attack next turn",
+          "effects": [
+            {
+              "id": "effect-1780529354595-r5ogch",
+              "type": "steal_card",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "steal_attack",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "steal_attack",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-010",
+      "name": "SUNSPIKE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/762B61157345065A5692A635F64206DA_PVF10.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 140,
+      "attacks": [
+        {
+          "id": "attack-1780525740257-bnqfzi",
+          "name": "Knubspike",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525740257-gnoas9",
+          "name": "U.V. Nails",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780529469929-bt6phk",
+          "name": "Sun Tan",
+          "cost": {
+            "type": "custom",
+            "value": 2,
+            "description": "Get Naked For 2 Minutes"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent takes 1 shotand 1 shotgun",
+          "effects": [
+            {
+              "id": "effect-1780529584982-52oec9",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "seconds",
+              "method": "drink",
+              "duration": 10,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780529689449-2urtau",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "shot",
+              "method": "shot",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-011",
+      "name": "MULLDRAGON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/CA34A45267F4DE5D883AD1B3F7C47E32_PVF11.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525740890-3nmjk8",
+          "name": "Agile Flyer",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525740890-zg0jb4",
+          "name": "Slashing Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525740890-s8p9ym",
+          "name": "Long Hair Don't Care",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "If you have longer hair than your opponent make him shotgun",
+          "effects": [
+            {
+              "id": "ocr-effect-3-damage",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "amount": 7,
+              "unit": "",
+              "method": "shotgun",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "If you have longer hair than your opponent make him shotgun",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-012",
+      "name": "TRUNCULVER",
+      "generation": 1,
+      "imagePath": "/cards/gen1/4C060BD9481F3B266D8EAB7BC84BAAE8_PVF12.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 110,
+      "attacks": [
+        {
+          "id": "attack-1780530133074-q3ecjj",
+          "name": "Trunk Spike",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780530133074-rdo4kw",
+          "name": "Webbed Feet",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "Do 10 damage and evade next attack",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 10,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780530273174-u6xu1s",
+              "type": "dodge",
+              "targetScope": "self",
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "dodge",
+              "duration": 1,
+              "trigger": "next_time_attacked",
+              "notes": "Do 10 damage and evade next attack",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780530133074-ss2w7w",
+          "name": "Gone Fishin'",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent drinks 5 extra seconds as long as Trunculver",
+          "effects": [
+            {
+              "id": "effect-1780530313774-9m0j8r",
+              "type": "increase_drinks",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "amount": 5,
+              "unit": "seconds",
+              "method": "",
+              "duration": 1,
+              "trigger": "custom",
+              "notes": "Opponent drinks 5 extra seconds as long as Trunculver",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-013",
+      "name": "GLIDERAKE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/4AE8357F63039D254B314199EBD038B3_PVF13.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 50,
+      "attacks": [
+        {
+          "id": "attack-1780525742078-xlcr8c",
+          "name": "Gliding Spike",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525742078-05ngjv",
+          "name": "Sharp Toe",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525742078-majtln",
+          "name": "Blood Sucker",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "Make Opponent Shotgun",
+          "effects": [
+            {
+              "id": "effect-1780581067194-3mxaxo",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "1",
+              "method": "shotgun",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-015",
+      "name": "KONGRIBBON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/163F75A6132755538234E46F3C786AD2_PVF15.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 110,
+      "attacks": [
+        {
+          "id": "attack-1780525743490-ypn449",
+          "name": "Headlock",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525743490-k3rd56",
+          "name": "Brass Knuckles",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "effect-1780581408004-5hbqzk",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780581271553-koedf0",
+          "name": "Monkeyin' Around",
+          "cost": {
+            "type": "shot",
+            "value": 1
+          },
+          "maxUses": 1,
+          "effectText": "Roll the dice opponent drinks 10x the number on the die",
+          "effects": [
+            {
+              "id": "effect-1780581306149-n9v694",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "double d6",
+              "method": "d6",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-016",
+      "name": "PENTAPUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/9868BDABBDCEEEF74D09100B23B85533_PVF16.jpg",
+      "drinkemonType": "Fish",
+      "hp": 160,
+      "attacks": [
+        {
+          "id": "attack-1780581589920-qpj7ma",
+          "name": "Sucker Slap",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "effect-1780581682988-bgkk40",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780581601007-tuggmh",
+          "name": "5 Star",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 seconds"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "effect-1780581691574-4eixo3",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 59,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780581648709-que7z3",
+          "name": "Drown That Bitch",
+          "cost": {
+            "type": "paintstick",
+            "value": 1,
+            "description": "1 Paintstick"
+          },
+          "maxUses": 1,
+          "effectText": "Make opponent take 2 shots",
+          "effects": [
+            {
+              "id": "effect-1780581700877-h0ay17",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "2 shots",
+              "method": "",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-017",
+      "name": "APERNIK",
+      "generation": 1,
+      "imagePath": "/cards/gen1/BD4EF6B6607748CE74B63192E3E5DC2D_PVF17.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 70,
+      "attacks": [
+        {
+          "id": "attack-1780525744775-7cb85q",
+          "name": "Quadruple Fisting",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 56,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525744775-mc1i6s",
+          "name": "Big Squeeze",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525744775-1eguzx",
+          "name": "Forearm Challenge",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Arm wrestle opponent Loser takes a shot",
+          "effects": [
+            {
+              "id": "effect-1780584989055-y57n3a",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "shot",
+              "method": "arm wrestle ",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-018",
+      "name": "TRUNKUDROP",
+      "generation": 1,
+      "imagePath": "/cards/gen1/2D8C90F4B420618E3ACE87B2F62F8AE6_PVF18.jpg",
+      "drinkemonType": "Plant",
+      "hp": 60,
+      "attacks": [
+        {
+          "id": "attack-1780525745337-watf0m",
+          "name": "Hard Cocoon",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Raise HP by 30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "raise_hp",
+              "targetScope": "self",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585114350-hdgde5",
+          "name": "Mega Drop",
+          "cost": {
+            "type": "seconds",
+            "value": 18,
+            "description": "18 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "effect-1780585223523-so6n6a",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 70,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585135841-s5oxoe",
+          "name": "Symbiotic Relationship",
+          "cost": {
+            "type": "shots",
+            "value": 3,
+            "description": "3 shots of beer"
+          },
+          "maxUses": 1,
+          "effectText": "Apernik’s Attacks will do double the damage next turn",
+          "effects": [
+            {
+              "id": "effect-1780585233394-5frwpg",
+              "type": "increase_attack",
+              "targetScope": "specific_card",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 2,
+              "unit": "double",
+              "method": "shot",
+              "duration": 1,
+              "trigger": "next_time_attacked",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-019",
+      "name": "SUARBAK",
+      "generation": 1,
+      "imagePath": "/cards/gen1/658E92454A7CEE9D0988EB8403B689B4_PVF19.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 140,
+      "attacks": [
+        {
+          "id": "attack-1780525745963-n17tol",
+          "name": "Sharp Beak",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525745963-159g8j",
+          "name": "Swoop & Snatch",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585337216-d4rh3l",
+          "name": "Long Beak",
+          "cost": {
+            "type": "paintstick",
+            "value": 1,
+            "description": "1 Paintstick"
+          },
+          "maxUses": 1,
+          "effectText": "Soarbak dies but your opponent does 2 paintsticks",
+          "effects": [
+            {
+              "id": "effect-1780585400822-nun5z4",
+              "type": "instant_kill",
+              "targetScope": "self",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780585410325-kgyrw9",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "2",
+              "method": "paintsticks",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-020",
+      "name": "INSEVERIT",
+      "generation": 1,
+      "imagePath": "/cards/gen1/73A364285F0FB3A9B13BA69A5390B342_PVF20.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525746514-8lukbz",
+          "name": "Pounce",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585493305-7bznz5",
+          "name": "Tail Blade",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "80",
+          "effects": [
+            {
+              "id": "effect-1780585537334-sjlkwn",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585510025-kuh6ls",
+          "name": "Crushing Bite",
+          "cost": {
+            "type": "shots",
+            "value": 2,
+            "description": "2 Shots"
+          },
+          "maxUses": 1,
+          "effectText": "150",
+          "effects": [
+            {
+              "id": "effect-1780585543750-eqibdq",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "amount": 150,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-021",
+      "name": "STONEGUARDON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/607EA2F34258AF1D6CCCD33CCC44D7A3_PVF21.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 160,
+      "attacks": [
+        {
+          "id": "attack-1780525747136-0awngi",
+          "name": "Hitchhiker",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525747136-hvniuc",
+          "name": "Rock Squash",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585613091-xk0udp",
+          "name": "Rock Hard Chest",
+          "cost": {
+            "type": "full_beer",
+            "description": "Full Beer"
+          },
+          "maxUses": 1,
+          "effectText": "Add 20 HP to all of your Drinkemon",
+          "effects": [
+            {
+              "id": "effect-1780585654021-3g75km",
+              "type": "raise_hp",
+              "targetScope": "all_friendly_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "hp",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-022",
+      "name": "KUR-GNASH",
+      "generation": 1,
+      "imagePath": "/cards/gen1/D69726A965D0D18FC9BE7E852843A906_PVF22.jpg",
+      "drinkemonType": "Mammall",
+      "hp": 230,
+      "attacks": [
+        {
+          "id": "attack-1780525747617-2u18f0",
+          "name": "Gnash & Slash",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "70",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 70,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525747617-ety3ha",
+          "name": "Blood Frenzy",
+          "cost": {
+            "type": "seconds",
+            "value": 30,
+            "description": "30 sec"
+          },
+          "maxUses": 1,
+          "effectText": "120",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 120,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780585837655-8em2dn",
+          "name": "Kill The Village",
+          "cost": {
+            "type": "paintstick",
+            "value": 2,
+            "description": "2 Paintsticks"
+          },
+          "maxUses": 1,
+          "effectText": "Kill 2 of your opponents Drinkemon",
+          "effects": [
+            {
+              "id": "effect-1780585879103-qq8bq9",
+              "type": "instant_kill",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 2,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-023",
+      "name": "SCYTIRAFFE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/73B67220D27D469D851BFB491A9D1B34_PVF23.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 140,
+      "attacks": [
+        {
+          "id": "attack-1780525748047-r8xfhv",
+          "name": "Peckerhead",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525748047-8wk6v1",
+          "name": "Tail Slap",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525748047-z9mdqt",
+          "name": "Rubber Neckin’",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Spin a quarter, opponent drinks until it stops",
+          "effects": [
+            {
+              "id": "effect-1780585970970-vtn1ec",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "drink",
+              "method": "coin",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-024",
+      "name": "DECIDUADRAK",
+      "generation": 1,
+      "imagePath": "/cards/gen1/CF85F4924869CD5088905D135A2DC143_PVF24.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 170,
+      "attacks": [
+        {
+          "id": "attack-1780525748734-n3p6n1",
+          "name": "Gangreen",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525748734-52j4j4",
+          "name": "Everslash",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586284451-k8ow3f",
+          "name": "Hidden Stalk",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Grab one full beer and one empty. Opponent chooses one and drinks it",
+          "effects": [
+            {
+              "id": "effect-1780586335535-p2m34q",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "beer",
+              "method": "pick",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-025",
+      "name": "ALLIGARAHNA",
+      "generation": 1,
+      "imagePath": "/cards/gen1/7EAA07621CDE8F385E36B11397C9757F_PVF25.jpg",
+      "drinkemonType": "Fish",
+      "hp": 80,
+      "attacks": [
+        {
+          "id": "attack-1780525749268-ec5wyw",
+          "name": "Bubbling Water",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525749268-kojcwo",
+          "name": "A Thousand Bites",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586413747-7x13tg",
+          "name": "Feeding Frenzy",
+          "cost": {
+            "type": "custom",
+            "value": 1,
+            "description": "1 Painststick"
+          },
+          "maxUses": 1,
+          "effectText": "Make your opponent drink 5 seconds from 7 different beers",
+          "effects": [
+            {
+              "id": "effect-1780586445709-gfnsli",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "seconds",
+              "method": "beer",
+              "duration": 35,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-026",
+      "name": "VAR-JEHINGUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/F28E499A5FC58C42261651B1FBD0D8C2_PVF26.jpg",
+      "drinkemonType": "Plant",
+      "hp": 90,
+      "attacks": [
+        {
+          "id": "attack-1780525749897-43n5xn",
+          "name": "Dart Tongue",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525749897-lbrgfe",
+          "name": "Whip Leaf",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586539340-e534s4",
+          "name": "Strong Roots",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Your Drinkemon cant die next turn (leave 10 HP)",
+          "effects": [
+            {
+              "id": "effect-1780586572285-jskry4",
+              "type": "damage_reduction",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "",
+              "method": "",
+              "duration": 1,
+              "trigger": "next_time_attacked",
+              "notes": "Your Drinkemon cant de next turn (leave 10 HP)",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-027",
+      "name": "MANANIMUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/5506B73FDBDDCBEAC786356EA20B90FD_PVF27.jpg",
+      "drinkemonType": "Mecha",
+      "hp": 180,
+      "attacks": [
+        {
+          "id": "attack-1780525750416-vd9gmf",
+          "name": "Lava Splash",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525750416-xsiwc1",
+          "name": "Rock Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "70",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 70,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586670803-b8z0zj",
+          "name": "That Shit's Hot",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent drinks a shot with you",
+          "effects": [
+            {
+              "id": "effect-1780586702515-cnglia",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "1",
+              "method": "shot",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-028",
+      "name": "KIMIGARIX",
+      "generation": 1,
+      "imagePath": "/cards/gen1/4BE86D9A7B902BB178874A7EF096A0BF_PVF28.jpg",
+      "drinkemonType": "Mammall",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525750984-zp2mq6",
+          "name": "Uni-Drill",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525750984-0716gx",
+          "name": "Tail Gore",
+          "cost": {
+            "type": "seconds",
+            "value": 13,
+            "description": "13 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586783592-lm2bwa",
+          "name": "Fuck That",
+          "cost": {
+            "type": "shotgun",
+            "description": "Shotgun"
+          },
+          "maxUses": 1,
+          "effectText": "Kimigarix gets all HP back",
+          "effects": [
+            {
+              "id": "effect-1780586808936-edeagv",
+              "type": "revive",
+              "targetScope": "single_target",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "Kimigarix gets all HP back",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-029",
+      "name": "ANTRITH",
+      "generation": 1,
+      "imagePath": "/cards/gen1/DB9D8A438B04C12BB1A4C1CFC012BE32_PVF29.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525751644-scpusg",
+          "name": "Throat Rip",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525751644-f3d3ax",
+          "name": "Scratch Post",
+          "cost": {
+            "type": "seconds",
+            "value": 11,
+            "description": "11 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780586939565-m6y2r1",
+          "name": "My Mane Man",
+          "cost": {
+            "type": "full_beer",
+            "description": "Full Beer"
+          },
+          "maxUses": 1,
+          "effectText": "Switch your opponent's weakest Drinkemon withyours (lowest HP)",
+          "effects": [
+            {
+              "id": "effect-1780586985198-nk7o99",
+              "type": "switch",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-030",
+      "name": "APALAVONT",
+      "generation": 1,
+      "imagePath": "/cards/gen1/C67AE5804C15A24B5D5CF23FC59AADF1_PVF30.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 200,
+      "attacks": [
+        {
+          "id": "attack-1780525752323-8lnq86",
+          "name": "Curb Stomp",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780587050455-g4pmda",
+          "name": "Tusk Jab",
+          "cost": {
+            "type": "full_beer",
+            "description": "Full Beer"
+          },
+          "maxUses": 1,
+          "effectText": "100",
+          "effects": [
+            {
+              "id": "effect-1780588226731-d0xi5s",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 100,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780587072746-qvl1dv",
+          "name": "Long-ass Neck",
+          "cost": {
+            "type": "half_beer",
+            "value": 0.5,
+            "description": "1/2 Beer"
+          },
+          "maxUses": 1,
+          "effectText": "Flip cup challenge (Loser shotguns)",
+          "effects": [
+            {
+              "id": "effect-1780587119515-gfjbgp",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetTypeFilter": "all",
+              "unit": "shotgun",
+              "method": "flipcup",
+              "duration": 1,
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-031",
+      "name": "GROUNDUNE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/41730D915B2A8817969BE54DAD2059FA_PVF31.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 60,
+      "attacks": [
+        {
+          "id": "attack-1780525752887-jntnn5",
+          "name": "Squeak",
+          "cost": {
+            "type": "seconds",
+            "value": 4,
+            "description": "4 sec"
+          },
+          "maxUses": 1,
+          "effectText": "10",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525752887-q8cdq0",
+          "name": "Nibble",
+          "cost": {
+            "type": "seconds",
+            "value": 4,
+            "description": "4 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "effect-1780588439287-vp0eqd",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780588302791-g8kf6n",
+          "name": "Hide",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "Opponents can't attack you this round",
+          "effects": [
+            {
+              "id": "effect-1780588323933-kzwwo4",
+              "type": "cant_attack",
+              "targetScope": "all_opponents",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "method": "cant_attak",
+              "duration": 1,
+              "trigger": "until_next_turn",
+              "notes": "Opponents can't attack you this round",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-032",
+      "name": "ERABICA",
+      "generation": 1,
+      "imagePath": "/cards/gen1/9945C7328CD1C7CEDAE5D08B526507D6_PVF32.jpg",
+      "drinkemonType": "Mammall",
+      "hp": 130,
+      "attacks": [
+        {
+          "id": "attack-1780525753474-sctz10",
+          "name": "Choke",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525753474-6cqz93",
+          "name": "Heavy Hands",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 29,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780588509546-gn3ipy",
+          "name": "Did He See Me?",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Flip a coin. If heads your opponent chugs a beer if tailsads you do.",
+          "effects": [
+            {
+              "id": "effect-1780588634791-valu23",
+              "type": "dice_roll",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "beer",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-033",
+      "name": "GRIVCO",
+      "generation": 1,
+      "imagePath": "/cards/gen1/6BE1F99A9E3AEC735A199CF041CCFF2A_PVF33.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 140,
+      "attacks": [
+        {
+          "id": "attack-1780525754010-jxr9at",
+          "name": "Tail Swat",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525754010-g3bslx",
+          "name": "Needle Teeth",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780588781178-1pyhds",
+          "name": "Tree Drop",
+          "cost": {
+            "type": "custom",
+            "description": "Water-Fall (in game)"
+          },
+          "maxUses": 1,
+          "effectText": "Waterfall with everyone. You start.",
+          "effects": [
+            {
+              "id": "effect-1780589363372-kg2zl6",
+              "type": "force_drink",
+              "targetScope": "all_players",
+              "targetTypeFilter": "all",
+              "unit": "drink",
+              "trigger": "immediate",
+              "method": "waterfall",
+              "duration": 5
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-034",
+      "name": "ARROWBACK CONSTRICTICUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E43D43C55F7173FB15F05EE39A7EDA57_PVF34.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525754542-uaemtw",
+          "name": "Constrict",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525754542-ohycuc",
+          "name": "Snake Hug",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780589439533-f1djfl",
+          "name": "Long Dick",
+          "cost": {
+            "type": "seconds",
+            "value": 0
+          },
+          "maxUses": 1,
+          "effectText": "Do 40 Damage to all of your opponent's Drinkemon",
+          "effects": [
+            {
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "amount": 40,
+              "unit": "damage",
+              "trigger": "immediate",
+              "id": "effect-1780589513460-2y5pgs",
+              "targetCount": 6
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-035",
+      "name": "SAVARIN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/2C550E4BA00E0602F2EF55A19E55B2F4_PVF35.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 60,
+      "attacks": [
+        {
+          "id": "attack-1780525755029-xw58za",
+          "name": "Licky Licky",
+          "cost": {
+            "type": "seconds",
+            "value": 2,
+            "description": "2 sec"
+          },
+          "maxUses": 1,
+          "effectText": "10",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 10,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525755029-tp1vz5",
+          "name": "Hot Wing",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 sec"
+          },
+          "maxUses": 1,
+          "effectText": "drink fer",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525755029-2a9qmd",
+          "name": "My Humps",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Don't drink for your next attack",
+          "effects": [
+            {
+              "id": "effect-1780589609980-5evx7d",
+              "type": "dont_drink",
+              "targetScope": "self",
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "until_next_turn",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-036",
+      "name": "SABER TOOTH TOAD",
+      "generation": 1,
+      "imagePath": "/cards/gen1/01241753D8667A6524E4563386FE3516_PVF36.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 100,
+      "attacks": [
+        {
+          "id": "attack-1780525755651-moqcma",
+          "name": "Sticky Tongue",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525755651-q9x217",
+          "name": "Saber Slash",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780589681839-d115uj",
+          "name": "Warts",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "Make your opponent replenish everyones beer",
+          "effects": [
+            {
+              "id": "effect-1780589713119-kx9zbc",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-037",
+      "name": "KNOATH",
+      "generation": 1,
+      "imagePath": "/cards/gen1/3CFD33C387218D3FFAD8F4E8DBA2F716_PVF37.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 70,
+      "attacks": [
+        {
+          "id": "attack-1780525756306-906jl8",
+          "name": "Hoofin' it",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525756306-cetd1w",
+          "name": "Ram the Fuck Outta Them",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525756306-u3789b",
+          "name": "Baaaaaa!",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "1 Shot glass and 1 quarter, 1 try if in; kill 1 of of your opponents Drinkemon if not Kneath dies",
+          "effects": [
+            {
+              "id": "effect-1780589871644-cncrc8",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-038",
+      "name": "SNUBNUSE PHALANGEBAT",
+      "generation": 1,
+      "imagePath": "/cards/gen1/D48B58448B6BC675FB91B65B31870EEB_PVF38.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 80,
+      "attacks": [
+        {
+          "id": "attack-1780525756874-f4chli",
+          "name": "Dark Wing",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525756874-d784ua",
+          "name": "Devil Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525756874-i9k540",
+          "name": "Finger Fuck",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Flip cup vs. your opponent, if you win your opponent's\nDrinkemon dies",
+          "effects": [
+            {
+              "id": "effect-1780589964728-6w1a1m",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-039",
+      "name": "CYCLOSPIRIT",
+      "generation": 1,
+      "imagePath": "/cards/gen1/B0BD5B7363A609A250AC175D15781D10_PVF39.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 200,
+      "attacks": [
+        {
+          "id": "attack-1780525757354-njtd50",
+          "name": "Boo!",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525757354-jsj7y2",
+          "name": "Ghastly Probes",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 2,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590014846-yw1q5h",
+          "name": "Haunted House",
+          "cost": {
+            "type": "shots",
+            "value": 2,
+            "description": "2 Shots"
+          },
+          "maxUses": 1,
+          "effectText": "Tell any of your opponents to do 3 shots over turns",
+          "effects": [
+            {
+              "id": "effect-1780590048242-qrm7d0",
+              "type": "force_drink",
+              "targetScope": "multiple_targets",
+              "targetCount": 3,
+              "targetTypeFilter": "all",
+              "unit": "shot",
+              "trigger": "immediate",
+              "method": "1",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-040",
+      "name": "SINGUSTING",
+      "generation": 1,
+      "imagePath": "/cards/gen1/7BF903FBEBEA6E991D75CCE6544D7C86_PVF40.jpg",
+      "drinkemonType": "Insect",
+      "hp": 110,
+      "attacks": [
+        {
+          "id": "attack-1780525757966-nrfmy8",
+          "name": "Head Sting",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525757966-6femfp",
+          "name": "Tail Sting",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525757966-lw4ku6",
+          "name": "Hornets Nest",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent drinks 5 more seconds for every attack cost",
+          "effects": [
+            {
+              "id": "effect-1780590181886-k00lhj",
+              "type": "increase_drinks",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "seconds",
+              "trigger": "permanent",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-041",
+      "name": "WENDIGO",
+      "generation": 1,
+      "imagePath": "/cards/gen1/1D655B8DE60221B0667576357E3EE54A_PVF41.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 180,
+      "attacks": [
+        {
+          "id": "attack-1780525758718-0z6128",
+          "name": "Blood Sport",
+          "cost": {
+            "type": "seconds",
+            "value": 11,
+            "description": "11 sec"
+          },
+          "maxUses": 1,
+          "effectText": "70",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590245516-j3gdty",
+          "name": "Black Forest",
+          "cost": {
+            "type": "shots",
+            "value": 2,
+            "description": "2 Shots"
+          },
+          "maxUses": 1,
+          "effectText": "Opponents must flip a coin when attacking you you for the next 4 rounds",
+          "effects": [
+            {
+              "type": "dice_roll",
+              "targetScope": "all_opponents",
+              "method": "coin_flip",
+              "trigger": "custom",
+              "id": "effect-1780590391579-e77eyt",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "rounds",
+              "amount": 4
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590326576-61gfm0",
+          "name": "Cannibalistic Rage",
+          "cost": {
+            "type": "shotgun",
+            "value": 1,
+            "description": "1 Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "All players drink a full beer",
+          "effects": [
+            {
+              "id": "effect-1780590423473-z2ueem",
+              "type": "force_drink",
+              "targetScope": "all_opponents",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "full",
+              "trigger": "immediate",
+              "method": "beer",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-042",
+      "name": "MISHIPESHU",
+      "generation": 1,
+      "imagePath": "/cards/gen1/8265669285B8B3D1235113569A63C846_PVF42.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 200,
+      "attacks": [
+        {
+          "id": "attack-1780525759244-0zyl4u",
+          "name": "White Water",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 80,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525759244-fiw7n0",
+          "name": "Dragon Portage",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Skip a player's next turn",
+          "effects": [
+            {
+              "id": "effect-1780590619232-lrasnn",
+              "type": "skip_turn",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "until_end_of_turn",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590567145-2q4nle",
+          "name": "Class V+",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "All players must take a shot",
+          "effects": [
+            {
+              "id": "effect-1780590643323-q46fow",
+              "type": "force_drink",
+              "targetScope": "all_players",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "full",
+              "trigger": "immediate",
+              "method": "shot",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-043",
+      "name": "MEGOAKA",
+      "generation": 1,
+      "imagePath": "/cards/gen1/571690CE01C03149FC99FF0080342324_PVF43.jpg",
+      "drinkemonType": "Plant",
+      "hp": 170,
+      "attacks": [
+        {
+          "id": "attack-1780525759850-w3wt4x",
+          "name": "Thorn Whip",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40 damage to 2 Drinkemon",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 2,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590714262-7ve0ay",
+          "name": "Oak Blast",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "100",
+          "effects": [
+            {
+              "id": "effect-1780590768605-mpqz9x",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 100
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590735892-sthyds",
+          "name": "Impenetrable Bark",
+          "cost": {
+            "type": "shotgun",
+            "value": 1,
+            "description": "1 Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "30 - add 40HP to Megoaka",
+          "effects": [
+            {
+              "id": "effect-1780590779225-smj442",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 30
+            },
+            {
+              "id": "effect-1780590787011-vb9pml",
+              "type": "raise_hp",
+              "targetScope": "self",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 40
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-044",
+      "name": "DUODILINGUITHOR",
+      "generation": 1,
+      "imagePath": "/cards/gen1/53691FF07056E5A241DB722C3336E3AA_PVF44.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 180,
+      "attacks": [
+        {
+          "id": "attack-1780525760338-80tjyy",
+          "name": "Double Horns",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525760338-vwibx3",
+          "name": "Double Chomp",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 4,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780590860356-jddyqo",
+          "name": "2 Heads is Better Than 1",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Split all of your drinks with 1 of your opponents for 3 turns",
+          "effects": [
+            {
+              "id": "effect-1780590890201-2y7u54",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-045",
+      "name": "CHANKON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/060AB9C7EC67A54585687087E6969B0B_PVF45.jpg",
+      "drinkemonType": "Mecha",
+      "hp": 200,
+      "attacks": [
+        {
+          "id": "attack-1780525761060-sros5c",
+          "name": "Metal Foot",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525761060-dm9q6x",
+          "name": "Shoulder Bash",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "80",
+          "effects": [
+            {
+              "id": "effect-1780590996974-kx4nj8",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 80
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525761060-e8u8zv",
+          "name": "A Knight's Tale",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Flip cup with opponent. Loser choses a Drinkemon to die",
+          "effects": [
+            {
+              "id": "ocr-effect-3-damage",
+              "type": "dice_roll",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 1,
+              "unit": "flip cup",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-046",
+      "name": "FRILL EAGLE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E2E37363EA5232DB13AA5027361053DC_PVF46.jpg",
+      "drinkemonType": "Bird",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525761759-wlb78c",
+          "name": "Swoop & Slash",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525761759-d22xut",
+          "name": "Beak Crush",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591075804-sc5xo2",
+          "name": "Avian Power",
+          "cost": {
+            "type": "shotgun",
+            "description": "Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent takes 2 shots",
+          "effects": [
+            {
+              "id": "effect-1780591128008-vyl7lt",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "2",
+              "trigger": "immediate",
+              "method": "shots",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-047",
+      "name": "TUUKOR",
+      "generation": 1,
+      "imagePath": "/cards/gen1/2E4867D2F26852352A063520A2B1F831_PVF47.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 130,
+      "attacks": [
+        {
+          "id": "attack-1780525762353-fsmgyp",
+          "name": "Bladed Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "effect-1780591245135-wk9ej5",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 20
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525762353-rs5vgj",
+          "name": "Sharp Head",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591183912-mnhpv0",
+          "name": "Blade Sharpener",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Double the damage on Tuukor's other 2 attacks",
+          "effects": [
+            {
+              "id": "effect-1780591217008-m4o1v8",
+              "type": "increase_attack",
+              "targetScope": "self",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "double",
+              "trigger": "immediate",
+              "amount": 2
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-048",
+      "name": "ARMOHULKIEN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/14C14F6D54975ED1FF2089C17AFC33F5_PVF48.jpg",
+      "drinkemonType": "Mecha",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525763000-zmoezb",
+          "name": "Bicep Bash",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525763000-xapfjj",
+          "name": "Hard Head",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591348692-zktcys",
+          "name": "Get Yoked",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Flip a coin. If heads your opponent takes 2 shots",
+          "effects": [
+            {
+              "id": "effect-1780591388156-tdkizy",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "flip coin",
+              "trigger": "immediate",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-049",
+      "name": "SKIMBLIK",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E4F3003A9C69CAC5CE172E0E0E4A6E5A_PVF49.jpg",
+      "drinkemonType": "Mecha",
+      "hp": 130,
+      "attacks": [
+        {
+          "id": "attack-1780525763560-1xs4m2",
+          "name": "Can Opener",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525763560-i1by80",
+          "name": "Scythe",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591439143-qc7zos",
+          "name": "Decapitate",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Kill one of your opponent's Drinkemon.",
+          "effects": [
+            {
+              "id": "effect-1780591503484-c75jx8",
+              "type": "instant_knockout",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-050",
+      "name": "RAPTORIUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/8E4F3BE1A9A08B22FBEDC19884098E43_PVF50.jpg",
+      "drinkemonType": "Bird",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525764224-v06u7h",
+          "name": "Sky Dive",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591559072-qhejk4",
+          "name": "Raptor Talon",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "effect-1780591637401-ek61nr",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 30
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591573638-2peaib",
+          "name": "King of the Birds",
+          "cost": {
+            "type": "seconds",
+            "value": 15,
+            "description": "15 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "Rell a dice, starting on your left 1st to roll a 4 takes 30 seconds",
+          "effects": [
+            {
+              "id": "effect-1780591613625-j3m4g7",
+              "type": "dice_roll",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "seconds",
+              "trigger": "immediate",
+              "amount": 30
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-051",
+      "name": "DIGRANUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/16E8D6C399FE16ACE71795BB13978682_PVF51.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525764908-34vhtj",
+          "name": "Underbite",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525764908-dlqhfy",
+          "name": "Spike Slam",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780591700725-zftlfp",
+          "name": "My Wings are Small",
+          "cost": {
+            "type": "custom",
+            "description": "My Wings Are Small"
+          },
+          "maxUses": 1,
+          "effectText": "Compare dick sizes If yours is bigger. NICE!",
+          "effects": [
+            {
+              "id": "effect-1780591749393-e01min",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-052",
+      "name": "NOCTAHOOT",
+      "generation": 1,
+      "imagePath": "/cards/gen1/79C67856A3D7EF4C78D661FC7BA903C0_PVF52.jpg",
+      "drinkemonType": "Bird",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525765529-1ixb3i",
+          "name": "Black Beak",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525765529-6btwxh",
+          "name": "Shriek",
+          "cost": {
+            "type": "seconds",
+            "value": 11,
+            "description": "11 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30- opponent must flip a coin next time they attack",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            },
+            {
+              "id": "effect-1780591872957-eo7gvc",
+              "type": "dice_roll",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "flip coin",
+              "trigger": "immediate",
+              "amount": 1,
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        },
+        {
+          "id": "attack-1780591835444-171v7p",
+          "name": "Hootin 'n' Hollern'",
+          "cost": {
+            "type": "paintstick",
+            "value": 1,
+            "description": "1 Paint-Stick"
+          },
+          "maxUses": 1,
+          "effectText": "Make your opponent do a shot, shotgun or paint-stick",
+          "effects": [
+            {
+              "id": "effect-1780591896183-25ti6h",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "Make your opponent do a shot, shotgun or paint-stick",
+              "trigger": "immediate",
+              "method": "Make your opponent do a shot, shotgun or paint-stick",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-053",
+      "name": "SCYTHE ADDER",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E1A4E35762FAD2786CC0F7DCB42A4011_PVF53.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 90,
+      "attacks": [
+        {
+          "id": "attack-1780525766169-ixrdbn",
+          "name": "Spike Bed",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525766169-0oafr3",
+          "name": "Mild Poison",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent Drinks 10 Sec.",
+          "effects": [
+            {
+              "id": "effect-1780591998388-g80ivn",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "sec",
+              "trigger": "immediate",
+              "method": "drink",
+              "duration": 10
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525766169-n0ja2h",
+          "name": "Snake Charmer",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent Drinks 35 Sec",
+          "effects": [
+            {
+              "id": "effect-1780592017694-0w9hnn",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "sec",
+              "trigger": "immediate",
+              "method": "drink",
+              "duration": 35
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-054",
+      "name": "RAMEIGOYLE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/28E2EDCA33E69C538E4F7373577C7EED_PVF54.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525766876-nsdzcd",
+          "name": "Swoop Ram",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592085854-z4m5yq",
+          "name": "Disembowel",
+          "cost": {
+            "type": "shot",
+            "value": 1
+          },
+          "maxUses": 1,
+          "effectText": "80",
+          "effects": [
+            {
+              "id": "effect-1780592115582-olp95n",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 80
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592136540-88xn2n",
+          "name": "Falling Fast",
+          "cost": {
+            "type": "full_beer",
+            "value": 1,
+            "description": "1 Beer (In Game)"
+          },
+          "maxUses": 1,
+          "effectText": "Water Fall: Your opponent is last",
+          "effects": [
+            {
+              "id": "effect-1780592162416-m6l24e",
+              "type": "force_drink",
+              "targetScope": "all_players",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "method": "waterfall",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-055",
+      "name": "RYCAIN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/DB903A57F11B64C3513760144CCFC260_PVF55.jpg",
+      "drinkemonType": "Fish",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525767387-rl3x6n",
+          "name": "Bloody Water",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525767387-6r7r3t",
+          "name": "Aqua Bite",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592222656-lkqf1r",
+          "name": "Fins a' Comin",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent takes 7 seconds and can’t attack next turn.",
+          "effects": [
+            {
+              "id": "effect-1780592255003-vemuf9",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "sec",
+              "trigger": "immediate",
+              "method": "drink",
+              "duration": 7
+            },
+            {
+              "id": "effect-1780592271675-uurc23",
+              "type": "skip_turn",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "until_end_of_turn",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-056",
+      "name": "PARAHUORSUOPHUMA",
+      "generation": 1,
+      "imagePath": "/cards/gen1/B87CD5256C9785B9D0A3B604D367985C_PVF56.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 110,
+      "attacks": [
+        {
+          "id": "attack-1780525767929-52orar",
+          "name": "Brick Stomp",
+          "cost": {
+            "type": "seconds",
+            "value": 6,
+            "description": "6 sec"
+          },
+          "maxUses": 1,
+          "effectText": "20",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 20,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525767929-tdqnl6",
+          "name": "Scorpion Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592334065-kt0s4q",
+          "name": "Fast as Fuck",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "Chug off Losers Drinkemen dies.",
+          "effects": [
+            {
+              "id": "effect-1780592368763-m19bp4",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-057",
+      "name": "AGUADRAGUOON",
+      "generation": 1,
+      "imagePath": "/cards/gen1/46CCAA19B2D966F27052AEFC67DB93A7_PVF57.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 160,
+      "attacks": [
+        {
+          "id": "attack-1780525768473-qzfmvl",
+          "name": "Web Wave",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525768473-4nlxk9",
+          "name": "Tsunami",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525768473-aa6vqk",
+          "name": "All Finnish",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Make your opponent finish your beer",
+          "effects": [
+            {
+              "id": "effect-1780592499828-q1c75z",
+              "type": "force_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "beer",
+              "trigger": "immediate",
+              "method": "beer",
+              "duration": 1,
+              "requiresDigitalConversion": true
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-058",
+      "name": "CLAWVURE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/61FED44F3A1F9183AC0B67CBDA69A398_PVF58.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525768990-m93i7s",
+          "name": "Claws",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "effect-1780592592147-gvvx7w",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 40
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592549715-675dha",
+          "name": "Furious Slashing",
+          "cost": {
+            "type": "seconds",
+            "value": 14,
+            "description": "14 Sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "effect-1780592601750-pj59rn",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 60
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592567537-5mfe55",
+          "name": "Wolverine",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent takes 2 shots",
+          "effects": [
+            {
+              "id": "effect-1780592611921-yzr3ya",
+              "type": "force_drink",
+              "targetScope": "selected_player",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "shots",
+              "trigger": "immediate",
+              "method": "shots",
+              "duration": 2
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-059",
+      "name": "RHINOCTOPS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/CE058D3FF3098DF7F069479A639B3107_PVF59.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 170,
+      "attacks": [
+        {
+          "id": "attack-1780525769442-zwzkhq",
+          "name": "Headlong Charge",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525769442-xt9vve",
+          "name": "Piercing  Drive",
+          "cost": {
+            "type": "seconds",
+            "value": 18,
+            "description": "18 sec"
+          },
+          "maxUses": 1,
+          "effectText": "70",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 70,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592715427-jtxzmm",
+          "name": "Chain Mail",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Don't drink for your next turn",
+          "effects": [
+            {
+              "id": "effect-1780592740369-04vb1v",
+              "type": "dont_drink",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "until_next_turn",
+              "duration": 1
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-060",
+      "name": "SPHARAUBLADIN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/8A890A1FB073957DDBAEEA79910D77A3_PVF60.jpg",
+      "drinkemonType": "Mecha",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780525769928-rp1jyb",
+          "name": "Sawblade Tail",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525769928-prhlud",
+          "name": "Impaling Hands",
+          "cost": {
+            "type": "seconds",
+            "value": 16,
+            "description": "16 sec"
+          },
+          "maxUses": 1,
+          "effectText": "60",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 60,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780592830187-2irfk5",
+          "name": "Sarcophagus",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "Opponent chugs until they role a 6.",
+          "effects": [
+            {
+              "id": "effect-1780592871302-20kzi4",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-061",
+      "name": "SNOUTRIBE SHARK",
+      "generation": 1,
+      "imagePath": "/cards/gen1/5CAF035D44FD681934EC4509B8B2A22A_PVF61.jpg",
+      "drinkemonType": "Fish",
+      "hp": 160,
+      "attacks": [
+        {
+          "id": "attack-1780525770419-feuuad",
+          "name": "Long Bite",
+          "cost": {
+            "type": "seconds",
+            "value": 9,
+            "description": "9 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525770419-s6qcyb",
+          "name": "From Beneath",
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": "12 sec"
+          },
+          "maxUses": 1,
+          "effectText": "50",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 50,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525770419-ebwyby",
+          "name": "Jaws Theme Song",
+          "cost": {
+            "type": "seconds",
+            "value": 20,
+            "description": "20 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Whole room plays Thunderstruck, Opponent drinks long parts",
+          "effects": [
+            {
+              "id": "effect-1780592973475-l0bye5",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-062",
+      "name": "LYCYCAN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/F810C54296EE15B4E75C05751B5F578C_PVF62.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 180,
+      "attacks": [
+        {
+          "id": "attack-1780525770921-lehybf",
+          "name": "Howlin'",
+          "cost": {
+            "type": "seconds",
+            "value": 7,
+            "description": "7 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "id": "ocr-effect-1-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 30,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525770921-x9njcb",
+          "name": "Wolfpack",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Fip 4 coins: Opponent drinks 10x the number of heads",
+          "effects": [
+            {
+              "id": "effect-1780593075148-hnj169",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525770921-dqhy1b",
+          "name": "Alpha-Male",
+          "cost": {
+            "type": "seconds",
+            "value": 5,
+            "description": "5 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Chug contest (full beer)Loser takes a shot",
+          "effects": [
+            {
+              "id": "effect-1780593081431-xzjl3s",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-063",
+      "name": "EQUINIDITE",
+      "generation": 1,
+      "imagePath": "/cards/gen1/B05E18881F8DAAB462C82FAE6CAED9C9_PVF63.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780525771801-gx7tn8",
+          "name": "Trample",
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": "8 sec"
+          },
+          "maxUses": 1,
+          "effectText": "30",
+          "effects": [
+            {
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "amount": 30,
+              "unit": "damage",
+              "trigger": "immediate",
+              "id": "effect-1780593212830-fvjba8"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780525771801-uih76x",
+          "name": "Nocturnal Slam",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "40",
+          "effects": [
+            {
+              "id": "ocr-effect-2-damage",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "amount": 40,
+              "unit": "damage",
+              "method": "",
+              "trigger": "immediate",
+              "notes": "",
+              "requiresDigitalConversion": false
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        },
+        {
+          "id": "attack-1780593136236-5oa2t5",
+          "name": "Stay Shinin'",
+          "cost": {
+            "type": "full_beer",
+            "description": "Full Beer"
+          },
+          "maxUses": 1,
+          "effectText": "Flip 3 cups (flip cup style) if you flip all 3 in 5 flips your opponents Drinkemon dies.",
+          "effects": [
+            {
+              "id": "effect-1780593220247-0nz9s5",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-064",
+      "name": "TRIOTRILINGUITHOR",
+      "generation": 1,
+      "imagePath": "/cards/gen1/568534063C6269EA67CBEE39B645CCF3_PVF64.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 210,
+      "attacks": [
+        {
+          "id": "attack-1780525772454-nm0ur5",
+          "name": "Triple Smash",
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": "10 sec"
+          },
+          "maxUses": 1,
+          "effectText": "Do 60 damage to 3 different opponents.",
+          "effects": [
+            {
+              "id": "effect-1780593275199-y6e9rv",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 3,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 60
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": true
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "Duodilinguithor",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-065",
+      "name": "KINGUSTING",
+      "generation": 1,
+      "imagePath": "/cards/gen1/E38F7146E0A33E192DCFB788876A9064_PVF65.jpg",
+      "drinkemonType": "Insect",
+      "hp": 150,
+      "attacks": [
+        {
+          "id": "attack-1780593403764-2ro57d",
+          "name": "Monarch Clamp",
+          "cost": {
+            "type": "paintstick",
+            "value": 1,
+            "description": "1 Paint-Stick"
+          },
+          "maxUses": 1,
+          "effectText": "70. Choose an opponent's Drinkemon. That Drinkemen can't attack for 2 turns",
+          "effects": [
+            {
+              "id": "effect-1780593450798-qmansc",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 70
+            },
+            {
+              "id": "effect-1780593458350-0z8dd5",
+              "type": "skip_turn",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "",
+              "trigger": "custom",
+              "duration": 2
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": true,
+      "commonFormName": "Singusting",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-066",
+      "name": "FLYGRANUS",
+      "generation": 1,
+      "imagePath": "/cards/gen1/3498CD7632672ECB4C600E41295E06B9_PVF66.jpg",
+      "drinkemonType": "Reptile",
+      "hp": 180,
+      "attacks": [
+        {
+          "id": "attack-1780593491345-4xhm8y",
+          "name": "Air Strike",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot"
+          },
+          "maxUses": 1,
+          "effectText": "90",
+          "effects": [
+            {
+              "id": "effect-1780593526043-vfbomm",
+              "type": "damage",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 90
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": true,
+      "commonFormName": "Digranus",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-067",
+      "name": "GROUNDRILL",
+      "generation": 1,
+      "imagePath": "/cards/gen1/F9D9A64977825F0E59EE9B8E31A5E3E2_PVF67.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780593562540-2uo44f",
+          "name": "Labyrinth",
+          "cost": {
+            "type": "shotgun",
+            "value": 1,
+            "description": "1 Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "On your opponent's next turn choose their attack and victim of the attack (You roll die)",
+          "effects": [
+            {
+              "id": "effect-1780593612092-t5pwbm",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": true,
+      "commonFormName": "Groundune",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-068",
+      "name": "TRUNKUGROWTH",
+      "generation": 1,
+      "imagePath": "/cards/gen1/0420C4F74E219FE18A5DEB216B0AEC1E_PVF68.jpg",
+      "drinkemonType": "Plant",
+      "hp": 120,
+      "attacks": [
+        {
+          "id": "attack-1780593638752-uvgekt",
+          "name": "Precision Slam",
+          "cost": {
+            "type": "shotgun",
+            "value": 1,
+            "description": "1 Shot-Gun"
+          },
+          "maxUses": 1,
+          "effectText": "Choose an opponents Drinkemaon and do 70 damage to it (Don't Roll)",
+          "effects": [
+            {
+              "id": "effect-1780593685369-g6ge3r",
+              "type": "damage",
+              "targetScope": "single_target",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate",
+              "amount": 70
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": false,
+      "commonFormName": "",
+      "attacksPerTurn": 1,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-069",
+      "name": "WENDIGO CHIEFTAIN",
+      "generation": 1,
+      "imagePath": "/cards/gen1/DCC6A3718F5C5614BA7168B665CC2D93_PVF69.jpg",
+      "drinkemonType": "Ghost",
+      "hp": 220,
+      "attacks": [
+        {
+          "id": "attack-1780593750561-b1205a",
+          "name": "Haunted Grounds",
+          "cost": {
+            "type": "shots",
+            "value": 2,
+            "description": "2 Shots"
+          },
+          "maxUses": 1,
+          "effectText": "Next turn pick any ghost attack in play. Double the effect (You still pay attack cost)",
+          "effects": [
+            {
+              "id": "effect-1780593797194-nw09br",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": true,
+      "commonFormName": "Wendigo",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    },
+    {
+      "id": "gen1-pvf-070",
+      "name": "WHITE KUR-GNASH",
+      "generation": 1,
+      "imagePath": "/cards/gen1/25D122BB80018A3994082728482A7C79_PVF70.jpg",
+      "drinkemonType": "Mammal",
+      "hp": 250,
+      "attacks": [
+        {
+          "id": "attack-1780593854583-3km1lx",
+          "name": "Annihilation",
+          "cost": {
+            "type": "shot",
+            "value": 1,
+            "description": "1 Shot & 2 Paint-Sticks"
+          },
+          "maxUses": 1,
+          "effectText": "Do 80 damage 2 of your opponent's Drinkemon. Next turn do 40 damage to the same Drnkemon. (before you attack)",
+          "effects": [
+            {
+              "id": "effect-1780593909920-0ub9cf",
+              "type": "custom",
+              "targetScope": "selected_enemy_drinkemon",
+              "targetCount": 1,
+              "targetTypeFilter": "all",
+              "unit": "damage",
+              "trigger": "immediate"
+            }
+          ],
+          "notes": "",
+          "needsGameplayReview": false
+        }
+      ],
+      "isOpForm": true,
+      "commonFormName": "KUR-GNASH",
+      "attacksPerTurn": 2,
+      "status": "approved",
+      "gameplayReviewStatus": "unreviewed",
+      "ruleQuestions": [],
+      "notes": ""
+    }
+  ]
+}
