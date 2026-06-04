@@ -212,8 +212,6 @@
         {
           "id": "attack-1780418577069-j15f8v",
           "name": "Bite",
-          "costValue": 2,
-          "costUnit": "Sec",
           "effectText": "",
           "effects": [
             {
@@ -225,15 +223,21 @@
               "targetTypeFilter": "all",
               "amount": 10,
               "durationTrigger": "immediate",
-              "notes": ""
+              "notes": "",
+              "targetScope": "opponent",
+              "trigger": "immediate"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 2,
+            "description": ""
+          },
+          "maxUses": 1
         },
         {
           "id": "attack-1780418577069-leew92",
           "name": "Quick Scratch",
-          "costValue": 4,
-          "costUnit": "Sec",
           "effectText": "",
           "effects": [
             {
@@ -245,15 +249,21 @@
               "targetTypeFilter": "all",
               "amount": 20,
               "durationTrigger": "immediate",
-              "notes": ""
+              "notes": "",
+              "targetScope": "opponent",
+              "trigger": "immediate"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 4,
+            "description": ""
+          },
+          "maxUses": 1
         },
         {
           "id": "attack-1780418577069-9zqx3j",
           "name": "Good Hearing",
-          "costValue": 10,
-          "costUnit": "Sec",
           "effectText": "Dodge next attack",
           "effects": [
             {
@@ -265,9 +275,17 @@
               "duration": 1,
               "uses": 1,
               "durationTrigger": "next_time_attacked",
-              "notes": ""
+              "notes": "",
+              "targetScope": "self",
+              "trigger": "next_time_attacked"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": ""
+          },
+          "maxUses": 1
         }
       ]
     },
@@ -1349,8 +1367,6 @@
         {
           "id": "attack-1780418586326-rd2tsy",
           "name": "Fin Slap",
-          "costValue": 8,
-          "costUnit": "Sec",
           "effectText": "",
           "effects": [
             {
@@ -1362,15 +1378,21 @@
               "targetTypeFilter": "all",
               "amount": 40,
               "durationTrigger": "immediate",
-              "notes": ""
+              "notes": "",
+              "targetScope": "opponent",
+              "trigger": "immediate"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 8,
+            "description": ""
+          },
+          "maxUses": 1
         },
         {
           "id": "attack-1780418586326-r7rmrd",
           "name": "Ambush",
-          "costValue": 12,
-          "costUnit": "Sec",
           "effectText": "",
           "effects": [
             {
@@ -1382,15 +1404,21 @@
               "targetTypeFilter": "all",
               "amount": 50,
               "durationTrigger": "immediate",
-              "notes": ""
+              "notes": "",
+              "targetScope": "opponent",
+              "trigger": "immediate"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 12,
+            "description": ""
+          },
+          "maxUses": 1
         },
         {
           "id": "attack-1780418586326-16lhr9",
           "name": "Scary Frill double the attack cost nect turn",
-          "costValue": 10,
-          "costUnit": "Sec",
           "effectText": "Opponent drinks double the attack cost next turn",
           "effects": [
             {
@@ -1402,9 +1430,17 @@
               "targetTypeFilter": "all",
               "amount": 2,
               "durationTrigger": "immediate",
-              "notes": "Opponent drinks double the attack cost next turn"
+              "notes": "Opponent drinks double the attack cost next turn",
+              "targetScope": "opponent",
+              "trigger": "immediate"
             }
-          ]
+          ],
+          "cost": {
+            "type": "seconds",
+            "value": 10,
+            "description": ""
+          },
+          "maxUses": 1
         }
       ]
     },

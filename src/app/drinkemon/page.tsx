@@ -22,7 +22,9 @@ type AttackEffect = {
 type Attack = {
   id: string;
   name: string;
-  cost: AttackCost;
+  cost?: AttackCost;
+  costValue?: number;
+  costUnit?: string;
   effectText: string;
   effects: AttackEffect[];
 };
@@ -58,13 +60,17 @@ function cardImageSrc(card: Card) {
   return encodeURI(path);
 }
 
-function costLabel(cost: AttackCost) {
+function costLabel(cost?: AttackCost, attack?: Attack) {
   const labels: Record<string, string> = {
     seconds: "sec",
     shotgun: "Shotgun",
     full_beer: "Full Beer",
     half_beer: "Half Beer",
   };
+  if (!cost) {
+    const legacyCost = attack?.costValue === undefined ? "" : `${attack.costValue} `;
+    return `${legacyCost}${attack?.costUnit || "cost"}`.trim();
+  }
   const value = cost.value === undefined ? "" : `${cost.value} `;
   return `${value}${labels[cost.type] || cost.type || "cost"}`.trim();
 }
@@ -160,7 +166,7 @@ function VirtualCard({ card, compact = false, isCompare = false }: { card: Card;
           <div className="flex flex-col">
             {card.attacks.map((attack, index) => (
               <div key={attack.id || index} className={`grid ${gridCols} ${gap} border-b border-slate-900/20 ${rowPadding}`}>
-                <span className="[font-family:var(--font-libre-franklin)] font-medium text-slate-800">{costLabel(attack.cost)}</span>
+                <span className="[font-family:var(--font-libre-franklin)] font-medium text-slate-800">{costLabel(attack.cost, attack)}</span>
                 <span className="[font-family:var(--font-libre-franklin)] font-semibold text-slate-900 underline">{attack.name || `Attack ${index + 1}`}</span>
                 <span className="leading-snug [font-family:var(--font-inter)] font-normal text-red-700">{attackEffectText(attack) || "-"}</span>
               </div>
@@ -400,7 +406,7 @@ function CardModal({ card, onClose, viewMode }: { card: Card; onClose: () => voi
                 <div key={attack.id || index} className="rounded-xl border border-orange-100 bg-orange-50/70 p-3">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <strong className="text-orange-950">{attack.name || `Attack ${index + 1}`}</strong>
-                    <span className="rounded-full bg-white px-2 py-1 text-xs font-black text-orange-700">{costLabel(attack.cost)}</span>
+                    <span className="rounded-full bg-white px-2 py-1 text-xs font-black text-orange-700">{costLabel(attack.cost, attack)}</span>
                   </div>
                   <p className="mt-2 text-sm font-semibold text-orange-900">{attackEffectText(attack) || "No effect text"}</p>
                 </div>
