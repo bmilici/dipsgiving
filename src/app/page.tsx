@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Sponsors from "@/components/Sponsors";
+import CountdownTimer from "@/components/CountdownTimer";
 import { useEventSettings } from "@/lib/eventSettings";
-import { Calendar, Clock, MapPin, MessageCircle } from "lucide-react";
+import { Calendar, Clock, MapPin, MessageCircle, Sparkles } from "lucide-react";
 
 function InfoCard({
   icon,
@@ -29,53 +31,91 @@ function InfoCard({
   );
 }
 
+// Set the target date for the countdown (adjust as needed)
+const EVENT_DATE = new Date("2026-11-21T14:00:00");
+
 export default function Page() {
   const eventSettings = useEventSettings();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
       {/* Hero */}
-      <section className="relative mx-auto max-w-4xl px-4 py-12 sm:py-16 lg:py-20">
-        <div className="text-center mb-10">
-          <p className="mb-3 text-sm font-medium uppercase tracking-widest text-orange-600">
-            {eventSettings.eventNumberLabel}
-          </p>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl lg:text-6xl text-balance">
-            {eventSettings.eventName}
-          </h1>
-          <p className="text-lg text-orange-700/80 max-w-md mx-auto">
-            Bring a bathing suit and a dip. We have the booze and dippers.
-          </p>
+      <section className="relative mx-auto max-w-5xl px-4 py-12 sm:py-16 lg:py-20 overflow-hidden">
+        {/* Animated decorative elements */}
+        <div className="absolute top-10 left-10 h-3 w-3 rounded-full bg-orange-300 animate-pulse opacity-60" />
+        <div className="absolute top-20 right-16 h-2 w-2 rounded-full bg-amber-400 animate-pulse opacity-50" style={{ animationDelay: "0.5s" }} />
+        <div className="absolute bottom-32 left-20 h-4 w-4 rounded-full bg-orange-200 animate-pulse opacity-40" style={{ animationDelay: "1s" }} />
+        <div className="absolute bottom-20 right-10 h-2 w-2 rounded-full bg-amber-300 animate-pulse opacity-60" style={{ animationDelay: "1.5s" }} />
+
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Left: Text Content */}
+          <div className="text-center lg:text-left order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 mb-4 rounded-full bg-orange-100 px-4 py-1.5 text-sm font-medium text-orange-700">
+              <Sparkles className="h-4 w-4" />
+              <span>{eventSettings.eventNumberLabel}</span>
+            </div>
+            
+            <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl lg:text-6xl text-balance animate-fade-in">
+              {eventSettings.eventName}
+            </h1>
+            
+            <p className="text-lg text-orange-700/80 max-w-md mx-auto lg:mx-0 mb-8 leading-relaxed">
+              Bring a bathing suit and a dip. We have the booze and dippers. Join us for an epic celebration of the finest dips!
+            </p>
+
+            {/* Info Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <InfoCard
+                icon={<Calendar className="h-5 w-5" />}
+                label="Date"
+                value={eventSettings.dateLabel}
+              />
+              <InfoCard
+                icon={<Clock className="h-5 w-5" />}
+                label="Time"
+                value={eventSettings.timeLabel}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3 sm:gap-4">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-orange-700 hover:shadow-lg transition-all active:scale-[0.98] hover:-translate-y-0.5"
+              >
+                RSVP Now
+              </Link>
+              <Link
+                href="/register/dip"
+                className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-semibold text-orange-700 shadow-md border-2 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all active:scale-[0.98] hover:-translate-y-0.5"
+              >
+                Register Your Dip
+              </Link>
+            </div>
+          </div>
+
+          {/* Right: Hero Image */}
+          <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-md lg:max-w-lg">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-200/40 to-amber-200/40 rounded-3xl blur-3xl transform -rotate-6 scale-95" />
+              <Image
+                src="/hero-dip.png"
+                alt="A festive bowl of dip surrounded by tortilla chips"
+                width={500}
+                height={500}
+                className="relative rounded-3xl shadow-2xl transform hover:scale-[1.02] transition-transform duration-500"
+                priority
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Info Cards */}
-        <div className="mx-auto mb-10 grid max-w-lg grid-cols-1 sm:grid-cols-2 gap-4">
-          <InfoCard
-            icon={<Calendar className="h-5 w-5" />}
-            label="Date"
-            value={eventSettings.dateLabel}
-          />
-          <InfoCard
-            icon={<Clock className="h-5 w-5" />}
-            label="Time"
-            value={eventSettings.timeLabel}
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-orange-700 hover:shadow-lg transition-all active:scale-[0.98]"
-          >
-            RSVP Now
-          </Link>
-          <Link
-            href="/register/dip"
-            className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-semibold text-orange-700 shadow-md border-2 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all active:scale-[0.98]"
-          >
-            Register Your Dip
-          </Link>
+        {/* Countdown Section */}
+        <div className="mt-12 lg:mt-16 text-center">
+          <p className="text-sm font-medium uppercase tracking-widest text-orange-600 mb-4">
+            Countdown to Dipsgiving
+          </p>
+          <CountdownTimer targetDate={EVENT_DATE} />
         </div>
       </section>
 
