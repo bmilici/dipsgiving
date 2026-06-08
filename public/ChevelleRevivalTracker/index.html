@@ -116,8 +116,8 @@
       border-radius: 8px;
       color: white;
       background:
-        linear-gradient(120deg, rgba(36,31,26,0.88), rgba(127,33,30,0.78)),
-        linear-gradient(90deg, #2a2c2d 0 20%, #c1c6c8 20% 25%, #8d1715 25% 70%, #e9d8bd 70% 73%, #24201d 73% 100%);
+        radial-gradient(120% 140% at 100% 0%, rgba(127,33,30,0.55), transparent 58%),
+        linear-gradient(120deg, #241f1a 0%, #4a211d 52%, #7f211e 100%);
       box-shadow: var(--shadow);
       overflow: hidden;
     }
@@ -235,12 +235,13 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
       margin: 0 0 18px;
     }
 
     .stat {
+      position: relative;
       min-height: 128px;
       display: grid;
       gap: 10px;
@@ -250,6 +251,14 @@
       border-radius: 8px;
       background: var(--panel);
       box-shadow: 0 6px 18px rgba(36,31,26,0.06);
+    }
+
+    .stat.editor-only {
+      border-top: 3px solid var(--green);
+    }
+
+    .stat.editor-only b {
+      color: var(--green);
     }
 
     .stat b {
@@ -286,7 +295,7 @@
     .progress-bar {
       width: 0%;
       height: 100%;
-      background: linear-gradient(90deg, var(--red), var(--amber), var(--green));
+      background: linear-gradient(90deg, var(--red), var(--amber));
       transition: width 180ms ease;
     }
 
@@ -294,21 +303,27 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
       gap: 6px;
       padding: 8px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
       background: rgba(238,229,215,0.96);
       backdrop-filter: blur(8px);
     }
 
+    .tabs::-webkit-scrollbar { display: none; }
+
     .tabs button {
+      flex: 0 0 auto;
       min-height: 46px;
-      padding: 8px 6px;
+      padding: 8px 16px;
       color: var(--ink);
       background: #fff8eb;
       border: 1px solid var(--line);
       font-size: 0.85rem;
+      white-space: nowrap;
     }
 
     .tabs button.active {
@@ -339,6 +354,65 @@
 
     .safety-strip strong {
       color: var(--red-dark);
+    }
+
+    .heritage-strip {
+      display: grid;
+      gap: 12px;
+      margin: 14px 0 18px;
+      padding: 12px;
+      border: 1px solid rgba(36,31,26,0.12);
+      border-radius: 8px;
+      background: #fffdf8;
+      box-shadow: 0 8px 20px rgba(36,31,26,0.07);
+    }
+
+    .heritage-head {
+      display: grid;
+      gap: 5px;
+    }
+
+    .heritage-head h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.2;
+    }
+
+    .heritage-head p {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .heritage-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .heritage-photo {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .heritage-photo img {
+      width: 100%;
+      height: auto;
+      max-height: 260px;
+      object-fit: cover;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #efe5d8;
+      box-shadow: 0 8px 18px rgba(36,31,26,0.1);
+    }
+
+    .heritage-photo figcaption {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+      line-height: 1.3;
     }
 
     body.readonly .editor-only {
@@ -384,6 +458,7 @@
 
     .phase-card {
       border: 1px solid var(--line);
+      border-left: 4px solid var(--red);
       border-radius: 8px;
       overflow: hidden;
       background: var(--panel);
@@ -445,6 +520,12 @@
       border-radius: 8px;
       background: #fffdf8;
       overflow: hidden;
+      transition: box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .step-card:hover {
+      border-color: rgba(183,49,44,0.4);
+      box-shadow: 0 6px 16px rgba(36,31,26,0.1);
     }
 
     .step-card.needs-help {
@@ -1139,10 +1220,15 @@
         padding: 28px;
       }
       .header-controls { justify-content: flex-end; }
-      .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .tabs { grid-template-columns: repeat(8, auto); justify-content: start; }
+      .heritage-strip {
+        grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1.3fr);
+        align-items: center;
+        padding: 14px;
+      }
+      .heritage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tabs { flex-wrap: wrap; overflow-x: visible; }
       .modal-backdrop { place-items: center; }
       .phase-card > summary { padding: 18px; }
       .phase-body { padding: 0 18px 18px; }
@@ -1245,6 +1331,21 @@
     <section class="safety-strip">
       <strong>Garage safety reminders</strong>
       <span>Do not crank before checking cylinders. Do not use old fuel. Do not drive on old tires or before brakes are inspected. Keep a fire extinguisher nearby. Use jack stands, never just a jack.</span>
+    </section>
+
+    <section class="heritage-strip" aria-label="Original Chevelle photos">
+      <div class="heritage-head">
+        <h2>Original Look</h2>
+        <p>Reference photos from when the Chevelle was on the street, before the revival work begins.</p>
+      </div>
+      <div class="heritage-grid">
+        <figure class="heritage-photo">
+          <img src="./assets/chevelle-original-front.jpeg" alt="Vintage front three-quarter photo of the 1969 Chevelle Malibu convertible parked on the street" />
+        </figure>
+        <figure class="heritage-photo">
+          <img src="./assets/chevelle-original-side.jpeg" alt="Vintage side profile photo of the 1969 Chevelle Malibu convertible with the top up" />
+        </figure>
+      </div>
     </section>
 
     <section id="phasesView" class="view active">
@@ -1854,7 +1955,18 @@
           ],
           notes: "U-Haul reservation details:\n\nEstimated trip dates:\n\nStorage locations in Florida:\n\nBin numbering system:\n\nUpgrade Planner references for original parts:\n"
         },
-        { title: TRANSPORT_ADMIN_STEP_TITLE, checklist: phase0ChecklistByStep[TRANSPORT_ADMIN_STEP_TITLE] },
+        {
+          title: TRANSPORT_ADMIN_STEP_TITLE,
+          checklist: phase0ChecklistByStep[TRANSPORT_ADMIN_STEP_TITLE],
+          additionalHelp: [
+            {
+              label: "Montway Auto Transport",
+              url: "https://www.montway.com/",
+              phone: "",
+              notes: "Transport broker/contact for vehicle shipping paperwork, pickup details, requirements, and carrier coordination."
+            }
+          ]
+        },
         { title: PHOTO_DOC_STEP_TITLE, checklist: phase0ChecklistByStep[PHOTO_DOC_STEP_TITLE], photos: beforeTransportPhotos, photoSections: phase0PhotoSections },
         { title: VEHICLE_LOAD_PREP_STEP_TITLE, checklist: phase0ChecklistByStep[VEHICLE_LOAD_PREP_STEP_TITLE] },
         { title: PICKUP_HANDOFF_STEP_TITLE, checklist: phase0ChecklistByStep[PICKUP_HANDOFF_STEP_TITLE] }
@@ -2503,7 +2615,7 @@
         photoSections,
         videoTerms: [],
         videoUrl: "",
-        additionalHelp: [],
+        additionalHelp: plan && plan.additionalHelp ? plan.additionalHelp.map((link) => ({ ...link })) : [],
         difficulty: inferDifficulty(title),
         estimatedTime: inferEstimatedTime(title),
         hoursLogged: "",
@@ -2662,6 +2774,7 @@
       migrateGroupedPhases(data);
       migrateSeedStepResources(data);
       migrateSeedPhotoNeeds(data);
+      migrateMontwayHelp(data);
       data.phaseSchemaVersion = PHASE_SCHEMA_VERSION;
       data.toolResourceSchemaVersion = TOOL_RESOURCE_SCHEMA_VERSION;
       data.photoSchemaVersion = PHOTO_SCHEMA_VERSION;
@@ -2957,6 +3070,56 @@
           step.photosNeeded = stepPhotoNeeds(seed, seedTitle);
           step.photoSections = stepPhotoSections(seed, seedTitle);
         });
+      });
+    }
+
+    function isMontwayHelpLink(link) {
+      const text = `${link && link.label || ""} ${link && link.url || ""} ${link && link.notes || ""}`.toLowerCase();
+      return text.includes("montway");
+    }
+
+    function migrateMontwayHelp(data) {
+      const phase0 = (data.phases || []).find((phase) => phase.title === "PHASE 0 - Transportation Preparation");
+      if (!phase0) return;
+      const transportAdmin = (phase0.steps || []).find((step) => step.title === TRANSPORT_ADMIN_STEP_TITLE);
+      if (!transportAdmin) return;
+      const movedLinks = [];
+      (data.phases || []).forEach((phase) => {
+        (phase.steps || []).forEach((step) => {
+          if (!Array.isArray(step.additionalHelp)) step.additionalHelp = [];
+          const keepLinks = [];
+          step.additionalHelp.forEach((link) => {
+            if (isMontwayHelpLink(link)) {
+              movedLinks.push({
+                label: link.label || "Montway Auto Transport",
+                url: link.url || "https://www.montway.com/",
+                phone: link.phone || "",
+                notes: link.notes || "Transport broker/contact for vehicle shipping paperwork, pickup details, requirements, and carrier coordination."
+              });
+            } else {
+              keepLinks.push(link);
+            }
+          });
+          if (step !== transportAdmin) step.additionalHelp = keepLinks;
+        });
+      });
+      if (!movedLinks.length && !(transportAdmin.additionalHelp || []).some(isMontwayHelpLink)) {
+        movedLinks.push({
+          label: "Montway Auto Transport",
+          url: "https://www.montway.com/",
+          phone: "",
+          notes: "Transport broker/contact for vehicle shipping paperwork, pickup details, requirements, and carrier coordination."
+        });
+      }
+      const seen = new Set();
+      transportAdmin.additionalHelp = [
+        ...(transportAdmin.additionalHelp || []).filter((link) => !isMontwayHelpLink(link)),
+        ...movedLinks
+      ].filter((link) => {
+        const key = `${String(link.label || "").toLowerCase()}|${String(link.url || "").toLowerCase()}|${String(link.phone || "").toLowerCase()}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
       });
     }
 
