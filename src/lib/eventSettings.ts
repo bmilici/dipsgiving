@@ -16,8 +16,8 @@ export type EventSettings = {
 export const defaultEventSettings: EventSettings = {
   eventName: "5th Annual Dipsgiving",
   eventNumberLabel: "5th Annual",
-  dateLabel: "TBD",
-  timeLabel: "TBD",
+  dateLabel: "December 5, 2026",
+  timeLabel: "4:00 PM",
   registrationOpen: true,
   votingOpen: false,
 };
