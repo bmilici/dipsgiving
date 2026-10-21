@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { Soup } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
+import { siteRoutes } from "@/lib/siteNavigation";
 import { getClientDB } from "@/lib/firebase";
 
 type DipRow = {
@@ -95,7 +96,7 @@ export default function DipListPage() {
             title="The Competition Is Heating Up!"
             description="But nobody has entered the dip arena yet. Be the first to bring the flavor!"
             icon={Soup}
-            action={{ href: "/register/dip", label: "Register Your Dip" }}
+            action={siteRoutes.registerDip}
           />
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

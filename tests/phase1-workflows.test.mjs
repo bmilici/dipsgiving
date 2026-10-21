@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { navigationModule } from "./helpers/navigation-module.mjs";
 
 // Exercise the real component handlers with a closed set of local mocks.
 // Effects run only when a test explicitly requests them. No application import
@@ -89,6 +90,7 @@ function componentHarness(file, options = {}) {
       }),
     },
     "@/lib/testingMode": { isTestingMode: options.testingMode ?? false },
+    "@/lib/siteNavigation": navigationModule,
     "@/components/EmptyState": "empty-state",
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
@@ -398,4 +400,15 @@ test("champion empty state appears only when both current and historical records
   const tree = historical.render();
   assert.equal(nodes(tree, (node) => node.type === "empty-state").length, 0);
   assert.match(content(tree), /Real Champion/);
+});
+
+test("voting back link consistently targets Home in normal and testing modes", () => {
+  for (const testingMode of [false, true]) {
+    const tree = voting({ testingMode }).render();
+    const backLinks = nodes(tree, (node) => node.type === "a");
+    assert.equal(backLinks.length, 1);
+    assert.equal(backLinks[0].props.href, "/");
+    assert.equal(content(backLinks[0]).trim(), "Back to Home");
+    assert.doesNotMatch(content(tree), /Back to About/);
+  }
 });

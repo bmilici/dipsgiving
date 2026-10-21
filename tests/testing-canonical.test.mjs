@@ -4,6 +4,15 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
+function helper(file) {
+  const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+  const exports = {};
+  vm.runInNewContext(ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { exports, process: { env: { NEXT_PUBLIC_DESIGN_PREVIEW: "false" } } });
+  return exports;
+}
+
 const source = readFileSync(new URL("../src/middleware.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -12,7 +21,10 @@ const exports = {};
 vm.runInNewContext(compiled, {
   exports,
   URL,
+  process: { env: { NEXT_PUBLIC_DESIGN_PREVIEW: "false" } },
   require(name) {
+    if (name === "@/lib/testingMode") return helper("src/lib/testingMode.ts");
+    if (name === "@/lib/siteNavigation") return helper("src/lib/siteNavigation.ts");
     assert.equal(name, "next/server", "Unexpected integration import");
     return { NextResponse: {
       next: () => ({ kind: "next" }),

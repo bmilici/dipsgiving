@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { siteNavigation } from "@/lib/siteNavigation";
+import { isSiteRouteActive, siteNavigation, siteRoutes } from "@/lib/siteNavigation";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -21,6 +21,7 @@ export default function Nav() {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
+      event.preventDefault();
       setOpenPathname(null);
       menuButton.current?.focus();
     }
@@ -30,10 +31,10 @@ export default function Nav() {
   }, [open]);
 
   function linkClass(href: string, mobile = false) {
-    const active = pathname === href;
-    const base = `inline-flex min-h-11 items-center rounded-full px-4 py-2.5 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${mobile ? "w-full justify-center" : "justify-center"}`;
+    const active = isSiteRouteActive(pathname, href);
+    const base = `inline-flex min-h-11 min-w-0 items-center rounded-full px-4 py-2.5 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${mobile ? "w-full justify-center" : "justify-center"}`;
 
-    if (href === "/register") {
+    if (href === siteRoutes.rsvp.href) {
       return `${base} bg-burnt-orange text-white hover:bg-[#9f3f25] ${active ? "ring-2 ring-gold ring-offset-2 ring-offset-forest" : ""}`;
     }
 
@@ -45,7 +46,7 @@ export default function Nav() {
       <nav aria-label="Main navigation" className="festival-container">
         <div className="flex min-h-18 items-center justify-between gap-4 sm:min-h-20">
           <Link
-            href="/"
+            href={siteRoutes.home.href}
             onClick={() => setOpenPathname(null)}
             className="inline-flex min-h-11 items-center rounded-lg font-display text-3xl tracking-tight transition-colors hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold sm:text-[2.1rem]"
             aria-label="Dipsgiving home"
@@ -58,7 +59,7 @@ export default function Nav() {
               <Link
                 key={link.href}
                 href={link.href}
-                aria-current={pathname === link.href ? "page" : undefined}
+                aria-current={isSiteRouteActive(pathname, link.href) ? "page" : undefined}
                 className={linkClass(link.href)}
               >
                 {link.label}
@@ -69,7 +70,7 @@ export default function Nav() {
           <button
             ref={menuButton}
             type="button"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-cream/30 transition-colors hover:border-gold hover:bg-cream/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold lg:hidden"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-cream/30 transition-colors hover:border-gold hover:bg-cream/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold lg:hidden"
             onClick={() => setOpenPathname(open ? null : pathname)}
             aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={open}
@@ -84,13 +85,13 @@ export default function Nav() {
           hidden={!open}
           className={`${open ? "festival-menu-enter" : ""} border-t border-cream/15 pb-5 pt-4 lg:hidden`}
         >
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2">
             {siteNavigation.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpenPathname(null)}
-                aria-current={pathname === link.href ? "page" : undefined}
+                aria-current={isSiteRouteActive(pathname, link.href) ? "page" : undefined}
                 className={linkClass(link.href, true)}
               >
                 {link.label}

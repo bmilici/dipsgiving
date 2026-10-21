@@ -25,7 +25,7 @@ const mainPaths = ["/", "/register", "/register/dip", "/dips", "/vote", "/winner
 
 test("production config keeps live behavior even if an inherited preview flag is true", () => {
   for (const inherited of [undefined, "false", "true"]) {
-    const env = inherited === undefined ? {} : { NEXT_PUBLIC_DESIGN_PREVIEW: inherited };
+    const env = { VERCEL_ENV: "production", ...(inherited === undefined ? {} : { NEXT_PUBLIC_DESIGN_PREVIEW: inherited }) };
     const config = loadTypeScript("next.config.ts", env).default;
     assert.equal(config.env.NEXT_PUBLIC_DESIGN_PREVIEW, "false");
     assert.equal(config.basePath, undefined, "Live navigation has no preview prefix");
@@ -53,7 +53,7 @@ test("preview helper defaults to live mode and still isolates the explicit previ
 });
 
 test("testing rewrites and noindex headers remain isolated from live routes", async () => {
-  const config = loadTypeScript("next.config.ts", { NEXT_PUBLIC_DESIGN_PREVIEW: "true" }).default;
+  const config = loadTypeScript("next.config.ts", { VERCEL_ENV: "production", NEXT_PUBLIC_DESIGN_PREVIEW: "true" }).default;
   const rewrites = plain(await config.rewrites());
   assert.deepEqual(rewrites.beforeFiles, [
     { source: "/testing", destination: "/testing/index.html" },

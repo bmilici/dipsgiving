@@ -111,7 +111,7 @@ function navigation(initialPath = "/") {
     },
     navigate(path) { pathname = path; },
     key(key) {
-      for (const listener of listeners.get("keydown") ?? []) listener({ key });
+      for (const listener of listeners.get("keydown") ?? []) listener({ key, preventDefault() {} });
     },
     get keyListenerCount() { return listeners.get("keydown")?.size ?? 0; },
   };
@@ -204,4 +204,93 @@ test("the configured sponsor links, logos, and accessible names are preserved", 
   ]);
   assert.ok(images.every((image) => typeof image.props.alt === "string" && image.props.alt.trim()));
   assert.ok(links(tree).every((link) => link.props.rel.includes("noopener")));
+});
+
+test("header labels and active states match all six shared routes in either environment", () => {
+  const expectedLabels = ["Home", "RSVP", "Register Dip", "Dip List", "Vote", "Champions"];
+  for (const path of expectedRoutes) {
+    for (const pathname of [path, path === "/" ? "/testing" : `/testing${path}/`]) {
+      const tree = navigation(pathname).render();
+      const menuLinks = links(mobileMenu(tree));
+      assert.deepEqual(menuLinks.map(content), expectedLabels);
+      assert.deepEqual(menuLinks.filter((link) => link.props["aria-current"] === "page").map((link) => link.props.href), [path]);
+      const desktop = nodes(tree, (node) => node.props.className === "hidden items-center gap-1 lg:flex")[0];
+      assert.deepEqual(links(desktop).map(content), expectedLabels);
+      assert.deepEqual(links(desktop).filter((link) => link.props["aria-current"] === "page").map((link) => link.props.href), [path]);
+    }
+  }
+});
+
+test("mobile navigation uses native keyboard targets, visible focus, and 44px minimum tap sizes", () => {
+  const nav = navigation();
+  toggle(nav.render()).props.onClick();
+  const tree = nav.render();
+  const control = toggle(tree);
+  assert.equal(control.props.type, "button");
+  assert.match(control.props.className, /min-h-11/);
+  assert.match(control.props.className, /min-w-11/);
+  assert.match(control.props.className, /focus-visible:outline-2/);
+  for (const link of links(mobileMenu(tree))) {
+    assert.equal(typeof link.props.href, "string");
+    assert.equal(link.props.tabIndex, undefined, "Native link tab order is retained");
+    assert.match(link.props.className, /min-h-11/);
+    assert.match(link.props.className, /focus-visible:outline-2/);
+    assert.match(link.props.className, /w-full/);
+    assert.match(link.props.className, /min-w-0/, "Grid links can shrink with the mobile viewport");
+  }
+  assert.equal(nodes(tree, (node) => node.props.tabIndex < 0).length, 0);
+  assert.doesNotMatch(mobileMenu(tree).props.className, /(?:w-screen|min-w-\[|w-\[)/);
+});
+
+test("footer uses the shared labels, exact active route, and normal unprefixed Link destinations", () => {
+  for (const path of expectedRoutes) {
+    for (const pathname of [path, path === "/" ? "/testing" : `/testing${path}/`]) {
+      const Footer = loadComponent("src/components/Footer.tsx", {
+        "react/jsx-runtime": jsx,
+        "next/link": "a",
+        "next/navigation": { usePathname: () => pathname },
+        "@/lib/eventSchedule": { EVENT_YEAR: 2026 },
+        "@/lib/siteNavigation": loadComponent("src/lib/siteNavigation.ts", {}),
+      }).default;
+      const tree = Footer();
+      const navigation = nodes(tree, (node) => node.props["aria-label"] === "Footer navigation")[0];
+      const footerLinks = links(navigation);
+      assert.deepEqual(footerLinks.map((link) => link.props.href), expectedRoutes);
+      assert.deepEqual(footerLinks.map(content), ["Home", "RSVP", "Register Dip", "Dip List", "Vote", "Champions"]);
+      assert.deepEqual(footerLinks.filter((link) => link.props["aria-current"] === "page").map((link) => link.props.href), [path]);
+      const active = footerLinks.find((link) => link.props["aria-current"] === "page");
+      assert.match(active.props.className, /text-gold underline/);
+      assert.ok(footerLinks.every((link) => link.props.className.includes("focus-visible:outline")));
+    }
+  }
+});
+
+test("homepage actions and feature cards use the same canonical destinations and labels", () => {
+  const Page = loadComponent("src/app/page.tsx", {
+    "react/jsx-runtime": jsx,
+    "next/image": "img",
+    "next/link": "a",
+    "lucide-react": Object.fromEntries(["ArrowRight", "ArrowUpRight", "CalendarDays", "Clock3", "MapPin", "MessageCircle", "Soup", "Trophy", "Vote"].map((name) => [name, `${name}-icon`])),
+    "@/components/EventCountdown": "countdown",
+    "@/components/Sponsors": "sponsors",
+    "@/lib/eventSettings": { useEventSettings: () => ({ eventNumberLabel: "5th Annual", eventName: "Dipsgiving", dateLabel: "December 5, 2026", timeLabel: "4:00 PM" }) },
+    "@/lib/testingMode": { testingAssetPath: (path) => path },
+    "@/lib/siteNavigation": loadComponent("src/lib/siteNavigation.ts", {}),
+  }).default;
+  const tree = Page();
+  const internal = links(tree).filter((link) => link.props.href.startsWith("/"));
+  assert.deepEqual(internal.map((link) => link.props.href), ["/register", "/register/dip", "/dips", "/vote", "/winners", "/register"]);
+  const actions = nodes(tree, (node) => node.props.className === "festival-hero-actions")[0];
+  assert.deepEqual(links(actions).map(content), ["RSVP ", "Register Dip"]);
+  const cards = internal.filter((link) => link.props.className.includes("festival-card"));
+  assert.deepEqual(cards.map((card) => nodes(card, (node) => node.type === "h3").map(content)[0]), ["Dip List", "Vote", "Champions"]);
+  assert.equal(content(internal.at(-1)).trim(), "RSVP");
+});
+
+test("selecting the home wordmark closes the mobile menu", () => {
+  const nav = navigation("/testing/register/dip");
+  toggle(nav.render()).props.onClick();
+  const tree = nav.render();
+  links(tree).find((link) => link.props["aria-label"] === "Dipsgiving home").props.onClick();
+  assert.equal(mobileMenu(nav.render()).props.hidden, true);
 });

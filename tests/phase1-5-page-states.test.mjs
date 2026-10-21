@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { navigationModule } from "./helpers/navigation-module.mjs";
 
 // Real page and EmptyState components run against a closed import map. Reads
 // resolve only when a test supplies local records; Firebase and network modules
@@ -89,6 +90,7 @@ function pageHarness(file, { databaseAvailable = true } = {}) {
       },
     },
     "@/lib/firebase": { getClientDB: () => databaseAvailable ? db : null },
+    "@/lib/siteNavigation": navigationModule,
     "@/components/EmptyState": EmptyState,
     "@/lib/testingMode": { testingAssetPath: (path) => path },
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon", CalendarDays: "calendar-icon" },
@@ -171,7 +173,7 @@ test("dip list waits for a read before displaying its actionable empty state", (
   assert.equal(nodes(card, (node) => node.type === "soup-icon").length, 1);
   const [action] = nodes(card, (node) => node.type === "a");
   assert.equal(action.props.href, "/register/dip");
-  assert.equal(content(action), "Register Your Dip");
+  assert.equal(content(action), "Register Dip");
   unsubscribe();
   assert.equal(page.unsubscribed, true);
 });

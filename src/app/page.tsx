@@ -7,11 +7,12 @@ import EventCountdown from "@/components/EventCountdown";
 import Sponsors from "@/components/Sponsors";
 import { useEventSettings } from "@/lib/eventSettings";
 import { testingAssetPath } from "@/lib/testingMode";
+import { siteRoutes } from "@/lib/siteNavigation";
 
 const quickLinks = [
-  { href: "/dips", label: "The Dip Lineup", description: "Check out the competition.", Icon: Soup, number: "01" },
-  { href: "/vote", label: "Cast Your Vote", description: "Every dip deserves a shot at glory.", Icon: Vote, number: "02" },
-  { href: "/winners", label: "Hall of Fame", description: "Legends are made one dip at a time.", Icon: Trophy, number: "03" },
+  { ...siteRoutes.dips, description: "Check out the competition.", Icon: Soup, number: "01" },
+  { ...siteRoutes.vote, description: "Every dip deserves a shot at glory.", Icon: Vote, number: "02" },
+  { ...siteRoutes.winners, description: "Legends are made one dip at a time.", Icon: Trophy, number: "03" },
 ];
 
 export default function Page() {
@@ -39,8 +40,8 @@ export default function Page() {
               <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4 text-primary" aria-hidden="true" />{eventSettings.timeLabel} ET</span>
             </div>
             <div className="festival-hero-actions">
-              <Link href="/register" className="festival-button">RSVP NOW <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Link>
-              <Link href="/register/dip" className="festival-button-secondary">REGISTER YOUR DIP</Link>
+              <Link href={siteRoutes.rsvp.href} className="festival-button">{siteRoutes.rsvp.label} <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Link>
+              <Link href={siteRoutes.registerDip.href} className="festival-button-secondary">{siteRoutes.registerDip.label}</Link>
             </div>
           </div>
           <div className="festival-entrance festival-hero-art">
@@ -78,7 +79,7 @@ export default function Page() {
             <h2 id="details-heading" className="mt-4 max-w-lg text-4xl leading-tight sm:text-5xl">Good dips.<br />Great company.</h2>
             <p className="mt-5 max-w-lg text-base leading-7 text-cream/85">An annual gathering of friends, favorite recipes, and a little friendly competition. Bring a dip, taste the lineup, and help crown the crowd’s favorites when voting opens.</p>
             <p className="mt-4 max-w-lg text-sm leading-7 text-cream/85">RSVP to let us know you’re coming, and register each dip separately. Check the dip list first so we can keep the table full of variety.</p>
-            <Link href="/register" className="mt-6 inline-flex min-h-11 items-center gap-3 font-semibold text-cream underline decoration-gold/50 underline-offset-8 hover:decoration-gold">Save your spot <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href={siteRoutes.rsvp.href} className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-md font-semibold text-cream underline decoration-gold/50 underline-offset-8 hover:decoration-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold">{siteRoutes.rsvp.label} <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="border-t border-cream/25 pt-5 sm:col-span-2">

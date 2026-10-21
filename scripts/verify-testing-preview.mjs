@@ -44,14 +44,16 @@ for (const path of routes) {
   // static testing snapshot below intentionally serves exported .txt files.
   const payload = await read(url, { headers: { RSC: "1", Accept: "text/x-component" } });
   assert.match(payload.response.headers.get("content-type") || "", /text\/x-component/, `${url}: live RSC MIME type`);
-  assert(payload.text.includes("Made with love. Served with chips."), `${url}: live RSC shared footer`);
+  // Footer now reads the active pathname on the client. Its text is verified
+  // in the HTML above; the RSC payload retains the server layout anchor.
+  assert(payload.text.includes("main-content"), `${url}: live RSC shared layout`);
   assert(!payload.text.includes("Design preview"), `${url}: live RSC has no preview banner`);
   assert(!payload.text.includes("/testing/_next"), `${url}: live RSC has normal assets`);
   console.log(`PASS: live ${url}, enabled registration, shared layout, normal navigation, and RSC GET`);
 }
 
 const live = { text: livePages[0] };
-for (const marker of ["The Ultimate Dip Showdown", "The Dip Lineup", "Cast Your Vote", "Hall of Fame", "December 5, 2026", "4:00 PM", "festival-hero-layout", "2026-12-05T16:00:00-05:00"]) {
+for (const marker of ["The Ultimate Dip Showdown", "Dip List", "Vote", "Champions", "December 5, 2026", "4:00 PM", "festival-hero-layout", "2026-12-05T16:00:00-05:00"]) {
   assert(live.text.includes(marker), `Live homepage: ${marker}`);
 }
 assert(live.text.includes("/illustrations/dip-table.svg"), "Live hero illustration uses its normal path");
@@ -59,7 +61,7 @@ assert(!live.text.includes("– –"), "Live countdown contains no dash placehol
 assert(livePages[1].includes("You’re Invited to Dipsgiving!"), "Live polished RSVP presentation");
 assert(livePages[2].includes("Enter the Dip Showdown!"), "Live polished dip registration presentation");
 assert(livePages[4].includes("Voting opens after Dipsgiving starts."), "Voting retains its existing closed-event state");
-assert(livePages[4].includes("Back to Home") && !livePages[4].includes("Back to About"), "Live vote page home link");
+assert(visibleText(livePages[4]).includes("Back to Home") && !visibleText(livePages[4]).includes("Back to About"), "Live vote page home link");
 
 for (const path of routes) {
   const url = `/testing${path}`;

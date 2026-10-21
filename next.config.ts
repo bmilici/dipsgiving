@@ -1,14 +1,32 @@
 // next.config.ts
 import type { NextConfig } from "next";
 
+// Review current source under /testing on development/preview builds. Explicit
+// Vercel production builds keep the live site's existing routes and settings.
+const developmentPreview =
+  process.env.VERCEL_ENV !== "production" &&
+  (process.env.VERCEL_ENV === "preview" ||
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_DESIGN_PREVIEW === "true");
+
 const nextConfig: NextConfig = {
-  // The public testing snapshot has its own read-only build. Main routes are live.
-  env: { NEXT_PUBLIC_DESIGN_PREVIEW: "false" },
+  ...(developmentPreview ? { basePath: "/testing" } : {}),
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: developmentPreview ? "true" : "false" },
   eslint: {
     // ⚠️ Temporarily ignore ESLint errors in production builds
     ignoreDuringBuilds: true,
   },
   async headers() {
+    if (developmentPreview) {
+      // Next automatically prefixes this rule with /testing, like Link URLs.
+      return [{
+        source: "/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      }];
+    }
     return [
       {
         source: "/testing/:path*",
@@ -32,7 +50,9 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return {
-      beforeFiles: [
+      // Testing builds serve current App Router source, not the older static
+      // snapshot. Production keeps all seven existing export rewrites.
+      beforeFiles: developmentPreview ? [] : [
         { source: "/testing", destination: "/testing/index.html" },
         { source: "/testing/register", destination: "/testing/register.html" },
         { source: "/testing/register/dip", destination: "/testing/register/dip.html" },

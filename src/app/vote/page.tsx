@@ -15,6 +15,7 @@ import {
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
 import Link from "next/link";
+import { siteRoutes } from "@/lib/siteNavigation";
 import { useEventSettings } from "@/lib/eventSettings";
 import { isTestingMode } from "@/lib/testingMode";
 
@@ -276,8 +277,8 @@ export default function VotePage() {
           <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
             Vote for Best Dip
           </h1>
-          <Link href="/" className="mt-4 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-orange-700 underline underline-offset-4 transition-colors hover:text-foreground">
-            Back to Home
+          <Link href={siteRoutes.home.href} className="mt-4 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-orange-700 underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold">
+            Back to {siteRoutes.home.label}
           </Link>
         </header>
 

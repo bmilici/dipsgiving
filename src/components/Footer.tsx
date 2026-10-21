@@ -1,15 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { EVENT_YEAR } from "@/lib/eventSchedule";
-import { siteNavigation } from "@/lib/siteNavigation";
+import { isSiteRouteActive, siteNavigation, siteRoutes } from "@/lib/siteNavigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+
   return (
     <footer className="border-t-4 border-gold bg-forest text-cream">
       <div className="festival-container pb-6 pt-10 sm:pb-7 sm:pt-12">
         <div className="flex flex-col gap-7 border-b border-cream/20 pb-7 md:flex-row md:items-start md:justify-between md:gap-12">
           <div>
             <Link
-              href="/"
+              href={siteRoutes.home.href}
               aria-label="Dipsgiving home"
               className="inline-flex min-h-11 items-center rounded-lg font-display text-4xl tracking-tight transition-colors hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
             >
@@ -25,7 +30,8 @@ export default function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex min-h-11 items-center rounded-md text-sm font-medium transition-colors hover:underline hover:decoration-gold hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+                aria-current={isSiteRouteActive(pathname, link.href) ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-md text-sm font-medium transition-colors hover:underline hover:decoration-gold hover:underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${isSiteRouteActive(pathname, link.href) ? "text-gold underline underline-offset-4" : ""}`}
               >
                 {link.label}
               </Link>
