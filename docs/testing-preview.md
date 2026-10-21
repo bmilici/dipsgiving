@@ -1,17 +1,21 @@
-# Shared design preview at /Testing
+# Shared design preview at /testing
 
-The reviewed Phase 1 redesign is published as a standalone static application under `/Testing`. The main homepage, original pages, API routes, Firebase configuration, and production workflows remain on their existing source.
+The reviewed Phase 1.5 polish is published as a standalone static application under `/testing`. The main homepage, original pages, API routes, Firebase configuration, and production workflows remain on their existing source.
 
 ## What is published
 
-- `/Testing`
-- `/Testing/register`
-- `/Testing/register/dip`
-- `/Testing/dips`
-- `/Testing/vote`
-- `/Testing/winners`
+- `/testing`
+- `/testing/register`
+- `/testing/register/dip`
+- `/testing/dips`
+- `/testing/vote`
+- `/testing/winners`
 
-All internal preview navigation stays inside `/Testing`. The preview ships its own styles, fonts, scripts, illustrations, and sponsor images under `public/Testing`. Search indexing is disabled through both metadata and `X-Robots-Tag` headers. No Vercel preview sign-in is required on the production domain.
+All internal preview navigation stays inside `/testing`. The preview ships its own styles, fonts, scripts, illustrations, and sponsor images under `public/testing`. Search indexing is disabled through both metadata and `X-Robots-Tag` headers. No Vercel preview sign-in is required on the production domain.
+
+Old mixed-case `/Testing` bookmarks permanently redirect to lowercase `/testing`, preserving child paths and query strings. Canonical lowercase requests pass through without a redirect loop. The middleware changes only this preview prefix; main pages, APIs, administration, and unrelated apps pass through unchanged.
+
+The preview includes the reviewed Phase 1.5 hero, tiled countdown with a dated fallback, welcoming RSVP and competitive dip-entry presentation, improved empty/loading states, and polished footer. The main website retains its existing design.
 
 ## Review behavior
 
@@ -26,7 +30,7 @@ These export-only changes do not alter the original production form or voting so
 
 ## Rebuild
 
-`build-testing-preview.mjs` pins the reviewed source revision `264f29ae90d380c0230bc021f9e1741cce714652`. To rebuild it:
+`build-testing-preview.mjs` pins the reviewed source revision `e53aa7d37f0985d4ebc1172bca904327d126262a`. To rebuild it:
 
 ```sh
 node scripts/build-testing-preview.mjs \
@@ -34,11 +38,11 @@ node scripts/build-testing-preview.mjs \
   --dependencies /path/to/installed/node_modules
 ```
 
-The helper archives the reviewed source into a temporary workspace, retains the six routes, applies the preview-only protections, builds with Next.js static export and `basePath: '/Testing'`, and installs the complete output in `public/Testing`. It keeps exported route payload `.txt` files for client navigation. Only the seven public Firebase settings are selected from the specified environment, kept in memory, and passed to the build; no environment files or server credentials are published.
+The helper archives the reviewed source into a temporary workspace, retains the six routes, applies the preview-only protections, builds with Next.js static export and `basePath: '/testing'`, and installs the complete output in `public/testing`. It keeps exported route payload `.txt` files for client navigation. Only the seven public Firebase settings are selected from the specified environment, kept in memory, and passed to the build; no environment files or server credentials are published.
 
-The original Tailwind stylesheet excludes generated preview files from class scanning. Its existing colors and typography remain unchanged.
+The original Tailwind stylesheet excludes generated preview files from class scanning. Its existing colors and typography remain unchanged. Generated assets are also excluded from source linting. Preview HTML/payloads revalidate; only hashed preview scripts/fonts/styles use immutable caching.
 
-Rebuilding produces generated hashed assets; commit the entire regenerated `public/Testing` directory together. The source helper fails if expected source blocks or any of the six exported pages/payloads are missing.
+Rebuilding produces generated hashed assets; commit the entire regenerated `public/testing` directory together. The source helper fails if expected source blocks or any of the six exported pages/payloads are missing.
 
 ## Verify
 
@@ -49,5 +53,7 @@ npm run build
 npm run start -- --hostname 127.0.0.1 --port 3012
 node scripts/verify-testing-preview.mjs http://127.0.0.1:3012
 ```
+
+Three isolated canonicalization tests also pass via `node --test tests/testing-canonical.test.mjs`. They cover mixed-case bookmarks, lowercase loop prevention, and unchanged main/API/game behavior without network calls.
 
 The verification script checks the unchanged main design, all six preview routes, links, disabled submit controls, read-only notices, no gate code, noindex headers, static client-navigation payloads, and preview scripts/styles/images. It makes only GET requests and submits no data. It can also verify the deployed public URL by passing `https://www.dipsgiving.com`.

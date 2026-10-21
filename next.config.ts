@@ -9,26 +9,36 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/Testing/:path*",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        source: "/testing/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
       },
       {
-        source: "/Testing.txt",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        source: "/testing.txt",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/testing/_next/static/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];
   },
   async rewrites() {
     return {
       beforeFiles: [
-        { source: "/Testing", destination: "/Testing/index.html" },
-        { source: "/Testing/register", destination: "/Testing/register.html" },
-        { source: "/Testing/register/dip", destination: "/Testing/register/dip.html" },
-        { source: "/Testing/dips", destination: "/Testing/dips.html" },
-        { source: "/Testing/vote", destination: "/Testing/vote.html" },
-        { source: "/Testing/winners", destination: "/Testing/winners.html" },
+        { source: "/testing", destination: "/testing/index.html" },
+        { source: "/testing/register", destination: "/testing/register.html" },
+        { source: "/testing/register/dip", destination: "/testing/register/dip.html" },
+        { source: "/testing/dips", destination: "/testing/dips.html" },
+        { source: "/testing/vote", destination: "/testing/vote.html" },
+        { source: "/testing/winners", destination: "/testing/winners.html" },
         // Exported App Router navigation fetches the homepage payload here.
-        { source: "/Testing.txt", destination: "/Testing/index.txt" },
+        { source: "/testing.txt", destination: "/testing/index.txt" },
       ],
       afterFiles: [
         {

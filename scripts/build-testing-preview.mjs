@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build the reviewed Phase 1 design as an isolated, read-only static preview.
+ * Build the reviewed Phase 1.5 design as an isolated, read-only static preview.
  *
  * Usage:
  *   node scripts/build-testing-preview.mjs \
@@ -9,7 +9,7 @@
  *
  * Only the seven public Firebase settings are loaded from --env-dir. They stay
  * in memory; no .env files, server credentials, or temporary build files are
- * copied into public/Testing. The source revision is pinned by default.
+ * copied into public/testing. The source revision is pinned by default.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -20,7 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const previewPrefix = '/Testing';
+const previewPrefix = '/testing';
 const publicKeys = [
   'NEXT_PUBLIC_FIREBASE_API_KEY',
   'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
@@ -30,7 +30,7 @@ const publicKeys = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
   'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
 ];
-const settings = { sourceRef: '264f29a', envDir: undefined, dependencies: undefined };
+const settings = { sourceRef: 'e53aa7d', envDir: undefined, dependencies: undefined };
 const flagNames = new Map([
   ['--source-ref', 'sourceRef'],
   ['--env-dir', 'envDir'],
@@ -40,7 +40,7 @@ const flagNames = new Map([
 for (let index = 2; index < process.argv.length; index += 1) {
   const flag = process.argv[index];
   if (flag === '--help' || flag === '-h') {
-    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref 264f29a] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
+    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref e53aa7d] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
     process.exit(0);
   }
   const name = flagNames.get(flag);
@@ -166,11 +166,15 @@ async function prepareSource(directory) {
   for (const entry of await readdir(directory)) {
     if (entry.startsWith('.env')) await rm(path.join(directory, entry), { recursive: true, force: true });
   }
+  // Static export has no middleware runtime. The public host supplies redirects
+  // for the legacy capitalized path; this isolated build uses the canonical path.
+  await rm(path.join(directory, 'src', 'middleware.ts'), { force: true });
   await writeFile(path.join(directory, 'next.config.ts'), `import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'export',
   basePath: '${previewPrefix}',
   images: { unoptimized: true },
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true' },
   eslint: { ignoreDuringBuilds: true },
 };
 export default nextConfig;
@@ -189,7 +193,7 @@ export default nextConfig;
   }
 
 `, 'InlineRegisterForm.tsx');
-    updated = replaceOnce(updated, 'disabled={busy}', 'disabled={true}', 'InlineRegisterForm.tsx');
+    updated = replaceOnce(updated, 'disabled={isTestingMode || busy}', 'disabled={true}', 'InlineRegisterForm.tsx');
     return updated.replace('disabled:cursor-wait', 'disabled:cursor-not-allowed');
   });
   await patchFile(directory, 'src/app/vote/page.tsx', source => {
@@ -212,33 +216,22 @@ export default nextConfig;
 
 `, 'vote/page.tsx');
   });
-  await patchFile(directory, 'src/app/layout.tsx', source => {
-    let updated = replaceOnce(source,
+  // The reviewed source already includes the preview notice, noindex metadata,
+  // disabled controls, and base-path-aware image/icon helpers.
+  await patchFile(directory, 'src/app/layout.tsx', source => replaceOnce(source,
       'const SITE = "https://dipsgiving.com";',
-      'const SITE = "https://dipsgiving.com/Testing";', 'layout.tsx');
-    updated = replaceOnce(updated, '  metadataBase: new URL(SITE),',
-      '  metadataBase: new URL(SITE),\n  robots: { index: false, follow: false },', 'layout.tsx');
-    updated = replaceOnce(updated, '        <Nav />', `        <aside className="bg-gold px-5 py-3 text-center text-sm text-espresso" aria-label="Design preview notice">
-          <strong>Design preview</strong> — submissions and voting are disabled.
-        </aside>
-        <Nav />`, 'layout.tsx');
-    return updated.replace(/url: "\/(favicon[^\"]*|apple-touch-icon\.png|site\.webmanifest)"/g,
-      'url: "/Testing/$1"');
-  });
-  await patchFile(directory, 'src/app/page.tsx', source => replaceOnce(source,
-    'src="/illustrations/dip-table.svg"', 'src="/Testing/illustrations/dip-table.svg"', 'page.tsx'));
-  await patchFile(directory, 'src/components/Sponsors.tsx', source => replaceOnce(source,
-    'src={sponsor.logo}', 'src={sponsor.logo.startsWith("/") && !sponsor.logo.startsWith("//") ? `/Testing${sponsor.logo}` : sponsor.logo}', 'Sponsors.tsx'));
-  await patchFile(directory, 'src/app/winners/page.tsx', source => replaceOnce(source,
-    'src={entry.image}', 'src={entry.image?.startsWith("/") && !entry.image.startsWith("//") ? `/Testing${entry.image}` : entry.image}', 'winners/page.tsx'));
+      'const SITE = "https://dipsgiving.com/testing";', 'layout.tsx'));
 
   const manifestFile = path.join(directory, 'public', 'site.webmanifest');
   if (existsSync(manifestFile)) {
     const manifest = JSON.parse(await readFile(manifestFile, 'utf8'));
-    manifest.start_url = '/Testing';
-    manifest.scope = '/Testing/';
+    manifest.start_url = previewPrefix;
+    manifest.scope = `${previewPrefix}/`;
     for (const icon of manifest.icons ?? []) {
-      if (icon.src.startsWith('/')) icon.src = `${previewPrefix}${icon.src}`;
+      if (typeof icon.src === 'string' && icon.src.startsWith('/') && !icon.src.startsWith('//') &&
+          icon.src !== previewPrefix && !icon.src.startsWith(`${previewPrefix}/`)) {
+        icon.src = `${previewPrefix}${icon.src}`;
+      }
     }
     await writeFile(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
   }
@@ -256,14 +249,13 @@ async function installExport(directory, revision) {
   if (!existsSync(path.join(exported, '_next', 'static'))) throw new Error('Export is missing its own Next.js assets');
 
   const publicDirectory = path.join(repository, 'public');
-  const target = path.join(publicDirectory, 'Testing');
-  const staging = path.join(publicDirectory, `.Testing-staging-${process.pid}`);
-  const backup = path.join(publicDirectory, `.Testing-backup-${process.pid}`);
+  const target = path.join(publicDirectory, 'testing');
   await mkdir(publicDirectory, { recursive: true });
-  await rm(staging, { recursive: true, force: true });
-  await cp(exported, staging, { recursive: true });
+  const staging = await mkdtemp(path.join(publicDirectory, '.testing-staging-'));
+  const backup = `${staging}-backup`;
   let movedPrevious = false;
   try {
+    await cp(exported, staging, { recursive: true });
     if (existsSync(target)) {
       await rename(target, backup);
       movedPrevious = true;
@@ -278,7 +270,7 @@ async function installExport(directory, revision) {
   } finally {
     await rm(staging, { recursive: true, force: true });
   }
-  console.log(JSON.stringify({ sourceRevision: revision, output: 'public/Testing', routes: 6, readOnly: true }));
+  console.log(JSON.stringify({ sourceRevision: revision, output: 'public/testing', routes: 6, readOnly: true }));
 }
 
 const temporaryRoot = existsSync('/private/tmp') ? '/private/tmp' : tmpdir();
