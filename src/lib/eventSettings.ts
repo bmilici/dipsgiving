@@ -45,11 +45,15 @@ export function useEventSettings() {
               ? data.eventNumberLabel
               : defaultEventSettings.eventNumberLabel,
           dateLabel:
-            typeof data.dateLabel === "string"
+            typeof data.dateLabel === "string" &&
+            data.dateLabel.trim() !== "" &&
+            data.dateLabel.trim().toUpperCase() !== "TBD"
               ? data.dateLabel
               : defaultEventSettings.dateLabel,
           timeLabel:
-            typeof data.timeLabel === "string"
+            typeof data.timeLabel === "string" &&
+            data.timeLabel.trim() !== "" &&
+            data.timeLabel.trim().toUpperCase() !== "TBD"
               ? data.timeLabel
               : defaultEventSettings.timeLabel,
           registrationOpen:
