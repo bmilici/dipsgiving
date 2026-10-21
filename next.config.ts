@@ -2,6 +2,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The public testing snapshot has its own read-only build. Main routes are live.
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: "false" },
   eslint: {
     // ⚠️ Temporarily ignore ESLint errors in production builds
     ignoreDuringBuilds: true,

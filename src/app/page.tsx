@@ -1,9 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight, ArrowUpRight, CalendarDays, Clock3, MapPin, MessageCircle, Soup, Trophy, Vote } from "lucide-react";
+import EventCountdown from "@/components/EventCountdown";
 import Sponsors from "@/components/Sponsors";
 import { useEventSettings } from "@/lib/eventSettings";
-import { MapPin, MessageCircle } from "lucide-react";
+import { testingAssetPath } from "@/lib/testingMode";
+
+const quickLinks = [
+  { href: "/dips", label: "The Dip Lineup", description: "Check out the competition.", Icon: Soup, number: "01" },
+  { href: "/vote", label: "Cast Your Vote", description: "Every dip deserves a shot at glory.", Icon: Vote, number: "02" },
+  { href: "/winners", label: "Hall of Fame", description: "Legends are made one dip at a time.", Icon: Trophy, number: "03" },
+];
 
 export default function Page() {
   const eventSettings = useEventSettings();
@@ -15,116 +24,82 @@ export default function Page() {
     : eventName;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
-      {/* Hero */}
-      <section className="relative mx-auto max-w-4xl px-4 py-12 sm:py-16 lg:py-20">
-        <div className="text-center mb-8">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
-            {annualLabel}
-          </p>
-          <h1 className="mb-6 text-[clamp(2.75rem,10.5vw,6.5rem)] font-extrabold leading-[1.04] tracking-[-0.045em] break-words text-orange-900">
-            {heroTitle}
-          </h1>
-          <p className="text-lg text-orange-700/80 max-w-md mx-auto">
-            Bring a bathing suit and a dip. We have the booze and dippers.
-          </p>
-        </div>
-
-        {/* Compact event details */}
-        <div className="mx-auto mb-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-base font-medium text-orange-800 sm:text-lg" aria-label="Event date, time, and location">
-          <span>{eventSettings.dateLabel}</span>
-          <span aria-hidden="true" className="text-orange-400">·</span>
-          <span>{eventSettings.timeLabel}</span>
-          <span aria-hidden="true" className="text-orange-400">·</span>
-          <span>Fort Myers</span>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-sm transition-colors hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
-          >
-            RSVP Now
-          </Link>
-          <Link
-            href="/register/dip"
-            className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-lg font-semibold text-orange-700 underline decoration-orange-300 underline-offset-8 transition-colors hover:text-orange-900 hover:decoration-orange-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
-          >
-            Register Your Dip
-          </Link>
-        </div>
-      </section>
-
-      {/* Event Details */}
-      <section className="bg-[#0f3b3a] py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#f9e7b1] mb-4">
-              Event Details
-            </h2>
-            <p className="text-emerald-100/85 max-w-lg mx-auto text-pretty">
-              Join us for an unforgettable celebration of dips. One form per dip, please!
+    <main>
+      <section className="festival-paper relative border-b border-border" aria-labelledby="hero-heading">
+        <div className="festival-container festival-hero-layout">
+          <div className="festival-entrance festival-hero-copy">
+            <p className="festival-anniversary-badge">
+              {annualLabel}
             </p>
+            <h1 id="hero-heading" className="festival-hero-title font-display text-forest uppercase">{heroTitle}</h1>
+            <p className="mt-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-tight text-primary text-balance">The Ultimate Dip Showdown</p>
+            <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0">Bring a bathing suit and a dip. We have the booze and dippers.</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-semibold text-forest lg:justify-start">
+              <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />{eventSettings.dateLabel}</span>
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4 text-primary" aria-hidden="true" />{eventSettings.timeLabel} ET</span>
+            </div>
+            <div className="festival-hero-actions">
+              <Link href="/register" className="festival-button">RSVP NOW <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Link>
+              <Link href="/register/dip" className="festival-button-secondary">REGISTER YOUR DIP</Link>
+            </div>
           </div>
-
-          {/* Details Grid */}
-          <div className="grid gap-8 sm:grid-cols-2 sm:gap-12 max-w-2xl mx-auto">
-            {/* Location */}
-            <a
-              href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-start gap-4 border-t border-white/20 pt-6 transition-colors hover:border-amber-300/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300"
-            >
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center text-amber-300">
-                <MapPin className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-amber-300/90 mb-1">Location</p>
-                <p className="text-[#f9e7b1] font-medium group-hover:text-amber-200 transition-colors">
-                  10600 Highgrove Place
-                </p>
-                <p className="text-emerald-100/70 text-sm">
-                  Fort Myers, Florida 33913
-                </p>
-              </div>
-            </a>
-
-            {/* Contact */}
-            <a
-              href="sms:+13016611626"
-              className="group flex items-start gap-4 border-t border-white/20 pt-6 transition-colors hover:border-amber-300/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300"
-            >
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center text-amber-300">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-amber-300/90 mb-1">Questions?</p>
-                <p className="text-[#f9e7b1] font-medium group-hover:text-amber-200 transition-colors">
-                  Contact Erika
-                </p>
-                <p className="text-emerald-100/70 text-sm">
-                  (301) 661-1626
-                </p>
-                <p className="text-amber-300/80 text-sm mt-2">
-                  Tap to send a text
-                </p>
-              </div>
-            </a>
+          <div className="festival-entrance festival-hero-art">
+            <Image src={testingAssetPath("/illustrations/dip-table.svg")} alt="Illustrated bowls of queso, buffalo chicken dip, and green dip with tortilla chips on a picnic cloth" width={600} height={510} priority sizes="(min-width: 1280px) 540px, (min-width: 1024px) 46vw, (min-width: 640px) 500px, 92vw" className="relative z-10 h-auto w-full" />
+            <div aria-hidden="true" className="festival-hero-stamp">Big dips.<br />Bigger<br />bragging rights.</div>
           </div>
         </div>
       </section>
 
-      {/* Sponsors */}
-      <Sponsors />
+      <EventCountdown />
 
-      {/* Footer */}
-      <footer className="border-t border-orange-200/60 bg-white/80 py-8">
-        <p className="text-center text-sm text-orange-800/70">
-          dipsgiving.com &bull; {new Date().getFullYear()}
-        </p>
-      </footer>
+      <section className="festival-section bg-background" aria-labelledby="competition-heading">
+        <div className="festival-container">
+          <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+            <div><p className="festival-kicker">A little friendly competition</p><h2 id="competition-heading" className="mt-2 text-3xl text-forest sm:text-4xl">Every dip has its day.</h2></div>
+            <span className="text-sm text-muted-foreground">Find your next favorite.</span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3 sm:gap-5">
+            {quickLinks.map(({ href, label, description, Icon, number }) => (
+              <Link key={href} href={href} className="festival-card festival-lift group flex flex-col p-6 sm:p-7">
+                <div className="mb-6 flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gold/25 text-forest"><Icon className="h-6 w-6" aria-hidden="true" /></span><span aria-hidden="true" className="text-xs font-bold tracking-widest text-primary/80">{number}</span></div>
+                <h3 className="text-2xl text-forest">{label}</h3>
+                <p className="mb-6 mt-2 flex-1 text-sm leading-6 text-muted-foreground">{description}</p>
+                <span className="flex items-center justify-between border-t border-border pt-4 text-xs font-bold uppercase tracking-wider text-primary">Take a look <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transform-none" aria-hidden="true" /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="festival-section bg-forest text-cream" aria-labelledby="details-heading">
+        <div className="festival-container grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-20">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.17em] text-cream">Come hungry. Leave legendary.</p>
+            <h2 id="details-heading" className="mt-4 max-w-lg text-4xl leading-tight sm:text-5xl">Good dips.<br />Great company.</h2>
+            <p className="mt-5 max-w-lg text-base leading-7 text-cream/85">An annual gathering of friends, favorite recipes, and a little friendly competition. Bring a dip, taste the lineup, and help crown the crowd’s favorites when voting opens.</p>
+            <p className="mt-4 max-w-lg text-sm leading-7 text-cream/85">RSVP to let us know you’re coming, and register each dip separately. Check the dip list first so we can keep the table full of variety.</p>
+            <Link href="/register" className="mt-6 inline-flex min-h-11 items-center gap-3 font-semibold text-cream underline decoration-gold/50 underline-offset-8 hover:decoration-gold">Save your spot <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="border-t border-cream/25 pt-5 sm:col-span-2">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cream"><CalendarDays className="h-4 w-4" aria-hidden="true" /> Mark your calendar</span>
+              <p className="mt-3 font-display text-2xl">{eventSettings.dateLabel}</p>
+              <p className="mt-1 text-sm text-cream/85">Starting at {eventSettings.timeLabel} · Eastern Time</p>
+            </div>
+            <a href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913" target="_blank" rel="noopener noreferrer" className="group border-t border-cream/25 pt-5">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cream"><MapPin className="h-4 w-4" aria-hidden="true" /> The place</span>
+              <p className="mt-3 text-sm leading-7">10600 Highgrove Place<br />Fort Myers, Florida 33913</p>
+              <span className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cream group-hover:underline">Get directions <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></span>
+            </a>
+            <a href="sms:+13016611626" className="group border-t border-cream/25 pt-5">
+              <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cream"><MessageCircle className="h-4 w-4" aria-hidden="true" /> Questions?</span>
+              <p className="mt-3 text-sm leading-7">Contact Erika<br />(301) 661-1626</p>
+              <span className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cream group-hover:underline">Send a text <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></span>
+            </a>
+          </div>
+        </div>
+      </section>
+      <Sponsors />
     </main>
   );
 }
