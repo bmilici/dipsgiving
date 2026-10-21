@@ -88,9 +88,6 @@ export default function Page() {
                 <p className="text-emerald-100/70 text-sm">
                   Fort Myers, Florida 33913
                 </p>
-                <p className="text-amber-300/80 text-sm mt-2 font-medium">
-                  Gate Code: 18445
-                </p>
               </div>
             </a>
 
