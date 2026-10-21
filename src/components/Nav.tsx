@@ -3,83 +3,42 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
+
+const competitionLinks = [
+  { href: "/dips", label: "Dip List" },
+  { href: "/vote", label: "Vote" },
+  { href: "/winners", label: "Champions" },
+];
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-
-  const links = [
-    { href: "/", label: "Home" },
-    { href: "/register", label: "RSVP" },
-    { href: "/register/dip", label: "Register Dip" },
-    { href: "/dips", label: "Dip List" },
-    { href: "/vote", label: "Vote" },
-    { href: "/winners", label: "Champions" },
-  ];
-
+  const linkStyle = "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-[#eee6d9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b74727]";
   return (
-    <nav className="sticky top-0 z-50 bg-orange-800/95 backdrop-blur-sm text-amber-50 shadow-lg">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-6">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-xl font-bold tracking-wide hover:text-amber-200 transition-colors"
-        >
-          Dipsgiving
-        </Link>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden p-2 rounded-lg hover:bg-orange-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-200/50"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-          aria-expanded={open}
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-
-        {/* Desktop Links */}
-        <div className="hidden lg:flex items-center gap-1">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                pathname === link.href
-                  ? "bg-amber-200/20 text-amber-200"
-                  : "hover:bg-orange-700/50 hover:text-amber-200"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+    <nav aria-label="Main navigation" className="sticky top-0 z-50 border-b border-[#ded3c2] bg-[#faf6ed]/95 text-[#35291f] backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 sm:px-8">
+        <Link href="/" onClick={() => setOpen(false)} className="text-xl font-extrabold tracking-tight">Dipsgiving<span className="text-[#b74727]">.</span></Link>
+        <div className="hidden items-center gap-3 md:flex">
+          <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className={linkStyle}>Home</Link>
+          <Link href="/register/dip" aria-current={pathname === "/register/dip" ? "page" : undefined} className={linkStyle}>Register a dip</Link>
+          <details className="group relative" onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); } }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) event.currentTarget.open = false; }}>
+            <summary className={`${linkStyle} flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden`}>The Competition <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" /></summary>
+            <div className="absolute right-0 top-full mt-3 w-48 rounded-xl border border-[#ded3c2] bg-[#faf6ed] p-2 shadow-lg">
+              {competitionLinks.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined} onClick={event => event.currentTarget.closest("details")?.removeAttribute("open")} className={`${linkStyle} block`}>{link.label}</Link>)}
+            </div>
+          </details>
+          <Link href="/register" aria-current={pathname === "/register" ? "page" : undefined} className="ml-2 rounded-full bg-[#b74727] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#94391f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b74727]">RSVP Now</Link>
         </div>
+        <button type="button" onClick={() => setOpen(!open)} aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="mobile-navigation" className="rounded-lg p-2 hover:bg-[#eee6d9] md:hidden">{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
       </div>
-
-      {/* Mobile Dropdown */}
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="bg-orange-700/90 backdrop-blur-sm px-4 py-3 space-y-1 border-t border-orange-600/50">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`block px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                pathname === link.href
-                  ? "bg-amber-200/20 text-amber-200"
-                  : "text-amber-50 hover:bg-orange-600/50 hover:text-amber-200"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+      {open && <div id="mobile-navigation" className="border-t border-[#ded3c2] px-6 pb-5 pt-3 md:hidden">
+        <Link href="/" onClick={() => setOpen(false)} className={`${linkStyle} block`}>Home</Link>
+        <Link href="/register/dip" onClick={() => setOpen(false)} className={`${linkStyle} block`}>Register a dip</Link>
+        <p className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-widest text-[#706052]">The Competition</p>
+        {competitionLinks.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined} onClick={() => setOpen(false)} className={`${linkStyle} block`}>{link.label}</Link>)}
+        <Link href="/register" onClick={() => setOpen(false)} className="mt-4 block rounded-full bg-[#b74727] px-5 py-3 text-center text-sm font-semibold text-white hover:bg-[#94391f]">RSVP Now</Link>
+      </div>}
     </nav>
   );
 }
