@@ -196,11 +196,11 @@ test("sponsors support an explicit empty state without fabricated sponsors", () 
 test("the configured sponsor links, logos, and accessible names are preserved", () => {
   const tree = Sponsors({});
   assert.deepEqual(links(tree).map((link) => link.props.href), [
-    "https://pointybelbrew.com/", "https://www.onefreshhat.com/", "https://atppw.com/",
+    "https://pointybelbrew.com/", "https://www.onefreshhat.com/", "https://atppw.com/", "https://drsmilee.com/",
   ]);
   const images = nodes(tree, (node) => node.type === "img");
   assert.deepEqual(images.map((image) => image.props.src), [
-    "/sponsors/pointybelbrew.png", "/sponsors/onefreshhat.png", "/sponsors/AT.png",
+    "/sponsors/pointybelbrew.png", "/sponsors/onefreshhat.png", "/sponsors/AT.png", "/sponsors/smilee-logo.webp",
   ]);
   assert.ok(images.every((image) => typeof image.props.alt === "string" && image.props.alt.trim()));
   assert.ok(links(tree).every((link) => link.props.rel.includes("noopener")));
