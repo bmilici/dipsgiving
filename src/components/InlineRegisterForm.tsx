@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 import { useEventSettings } from "@/lib/eventSettings";
+import { isTestingMode } from "@/lib/testingMode";
 
 type DipItem = {
   id: string;
@@ -153,7 +154,16 @@ export default function InlineRegisterForm() {
   return (
     <div className="mx-auto max-w-3xl">
       {/* Form */}
-      <form onSubmit={handleSubmit} className="festival-card mx-auto max-w-2xl space-y-6 p-5 sm:p-8">
+      <form
+        onSubmit={isTestingMode ? undefined : handleSubmit}
+        onSubmitCapture={isTestingMode ? (event) => event.preventDefault() : undefined}
+        className="festival-card mx-auto max-w-2xl space-y-6 p-5 sm:p-8"
+      >
+        {isTestingMode && (
+          <p className="rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm leading-relaxed text-foreground">
+            Explore the form in this design preview. Submissions are disabled.
+          </p>
+        )}
         {/* Name is required for both modes */}
         <div className="space-y-1.5">
           <label htmlFor="registration-name" className="text-sm font-semibold text-foreground">
@@ -248,8 +258,8 @@ export default function InlineRegisterForm() {
         <div className="flex flex-col items-center gap-4">
           <button
             type="submit"
-            disabled={busy}
-            className="festival-button w-full disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:min-w-52"
+            disabled={isTestingMode || busy}
+            className="festival-button w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-52"
           >
             {busy
               ? "Submitting…"

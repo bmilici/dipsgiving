@@ -86,6 +86,14 @@ test("a future annual schedule can reuse the helper", () => {
   assert.equal(getCountdownParts(nextStart, nextStart).hasStarted, true);
 });
 
+test("invalid clocks and event timestamps fail explicitly instead of rendering NaN", () => {
+  for (const invalid of [NaN, Infinity, -Infinity]) {
+    assert.throws(() => getCountdownParts(invalid), RangeError);
+    assert.throws(() => getCountdownParts(EVENT_START_TIMESTAMP, invalid), RangeError);
+  }
+  assert.throws(() => getCountdownParts(-Number.MAX_VALUE, Number.MAX_VALUE), RangeError);
+});
+
 test("guests in different device time zones count down to the same instant", () => {
   const helperUrl = new URL("../src/lib/eventSchedule.ts", import.meta.url).href;
   const script = `

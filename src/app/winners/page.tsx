@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { Trophy } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { getClientDB } from "@/lib/firebase";
+import { testingAssetPath } from "@/lib/testingMode";
 
 type PodiumEntry = {
   place: number;
@@ -30,6 +33,7 @@ export default function HistoricDipChampions() {
   const [years, setYears] = useState<YearWinner[]>([]);
   const [historicalDips, setHistoricalDips] = useState<HistoricalDip[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -88,6 +92,8 @@ export default function HistoricDipChampions() {
       } catch (err) {
         console.error(err);
         setError("Failed to load winners.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -109,7 +115,7 @@ export default function HistoricDipChampions() {
   return (
     <main className="festival-page">
       <div className="festival-container space-y-10">
-        <header className="festival-page-heading mx-auto mb-12 max-w-2xl">
+        <header className="festival-page-heading">
           <p className="festival-kicker mb-3">The hall of fame</p>
           <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
             Historic Dip Champions
@@ -125,10 +131,19 @@ export default function HistoricDipChampions() {
           </p>
         )}
 
-        {years.length === 0 && !error && (
-          <p className="festival-card mx-auto max-w-2xl px-6 py-12 text-center leading-relaxed text-muted-foreground">
-            No champions yet — the hall awaits its first legends.
+        {isLoading && (
+          <p className="py-8 text-center text-sm text-muted-foreground" role="status">
+            Opening the hall of fame…
           </p>
+        )}
+
+        {!isLoading && years.length === 0 && historicalDips.length === 0 && !error && (
+          <EmptyState
+            variant="champions"
+            title="The Legends Are Still Being Written."
+            description="Every legendary dip has to start somewhere. Who will claim the crown?"
+            icon={Trophy}
+          />
         )}
 
         {years.map((year) => (
@@ -155,15 +170,19 @@ export default function HistoricDipChampions() {
 
                     {entry.image && (
                       <img
-                        src={entry.image}
-                        alt={entry.dip_name}
-                        className="mx-auto mb-5 h-40 w-auto max-w-full rounded-xl object-contain"
+                        src={testingAssetPath(entry.image)}
+                        alt={`${entry.dip_name}, place ${entry.place} at Dipsgiving ${year.id}${entry.by ? `, by ${entry.by}` : ""}`}
+                        width={320}
+                        height={200}
+                        loading="lazy"
+                        decoding="async"
+                        className="mx-auto mb-5 h-40 w-full max-w-80 rounded-xl object-contain"
                       />
                     )}
 
-                    <div className="break-words font-display text-2xl leading-snug text-foreground">
+                    <h3 className="break-words font-display text-2xl leading-snug text-foreground">
                       {entry.dip_name}
-                    </div>
+                    </h3>
                     <div className="mt-2 text-sm text-muted-foreground">
                       by {entry.by}
                     </div>
@@ -185,11 +204,11 @@ export default function HistoricDipChampions() {
               {dipsByYear[year].map((dip) => (
                 <li
                   key={dip.id}
-                  className="festival-card min-w-0 p-5"
+                  className="festival-card festival-lift min-w-0 p-5"
                 >
-                  <div className="break-words font-display text-xl text-foreground">
+                  <h3 className="break-words font-display text-xl text-foreground">
                     {dip.dip_name}
-                  </div>
+                  </h3>
                   <div className="mt-2 text-sm text-muted-foreground">
                     {dip.by ? `by ${dip.by}` : "by guest"}
                   </div>

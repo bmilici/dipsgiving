@@ -42,8 +42,8 @@ export default function Nav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-cream/15 bg-forest text-cream shadow-[0_3px_18px_rgba(43,36,32,0.08)]">
-      <nav aria-label="Main navigation" className="mx-auto max-w-6xl px-5 sm:px-8">
-        <div className="flex min-h-20 items-center justify-between gap-4">
+      <nav aria-label="Main navigation" className="festival-container">
+        <div className="flex min-h-18 items-center justify-between gap-4 sm:min-h-20">
           <Link
             href="/"
             onClick={() => setOpenPathname(null)}

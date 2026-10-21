@@ -181,6 +181,7 @@ test("route changes close the menu and mark only the exact route as current", ()
 const Sponsors = loadComponent("src/components/Sponsors.tsx", {
   "react/jsx-runtime": jsx,
   "next/image": "img",
+    "@/lib/testingMode": { testingAssetPath: (path) => path },
   "lucide-react": { HeartHandshake: "support-icon" },
 }).default;
 

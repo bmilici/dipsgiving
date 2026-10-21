@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { EVENT_YEAR } from "@/lib/eventSchedule";
+import { isTestingMode, testingAssetPath } from "@/lib/testingMode";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -45,16 +46,17 @@ const SITE = "https://dipsgiving.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
+  ...(isTestingMode ? { robots: { index: false, follow: false } } : {}),
   title: "Dipsgiving — The Ultimate Dip Showdown",
   description: `Join the 5th Annual Dipsgiving on December 5, ${EVENT_YEAR} at 4 PM in Fort Myers, Florida. Bring a dip, taste the competition, and cheer on your favorites.`,
   icons: {
     icon: [
-      { url: "/favicon-dipsgiving.ico" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+      { url: testingAssetPath("/favicon-dipsgiving.ico") },
+      { url: testingAssetPath("/favicon.svg"), type: "image/svg+xml" },
+      { url: testingAssetPath("/favicon-96x96.png"), type: "image/png", sizes: "96x96" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
-    other: [{ rel: "manifest", url: "/site.webmanifest" }],
+    apple: [{ url: testingAssetPath("/apple-touch-icon.png"), sizes: "180x180" }],
+    other: [{ rel: "manifest", url: testingAssetPath("/site.webmanifest") }],
   },
   openGraph: {
     title: "Dipsgiving",
@@ -91,6 +93,11 @@ export default function RootLayout({
         className={`${dmSans.variable} ${breeSerif.variable} ${geistMono.variable} ${cinzel.variable} ${libreFranklin.variable} ${inter.variable} antialiased bg-background text-foreground`}
       >
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-5 focus:py-3 focus:text-espresso">Skip to content</a>
+        {isTestingMode && (
+          <aside className="border-b border-forest/15 bg-gold px-4 py-2.5 text-center text-xs leading-relaxed text-espresso sm:text-sm" aria-label="Design preview notice">
+            <strong>Design preview</strong> — submissions and voting are disabled.
+          </aside>
+        )}
         <Nav />
         <div id="main-content" tabIndex={-1}>{children}</div>
         <Footer />

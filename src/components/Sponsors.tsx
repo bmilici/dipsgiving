@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { HeartHandshake } from "lucide-react";
+import { testingAssetPath } from "@/lib/testingMode";
 
 type Sponsor = { name: string; url: string; logo: string };
 
@@ -11,7 +12,7 @@ const defaultSponsors: readonly Sponsor[] = [
 
 export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: readonly Sponsor[] }) {
   return (
-    <section className="border-t border-border bg-background py-12 sm:py-16" aria-labelledby="sponsors-heading">
+    <section className="festival-section border-t border-border bg-background" aria-labelledby="sponsors-heading">
       <div className="festival-container">
         <div className="mb-8 text-center">
           <p className="festival-kicker">A little local love</p>
@@ -21,7 +22,7 @@ export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: re
           <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
             {sponsors.map(sponsor => (
               <a key={sponsor.name} href={sponsor.url} target="_blank" rel="noopener noreferrer" className="festival-card festival-lift flex h-32 items-center justify-center p-5 sm:h-36 sm:p-6">
-                <Image src={sponsor.logo} alt={sponsor.name} width={180} height={88} sizes="(max-width: 639px) 180px, 180px" className="h-20 w-full object-contain" />
+                <Image src={testingAssetPath(sponsor.logo)} alt={sponsor.name} width={180} height={88} sizes="180px" className="h-20 w-full object-contain" loading="lazy" />
               </a>
             ))}
           </div>

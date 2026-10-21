@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Trophy } from "lucide-react";
 import InlineRegisterForm from "../../../components/InlineRegisterForm";
 
 export default function RegisterDipPage() {
@@ -10,15 +11,18 @@ export default function RegisterDipPage() {
   }, []);
 
   return (
-    <main className="festival-page">
+    <main className="festival-page festival-registration festival-registration--dip">
       <section className="festival-container">
-        <header className="festival-page-heading mx-auto mb-10 max-w-2xl">
+        <header className="festival-page-heading">
+          <div className="festival-registration-icon mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-gold/60 bg-gold/25 text-forest">
+            <Trophy className="h-8 w-8" aria-hidden="true" strokeWidth={1.5} />
+          </div>
           <p className="festival-kicker mb-3">Bring your best</p>
           <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
-            Add Your Dip
+            Enter the Dip Showdown!
           </h1>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-            Before submitting your dip, please check the Dip List below to make sure no one has already registered the same dip. Let’s keep the table diverse!
+            Give your contender a name and a place in the lineup. Before submitting, check the registered dips below to make sure no one has already entered the same dip. Let’s keep the table diverse!
           </p>
         </header>
 

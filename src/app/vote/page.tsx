@@ -16,6 +16,7 @@ import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
 import Link from "next/link";
 import { useEventSettings } from "@/lib/eventSettings";
+import { isTestingMode } from "@/lib/testingMode";
 
 type DipReg = {
   id: string;
@@ -41,7 +42,7 @@ function useEnsureAnonAuth() {
   const auth = getClientAuth();
 
   useEffect(() => {
-    if (!auth) return;
+    if (isTestingMode || !auth) return;
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         try {
@@ -276,9 +277,15 @@ export default function VotePage() {
             Vote for Best Dip
           </h1>
           <Link href="/" className="mt-4 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-orange-700 underline underline-offset-4 transition-colors hover:text-foreground">
-            Back to About
+            Back to Home
           </Link>
         </header>
+
+        {isTestingMode && (
+          <p className="rounded-2xl border border-gold/60 bg-gold/15 px-5 py-4 text-sm leading-relaxed text-foreground sm:text-base">
+            This is a design preview. Voting is disabled and no votes will be submitted.
+          </p>
+        )}
 
         {!votingOpen && (
           <div className="rounded-2xl border border-gold/60 bg-gold/15 px-5 py-4 text-sm leading-relaxed text-foreground sm:text-base">
@@ -330,14 +337,16 @@ export default function VotePage() {
 
                   <button
                     disabled={
+                      isTestingMode ||
                       !authReady ||
                       !votingOpen ||
                       (!alreadyVoted && myVotes.length >= 3) ||
                       busyId === d.id
                     }
-                    onClick={() => voteFor(d.id)}
+                    onClick={isTestingMode ? undefined : () => voteFor(d.id)}
                     className={`min-h-12 min-w-24 rounded-xl px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed
                       ${
+                        isTestingMode ||
                         !authReady ||
                         !votingOpen ||
                         (!alreadyVoted && myVotes.length >= 3) ||

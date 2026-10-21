@@ -17,7 +17,13 @@ export function getCountdownParts(
   now: number,
   startsAt = EVENT_START_TIMESTAMP,
 ): CountdownParts {
+  if (!Number.isFinite(now) || !Number.isFinite(startsAt)) {
+    throw new RangeError("A valid clock and event timestamp are required.");
+  }
   const remainingMilliseconds = startsAt - now;
+  if (!Number.isFinite(remainingMilliseconds)) {
+    throw new RangeError("The remaining event duration is outside the supported range.");
+  }
   // Round up so the final second remains visible until the exact start.
   const remainingSeconds = Math.max(0, Math.ceil(remainingMilliseconds / 1_000));
 

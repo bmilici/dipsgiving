@@ -1,0 +1,321 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
+
+// Real page and EmptyState components run against a closed import map. Reads
+// resolve only when a test supplies local records; Firebase and network modules
+// cannot load, and no write methods are available in this harness.
+function loadComponent(file, imports, globals = {}) {
+  const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+  const compiled = ts.transpileModule(source, {
+    fileName: file,
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true,
+    },
+  }).outputText;
+  const exports = {};
+  vm.runInNewContext(compiled, {
+    exports,
+    require(name) {
+      assert.ok(Object.hasOwn(imports, name), `Unmocked import blocked: ${name}`);
+      return imports[name];
+    },
+    ...globals,
+  }, { filename: file, timeout: 2_000 });
+  return exports.default;
+}
+
+function element(type, props, key) {
+  return typeof type === "function"
+    ? type(props ?? {})
+    : { type, props: props ?? {}, key };
+}
+
+const jsx = { jsx: element, jsxs: element, Fragment: "fragment" };
+const EmptyState = loadComponent("src/components/EmptyState.tsx", {
+  "react/jsx-runtime": jsx,
+  "next/link": "a",
+});
+
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+const snapshot = (rows) => ({
+  forEach(callback) {
+    for (const row of rows) callback({ id: row.id, data: () => row.data });
+  },
+});
+
+function pageHarness(file, { databaseAvailable = true } = {}) {
+  const state = [];
+  const reads = [];
+  const events = [];
+  const errors = [];
+  const db = { localMock: true };
+  let cursor = 0;
+  let effects = [];
+  let subscription;
+  let unsubscribed = false;
+  const react = {
+    useState(initial) {
+      const index = cursor++;
+      if (!(index in state)) state[index] = initial;
+      return [state[index], (next) => {
+        state[index] = typeof next === "function" ? next(state[index]) : next;
+      }];
+    },
+    useEffect(effect) { effects.push(effect); },
+  };
+  const reference = (_db, name) => ({ path: name });
+  const InlineRegisterForm = (props) => element("existing-registration-form", props);
+  const Page = loadComponent(file, {
+    react,
+    "react/jsx-runtime": jsx,
+    "firebase/firestore": {
+      collection: reference,
+      orderBy: (...args) => args,
+      query: (ref) => ref,
+      onSnapshot(ref, onNext, onError) {
+        subscription = { ref, onNext, onError };
+        return () => { unsubscribed = true; };
+      },
+      getDocs(ref) {
+        return new Promise((resolve, reject) => {
+          reads.push({ path: ref.path, resolve, reject });
+        });
+      },
+    },
+    "@/lib/firebase": { getClientDB: () => databaseAvailable ? db : null },
+    "@/components/EmptyState": EmptyState,
+    "@/lib/testingMode": { testingAssetPath: (path) => path },
+    "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon", CalendarDays: "calendar-icon" },
+    "../../components/InlineRegisterForm": InlineRegisterForm,
+    "../../../components/InlineRegisterForm": InlineRegisterForm,
+  }, {
+    console: { error: (...args) => errors.push(args) },
+    window: { dispatchEvent: (event) => { events.push(event); } },
+    CustomEvent: class { constructor(type) { this.type = type; } },
+  });
+
+  return {
+    reads,
+    events,
+    errors,
+    render() {
+      cursor = 0;
+      effects = [];
+      return Page();
+    },
+    startEffects() { return effects.map((effect) => effect()); },
+    emitDips(rows) {
+      assert.equal(subscription?.ref.path, "registrations");
+      subscription.onNext(snapshot(rows));
+    },
+    failDips() { subscription.onError(new Error("Local read failure")); },
+    async resolveRead(path, rows) {
+      const read = reads.find((candidate) => candidate.path === path);
+      assert.ok(read, `Expected local read: ${path}`);
+      read.resolve(snapshot(rows));
+      await tick();
+    },
+    async failRead(path) {
+      const read = reads.find((candidate) => candidate.path === path);
+      assert.ok(read, `Expected local read: ${path}`);
+      read.reject(new Error("Local read failure"));
+      await tick();
+    },
+    get unsubscribed() { return unsubscribed; },
+  };
+}
+
+function nodes(tree, predicate) {
+  const result = [];
+  function visit(node) {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== "object" || !node.props) return;
+    if (predicate(node)) result.push(node);
+    visit(node.props.children);
+  }
+  visit(tree);
+  return result;
+}
+
+function content(tree) {
+  if (Array.isArray(tree)) return tree.map(content).join("");
+  if (tree == null || typeof tree === "boolean") return "";
+  return typeof tree === "object" ? content(tree.props?.children) : String(tree);
+}
+
+const emptyCards = (tree) => nodes(tree, (node) =>
+  node.type === "section" && node.props.className?.includes("festival-empty-state "));
+const statusMessages = (tree) => nodes(tree, (node) => node.props.role === "status");
+const dipPage = (options) => pageHarness("src/app/dips/page.tsx", options);
+const championsPage = (options) => pageHarness("src/app/winners/page.tsx", options);
+
+test("dip list waits for a read before displaying its actionable empty state", () => {
+  const page = dipPage();
+  const initial = page.render();
+  assert.match(content(statusMessages(initial)), /Gathering the dip lineup/);
+  assert.equal(emptyCards(initial).length, 0);
+  const [unsubscribe] = page.startEffects();
+  page.emitDips([]);
+  const loaded = page.render();
+  assert.equal(statusMessages(loaded).length, 0);
+  const [card] = emptyCards(loaded);
+  assert.ok(card);
+  assert.match(content(card), /The Competition Is Heating Up!/);
+  assert.match(content(card), /But nobody has entered the dip arena yet\. Be the first to bring the flavor!/);
+  assert.equal(nodes(card, (node) => node.type === "soup-icon").length, 1);
+  const [action] = nodes(card, (node) => node.type === "a");
+  assert.equal(action.props.href, "/register/dip");
+  assert.equal(content(action), "Register Your Dip");
+  unsubscribe();
+  assert.equal(page.unsubscribed, true);
+});
+
+test("dip list preserves real registered dips, authors, and notes after loading", () => {
+  const page = dipPage();
+  page.render();
+  page.startEffects();
+  page.emitDips([
+    { id: "queso", data: { name: "Taylor", dip_name: "  Smoky Queso  ", notes: "Contains dairy" } },
+    { id: "rsvp-only", data: { name: "Morgan", dip_name: null } },
+    { id: "hummus", data: { name: "Jordan", dip_name: "Herby Hummus", notes: null } },
+  ]);
+  const tree = page.render();
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+  const records = nodes(tree, (node) => node.type === "li");
+  assert.deepEqual(records.map((record) => record.key), ["queso", "hummus"]);
+  assert.match(content(records[0]), /Smoky Queso/);
+  assert.match(content(records[0]), /by Taylor/);
+  assert.match(content(records[0]), /Contains dairy/);
+  assert.match(content(records[1]), /Herby Hummus/);
+  assert.match(content(records[1]), /by Jordan/);
+  assert.doesNotMatch(content(tree), /Morgan/);
+});
+
+test("dip read failures display an error rather than an invitation to enter an empty lineup", () => {
+  const page = dipPage();
+  page.render();
+  page.startEffects();
+  page.failDips();
+  const tree = page.render();
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+  assert.match(content(tree), /Failed to load dips/);
+  assert.equal(page.errors.length, 1);
+});
+
+test("champions remain in loading state until both collections finish, then show a true empty state", async () => {
+  const page = championsPage();
+  const initial = page.render();
+  assert.match(content(statusMessages(initial)), /Opening the hall of fame/);
+  assert.equal(emptyCards(initial).length, 0);
+  page.startEffects();
+  await page.resolveRead("winners", []);
+  const partial = page.render();
+  assert.equal(emptyCards(partial).length, 0);
+  assert.equal(statusMessages(partial).length, 1);
+  assert.deepEqual(page.reads.map((read) => read.path), ["winners", "historicalDips"]);
+  await page.resolveRead("historicalDips", []);
+  const loaded = page.render();
+  assert.equal(statusMessages(loaded).length, 0);
+  const [card] = emptyCards(loaded);
+  assert.ok(card);
+  assert.match(content(card), /The Legends Are Still Being Written\./);
+  assert.match(content(card), /Every legendary dip has to start somewhere\. Who will claim the crown\?/);
+  assert.equal(nodes(card, (node) => node.type === "trophy-icon").length, 1);
+  assert.equal(nodes(card, (node) => node.type === "a").length, 0);
+});
+
+test("archived dips without winner documents preserve history and suppress the champions empty state", async () => {
+  const page = championsPage();
+  page.render();
+  page.startEffects();
+  await page.resolveRead("winners", []);
+  await page.resolveRead("historicalDips", [
+    { id: "archive-a", data: { archive_year: 2024, dip_name: "Garden Dip", by: "Taylor", notes: "Fresh herbs", votes: 12 } },
+    { id: "archive-b", data: { year: 2023, dip_name: "Classic Queso", by: "Jordan" } },
+  ]);
+  const tree = page.render();
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+  assert.match(content(tree), /2024 Historical Dips/);
+  assert.match(content(tree), /2023 Historical Dips/);
+  assert.match(content(tree), /Garden Dipby TaylorFresh herbs/);
+  assert.match(content(tree), /Classic Quesoby Jordan/);
+  assert.equal(nodes(tree, (node) => node.type === "li").length, 2);
+  assert.equal(nodes(tree, (node) => node.type === "img").length, 0);
+});
+
+test("real winners remain visible with lazy, sized, descriptive images when archived dips are absent", async () => {
+  const page = championsPage();
+  page.render();
+  page.startEffects();
+  await page.resolveRead("winners", [{
+    id: "2025",
+    data: { podium: [{ place: 1, dip_name: "Pepper Party", by: "Casey", image: "/winners/2025-pepper.jpg" }] },
+  }]);
+  await page.resolveRead("historicalDips", []);
+  const tree = page.render();
+  assert.equal(emptyCards(tree).length, 0);
+  assert.match(content(tree), /Dipsgiving 2025/);
+  assert.match(content(tree), /Pepper Partyby Casey/);
+  const [image] = nodes(tree, (node) => node.type === "img");
+  assert.equal(image.props.src, "/winners/2025-pepper.jpg");
+  assert.match(image.props.alt, /Pepper Party.*2025.*Casey/);
+  assert.equal(image.props.loading, "lazy");
+  assert.ok(image.props.width > 0 && image.props.height > 0);
+});
+
+test("a champions read error never claims the historical record is empty", async () => {
+  const page = championsPage();
+  page.render();
+  page.startEffects();
+  await page.failRead("winners");
+  const tree = page.render();
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+  assert.match(content(tree), /Failed to load winners/);
+  assert.equal(page.errors.length, 1);
+});
+
+test("unavailable database configuration ends loading without inventing empty records", () => {
+  for (const makePage of [dipPage, championsPage]) {
+    const page = makePage({ databaseAvailable: false });
+    page.render();
+    page.startEffects();
+    const tree = page.render();
+    assert.equal(emptyCards(tree).length, 0);
+    assert.equal(statusMessages(tree).length, 0);
+    assert.match(content(tree), /Database not available/);
+    assert.equal(page.reads.length, 0);
+  }
+});
+
+test("RSVP and dip registration have distinct headings and icons while reusing the existing form", () => {
+  const cases = [
+    { file: "src/app/register/page.tsx", heading: "You’re Invited to Dipsgiving!", variant: "rsvp", icon: "calendar-icon" },
+    { file: "src/app/register/dip/page.tsx", heading: "Enter the Dip Showdown!", variant: "dip", icon: "trophy-icon" },
+  ];
+  for (const expected of cases) {
+    const page = pageHarness(expected.file);
+    const tree = page.render();
+    const headings = nodes(tree, (node) => node.type === "h1");
+    assert.equal(headings.length, 1);
+    assert.equal(content(headings[0]), expected.heading);
+    assert.ok(tree.props.className.includes(`festival-registration--${expected.variant}`));
+    assert.equal(nodes(tree, (node) => node.type === expected.icon).length, 1);
+    const forms = nodes(tree, (node) => node.type === "existing-registration-form");
+    assert.equal(forms.length, 1);
+    assert.deepEqual(Object.keys(forms[0].props), []);
+    // The page wrappers introduce no replacement fields or extra form.
+    assert.equal(nodes(tree, (node) => ["form", "input", "textarea", "select"].includes(node.type)).length, 0);
+    page.startEffects();
+    assert.deepEqual(page.events.map((event) => event.type), expected.variant === "dip" ? ["open-dip-only"] : []);
+  }
+});

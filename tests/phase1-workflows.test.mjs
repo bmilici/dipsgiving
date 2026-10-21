@@ -10,7 +10,7 @@ import ts from "typescript";
 function componentHarness(file, options = {}) {
   const state = [...(options.state ?? [])];
   const effects = [];
-  const calls = { add: [], transaction: 0, set: [], update: [], errors: [] };
+  const calls = { add: [], transaction: 0, set: [], update: [], errors: [], authSubscribe: 0, anonymousSignIn: 0 };
   const db = { testDatabase: true };
   let hookIndex = 0;
   const react = {
@@ -63,14 +63,21 @@ function componentHarness(file, options = {}) {
       });
     },
   };
-  const auth = { currentUser: { uid: "offline-guest" } };
+  const auth = { currentUser: options.signedOut ? null : { uid: "offline-guest" } };
   const modules = {
     react,
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "firebase/firestore": firestore,
     "firebase/auth": {
-      onAuthStateChanged: () => () => {},
-      signInAnonymously: async () => ({ user: auth.currentUser }),
+      onAuthStateChanged(_auth, callback) {
+        calls.authSubscribe++;
+        callback(auth.currentUser);
+        return () => {};
+      },
+      signInAnonymously: async () => {
+        calls.anonymousSignIn++;
+        return { user: { uid: "offline-guest" } };
+      },
     },
     "@/lib/firebase": { getClientDB: () => db, getClientAuth: () => auth },
     "@/lib/eventSettings": {
@@ -81,6 +88,9 @@ function componentHarness(file, options = {}) {
         votingOpen: options.votingOpen ?? false,
       }),
     },
+    "@/lib/testingMode": { isTestingMode: options.testingMode ?? false },
+    "@/components/EmptyState": "empty-state",
+    "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
   };
   const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
@@ -101,6 +111,7 @@ function componentHarness(file, options = {}) {
       return modules[name];
     },
     console: { error: (...args) => calls.errors.push(args) },
+    window: { addEventListener() {}, removeEventListener() {} },
     FormData: class {
       constructor(form) { this.values = form.values; }
       get(name) { return this.values[name] ?? null; }
@@ -319,4 +330,72 @@ test("dip listing displays snapshot data and excludes registrations without a di
   assert.doesNotMatch(content(tree), /Other guest/);
   assert.equal(list.calls.add.length, 0);
   assert.equal(list.calls.transaction, 0);
+});
+
+test("preview RSVP and dip-only forms prevent submit events and never expose their real handler", async () => {
+  const form = componentHarness("src/components/InlineRegisterForm.tsx", { testingMode: true });
+  for (const dipOnly of [false, true]) {
+    if (dipOnly) button(form.render(), "Add a Dip").props.onClick();
+    const tree = form.render();
+    const submitButton = nodes(tree, (node) => node.type === "button" && node.props.type === "submit")[0];
+    const formNode = nodes(tree, (node) => node.type === "form")[0];
+    assert.equal(submitButton.props.disabled, true);
+    assert.equal(formNode.props.onSubmit, undefined);
+    let prevented = false;
+    await formNode.props.onSubmitCapture({ preventDefault() { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.match(content(tree), /Submissions are disabled/);
+  }
+  assert.equal(form.calls.add.length, 0);
+  assert.equal(form.calls.transaction, 0);
+});
+
+test("preview voting never authenticates or exposes click handlers even when voting is open", async () => {
+  const vote = voting({ testingMode: true, signedOut: true });
+  const tree = vote.render();
+  for (const row of dipRows) {
+    const control = dipButton(tree, row.id);
+    assert.equal(control.props.disabled, true);
+    assert.equal(control.props.onClick, undefined);
+  }
+  for (const effect of [...vote.effects]) await effect();
+  assert.equal(vote.calls.authSubscribe, 0);
+  assert.equal(vote.calls.anonymousSignIn, 0);
+  assert.equal(vote.calls.transaction, 0);
+  assert.equal(vote.calls.add.length, 0);
+  assert.equal(vote.calls.set.length, 0);
+  assert.equal(vote.calls.update.length, 0);
+  assert.match(content(tree), /Voting is disabled/);
+});
+
+test("normal voting still initializes anonymous authentication for an unsigned guest", async () => {
+  const vote = voting({ signedOut: true });
+  vote.render();
+  await vote.effects[0]();
+  assert.equal(vote.calls.authSubscribe, 1);
+  assert.equal(vote.calls.anonymousSignIn, 1);
+});
+
+test("dip empty state waits for reads to settle and links to dip registration", () => {
+  const list = componentHarness("src/app/dips/page.tsx");
+  assert.equal(nodes(list.render(), (node) => node.type === "empty-state").length, 0);
+  for (const effect of [...list.effects]) effect();
+  const empty = nodes(list.render(), (node) => node.type === "empty-state")[0];
+  assert.equal(empty.props.title, "The Competition Is Heating Up!");
+  assert.equal(empty.props.action.href, "/register/dip");
+  const error = componentHarness("src/app/dips/page.tsx", { state: [[], "Read failed", false] });
+  assert.equal(nodes(error.render(), (node) => node.type === "empty-state").length, 0);
+});
+
+test("champion empty state appears only when both current and historical records are absent", () => {
+  const empty = componentHarness("src/app/winners/page.tsx", { state: [[], [], null, false] });
+  const card = nodes(empty.render(), (node) => node.type === "empty-state")[0];
+  assert.equal(card.props.title, "The Legends Are Still Being Written.");
+
+  const historical = componentHarness("src/app/winners/page.tsx", {
+    state: [[], [{ id: "historic", archive_year: 2024, dip_name: "Real Champion", by: "Actual Guest" }], null, false],
+  });
+  const tree = historical.render();
+  assert.equal(nodes(tree, (node) => node.type === "empty-state").length, 0);
+  assert.match(content(tree), /Real Champion/);
 });

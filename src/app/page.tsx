@@ -6,6 +6,7 @@ import { ArrowRight, ArrowUpRight, CalendarDays, Clock3, MapPin, MessageCircle, 
 import EventCountdown from "@/components/EventCountdown";
 import Sponsors from "@/components/Sponsors";
 import { useEventSettings } from "@/lib/eventSettings";
+import { testingAssetPath } from "@/lib/testingMode";
 
 const quickLinks = [
   { href: "/dips", label: "The Dip Lineup", description: "Check out the competition.", Icon: Soup, number: "01" },
@@ -25,33 +26,33 @@ export default function Page() {
   return (
     <main>
       <section className="festival-paper relative border-b border-border" aria-labelledby="hero-heading">
-        <div className="festival-container grid items-center gap-4 pb-9 pt-10 sm:pb-14 sm:pt-16 lg:grid-cols-[1.15fr_1fr] lg:gap-0 lg:pb-16 lg:pt-20">
-          <div className="festival-entrance relative z-10 text-center lg:text-left">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-700">
+        <div className="festival-container festival-hero-layout">
+          <div className="festival-entrance festival-hero-copy">
+            <p className="festival-anniversary-badge">
               <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> {annualLabel} <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
             </p>
-            <h1 id="hero-heading" className="break-words font-display text-[clamp(2.6rem,7.2vw,5.75rem)] leading-[1] tracking-[-0.045em] text-forest uppercase">{heroTitle}</h1>
-            <p className="mt-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-tight text-primary">The Ultimate Dip Showdown</p>
-            <p className="mx-auto mt-5 max-w-md text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0">Bring a bathing suit and a dip. We have the booze and dippers.</p>
+            <h1 id="hero-heading" className="festival-hero-title font-display text-forest uppercase">{heroTitle}</h1>
+            <p className="mt-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-tight text-primary text-balance">The Ultimate Dip Showdown</p>
+            <p className="mx-auto mt-4 max-w-md text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0">Bring a bathing suit and a dip. We have the booze and dippers.</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-semibold text-forest lg:justify-start">
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" />{eventSettings.dateLabel}</span>
               <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4 text-primary" aria-hidden="true" />{eventSettings.timeLabel} ET</span>
             </div>
-            <div className="mx-auto mt-8 flex max-w-md flex-col gap-3 min-[400px]:flex-row min-[400px]:justify-center lg:mx-0 lg:justify-start">
+            <div className="festival-hero-actions">
               <Link href="/register" className="festival-button">RSVP NOW <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" /></Link>
               <Link href="/register/dip" className="festival-button-secondary">REGISTER YOUR DIP</Link>
             </div>
           </div>
-          <div className="festival-entrance relative mx-auto w-full max-w-[470px] lg:max-w-none">
-            <Image src="/illustrations/dip-table.svg" alt="Illustrated bowls of queso, buffalo chicken dip, and green dip with tortilla chips on a picnic cloth" width={600} height={550} priority sizes="(min-width: 1024px) 46vw, (min-width: 640px) 470px, 92vw" className="h-auto w-full" />
-            <div aria-hidden="true" className="absolute right-[2%] top-[8%] flex h-24 w-24 rotate-12 flex-col items-center justify-center rounded-full border-2 border-forest bg-gold text-center font-display text-lg leading-tight text-forest shadow-[3px_3px_0_#324F3C] sm:h-28 sm:w-28 sm:text-xl">Big dips.<br />Bigger<br />bragging rights.</div>
+          <div className="festival-entrance festival-hero-art">
+            <Image src={testingAssetPath("/illustrations/dip-table.svg")} alt="Illustrated bowls of queso, buffalo chicken dip, and green dip with tortilla chips on a picnic cloth" width={600} height={510} priority sizes="(min-width: 1280px) 540px, (min-width: 1024px) 46vw, (min-width: 640px) 500px, 92vw" className="relative z-10 h-auto w-full" />
+            <div aria-hidden="true" className="festival-hero-stamp">Big dips.<br />Bigger<br />bragging rights.</div>
           </div>
         </div>
       </section>
 
       <EventCountdown />
 
-      <section className="bg-background py-12 sm:py-16" aria-labelledby="competition-heading">
+      <section className="festival-section bg-background" aria-labelledby="competition-heading">
         <div className="festival-container">
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div><p className="festival-kicker">A little friendly competition</p><h2 id="competition-heading" className="mt-2 text-3xl text-forest sm:text-4xl">Every dip has its day.</h2></div>
@@ -70,7 +71,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="bg-forest py-14 text-cream sm:py-20" aria-labelledby="details-heading">
+      <section className="festival-section bg-forest text-cream" aria-labelledby="details-heading">
         <div className="festival-container grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-20">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.17em] text-cream">Come hungry. Leave legendary.</p>

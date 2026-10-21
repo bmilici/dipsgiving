@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { Soup } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { getClientDB } from "@/lib/firebase";
 
 type DipRow = {
@@ -15,12 +17,14 @@ type DipRow = {
 export default function DipListPage() {
   const [dips, setDips] = useState<DipRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const db = getClientDB();
     if (!db) {
       // Avoid TS error + avoid calling Firestore without an instance
       setError("Database not available. Check Firebase config.");
+      setIsLoading(false);
       return;
     }
 
@@ -48,10 +52,12 @@ export default function DipListPage() {
           }
         });
         setDips(rows);
+        setIsLoading(false);
       },
       (err) => {
         console.error(err);
         setError("Failed to load dips. Please try again later.");
+        setIsLoading(false);
       }
     );
 
@@ -61,7 +67,7 @@ export default function DipListPage() {
   return (
     <main className="festival-page">
       <div className="festival-container">
-        <header className="festival-page-heading mx-auto mb-10 max-w-2xl">
+        <header className="festival-page-heading">
           <p className="festival-kicker mb-3">Meet the competition</p>
           <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
             The Dip Lineup
@@ -77,16 +83,26 @@ export default function DipListPage() {
           </div>
         )}
 
-        {!error && dips.length === 0 ? (
-          <p className="festival-card mx-auto max-w-2xl px-6 py-12 text-center leading-relaxed text-muted-foreground">
-            No dips are registered for the next Dipsgiving yet.
+        {isLoading && (
+          <p className="py-8 text-center text-sm text-muted-foreground" role="status">
+            Gathering the dip lineup…
           </p>
+        )}
+
+        {!isLoading && !error && dips.length === 0 ? (
+          <EmptyState
+            variant="dips"
+            title="The Competition Is Heating Up!"
+            description="But nobody has entered the dip arena yet. Be the first to bring the flavor!"
+            icon={Soup}
+            action={{ href: "/register/dip", label: "Register Your Dip" }}
+          />
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {dips.map((d) => (
               <li
                 key={d.id}
-                className="festival-card min-w-0 p-6 transition-transform duration-200 motion-safe:hover:-translate-y-1"
+                className="festival-card festival-lift min-w-0 p-6"
               >
                 <h2 className="break-words font-display text-2xl leading-snug text-foreground">
                   {d.dip_name}

@@ -5,8 +5,8 @@ import { siteNavigation } from "@/lib/siteNavigation";
 export default function Footer() {
   return (
     <footer className="border-t-4 border-gold bg-forest text-cream">
-      <div className="mx-auto max-w-6xl px-5 pb-7 pt-12 sm:px-8 sm:pt-14">
-        <div className="flex flex-col gap-8 border-b border-cream/20 pb-9 md:flex-row md:items-start md:justify-between md:gap-12">
+      <div className="festival-container pb-6 pt-10 sm:pb-7 sm:pt-12">
+        <div className="flex flex-col gap-7 border-b border-cream/20 pb-7 md:flex-row md:items-start md:justify-between md:gap-12">
           <div>
             <Link
               href="/"
@@ -16,7 +16,7 @@ export default function Footer() {
               Dipsgiving<span aria-hidden="true" className="ml-0.5 text-gold">.</span>
             </Link>
             <p className="mt-3 text-sm text-cream/85 sm:text-base">
-              Made with love, served with chips.
+              Made with love. Served with chips.
             </p>
           </div>
 
