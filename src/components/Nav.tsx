@@ -50,7 +50,7 @@ export default function Nav() {
             className="inline-flex min-h-11 items-center rounded-lg font-display text-3xl tracking-tight transition-colors hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold sm:text-[2.1rem]"
             aria-label="Dipsgiving home"
           >
-            Dipsgiving<span aria-hidden="true" className="ml-0.5 text-gold">.</span>
+            Dipsgiving
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">

@@ -13,7 +13,7 @@ export default function Footer() {
               aria-label="Dipsgiving home"
               className="inline-flex min-h-11 items-center rounded-lg font-display text-4xl tracking-tight transition-colors hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
             >
-              Dipsgiving<span aria-hidden="true" className="ml-0.5 text-gold">.</span>
+              Dipsgiving
             </Link>
             <p className="mt-3 text-sm text-cream/85 sm:text-base">
               Made with love. Served with chips.
@@ -34,7 +34,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2 pt-6 text-xs text-cream/75 sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-          <p>© {EVENT_YEAR} Dipsgiving.</p>
+          <p>© {EVENT_YEAR} Dipsgiving</p>
           <p className="text-cream/85">Good friends. Great dips. Bragging rights.</p>
         </div>
       </div>
