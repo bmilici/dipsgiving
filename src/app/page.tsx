@@ -7,17 +7,23 @@ import { MapPin, MessageCircle } from "lucide-react";
 
 export default function Page() {
   const eventSettings = useEventSettings();
+  const annualLabel = eventSettings.eventNumberLabel.trim();
+  const eventName = eventSettings.eventName.trim();
+  const repeatedPrefix = `${annualLabel} `;
+  const heroTitle = annualLabel && eventName.toLowerCase().startsWith(repeatedPrefix.toLowerCase())
+    ? eventName.slice(repeatedPrefix.length).trim() || eventName
+    : eventName;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
       {/* Hero */}
       <section className="relative mx-auto max-w-4xl px-4 py-12 sm:py-16 lg:py-20">
         <div className="text-center mb-8">
-          <p className="mb-3 text-sm font-medium uppercase tracking-widest text-orange-600">
-            {eventSettings.eventNumberLabel}
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-orange-600">
+            {annualLabel}
           </p>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl lg:text-6xl text-balance">
-            {eventSettings.eventName}
+          <h1 className="mb-6 text-[clamp(2.75rem,10.5vw,6.5rem)] font-extrabold leading-[1.04] tracking-[-0.045em] break-words text-orange-900">
+            {heroTitle}
           </h1>
           <p className="text-lg text-orange-700/80 max-w-md mx-auto">
             Bring a bathing suit and a dip. We have the booze and dippers.
@@ -37,13 +43,13 @@ export default function Page() {
         <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <Link
             href="/register"
-            className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-orange-700 hover:shadow-lg transition-all active:scale-[0.98]"
+            className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-sm transition-colors hover:bg-orange-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
           >
             RSVP Now
           </Link>
           <Link
             href="/register/dip"
-            className="inline-flex items-center justify-center rounded-xl bg-transparent px-8 py-4 text-lg font-semibold text-orange-700 border border-orange-300 hover:bg-orange-100/60 hover:border-orange-400 transition-all active:scale-[0.98]"
+            className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-lg font-semibold text-orange-700 underline decoration-orange-300 underline-offset-8 transition-colors hover:text-orange-900 hover:decoration-orange-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600"
           >
             Register Your Dip
           </Link>
@@ -64,7 +70,7 @@ export default function Page() {
 
           {/* Details Grid */}
           <div className="grid gap-8 sm:grid-cols-2 sm:gap-12 max-w-2xl mx-auto">
-            {/* Location Card */}
+            {/* Location */}
             <a
               href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913"
               target="_blank"
@@ -88,7 +94,7 @@ export default function Page() {
               </div>
             </a>
 
-            {/* Contact Card */}
+            {/* Contact */}
             <a
               href="sms:+13016611626"
               className="group flex items-start gap-4 border-t border-white/20 pt-6 transition-colors hover:border-amber-300/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300"
