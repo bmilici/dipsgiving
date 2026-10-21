@@ -30,7 +30,7 @@ These export-only changes do not alter the original production form or voting so
 
 ## Rebuild
 
-`build-testing-preview.mjs` pins the reviewed source revision `b750b84312e78059872eb42d8300120fcebebbc3`. To rebuild it:
+`build-testing-preview.mjs` pins the reviewed source revision `e8b86d163a57269dde39a7cdba7440a4b41170ae`. To rebuild it:
 
 ```sh
 node scripts/build-testing-preview.mjs \

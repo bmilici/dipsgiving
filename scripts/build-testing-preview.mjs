@@ -30,7 +30,7 @@ const publicKeys = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
   'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
 ];
-const settings = { sourceRef: 'b750b84', envDir: undefined, dependencies: undefined };
+const settings = { sourceRef: 'e8b86d1', envDir: undefined, dependencies: undefined };
 const flagNames = new Map([
   ['--source-ref', 'sourceRef'],
   ['--env-dir', 'envDir'],
@@ -40,7 +40,7 @@ const flagNames = new Map([
 for (let index = 2; index < process.argv.length; index += 1) {
   const flag = process.argv[index];
   if (flag === '--help' || flag === '-h') {
-    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref b750b84] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
+    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref e8b86d1] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
     process.exit(0);
   }
   const name = flagNames.get(flag);
