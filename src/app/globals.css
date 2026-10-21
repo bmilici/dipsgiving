@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* The standalone preview ships its own styles. */
+@source not "../../public/Testing";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

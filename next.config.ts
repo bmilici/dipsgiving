@@ -6,9 +6,30 @@ const nextConfig: NextConfig = {
     // ⚠️ Temporarily ignore ESLint errors in production builds
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    return [
+      {
+        source: "/Testing/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/Testing.txt",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   async rewrites() {
     return {
-      beforeFiles: [],
+      beforeFiles: [
+        { source: "/Testing", destination: "/Testing/index.html" },
+        { source: "/Testing/register", destination: "/Testing/register.html" },
+        { source: "/Testing/register/dip", destination: "/Testing/register/dip.html" },
+        { source: "/Testing/dips", destination: "/Testing/dips.html" },
+        { source: "/Testing/vote", destination: "/Testing/vote.html" },
+        { source: "/Testing/winners", destination: "/Testing/winners.html" },
+        // Exported App Router navigation fetches the homepage payload here.
+        { source: "/Testing.txt", destination: "/Testing/index.txt" },
+      ],
       afterFiles: [
         {
           source: "/NicoGames",
