@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
-import { Cinzel, Geist, Geist_Mono, Inter, Libre_Franklin } from "next/font/google";
+import { Bree_Serif, Cinzel, DM_Sans, Geist_Mono, Inter, Libre_Franklin } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/Nav"; // ⬅️ bring back the top tabs
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+import { EVENT_YEAR } from "@/lib/eventSchedule";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const breeSerif = Bree_Serif({
+  variable: "--font-bree-serif",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -35,8 +45,8 @@ const SITE = "https://dipsgiving.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: "Dipsgiving",
-  description: "Official Dipsgiving site — date and time TBD.",
+  title: "Dipsgiving — The Ultimate Dip Showdown",
+  description: `Join the 5th Annual Dipsgiving on December 5, ${EVENT_YEAR} at 4 PM in Fort Myers, Florida. Bring a dip, taste the competition, and cheer on your favorites.`,
   icons: {
     icon: [
       { url: "/favicon-dipsgiving.ico" },
@@ -56,7 +66,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Dipsgiving — 5th Annual Celebration of Dips",
+        alt: "Dipsgiving — The Ultimate Dip Showdown",
       },
     ],
     locale: "en_US",
@@ -78,12 +88,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${libreFranklin.variable} ${inter.variable} antialiased bg-amber-50 text-orange-900`}
+        className={`${dmSans.variable} ${breeSerif.variable} ${geistMono.variable} ${cinzel.variable} ${libreFranklin.variable} ${inter.variable} antialiased bg-background text-foreground`}
       >
-        {/* Global tabs: About / RSVP / Register / Dip List */}
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-5 focus:py-3 focus:text-espresso">Skip to content</a>
         <Nav />
-
-        {children}
+        <div id="main-content" tabIndex={-1}>{children}</div>
+        <Footer />
       </body>
     </html>
   );

@@ -1,85 +1,104 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { siteNavigation } from "@/lib/siteNavigation";
 
 export default function Nav() {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const [openPathname, setOpenPathname] = useState<string | null>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const open = openPathname === pathname;
 
-  const links = [
-    { href: "/", label: "Home" },
-    { href: "/register", label: "RSVP" },
-    { href: "/register/dip", label: "Register Dip" },
-    { href: "/dips", label: "Dip List" },
-    { href: "/vote", label: "Vote" },
-    { href: "/winners", label: "Champions" },
-  ];
+  useEffect(() => {
+    setOpenPathname(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setOpenPathname(null);
+      menuButton.current?.focus();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
+  function linkClass(href: string, mobile = false) {
+    const active = pathname === href;
+    const base = `inline-flex min-h-11 items-center rounded-full px-4 py-2.5 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold ${mobile ? "w-full justify-center" : "justify-center"}`;
+
+    if (href === "/register") {
+      return `${base} bg-burnt-orange text-white hover:bg-[#9f3f25] ${active ? "ring-2 ring-gold ring-offset-2 ring-offset-forest" : ""}`;
+    }
+
+    return `${base} ${active ? "bg-cream/10 text-cream underline decoration-gold decoration-2 underline-offset-8" : "text-cream hover:bg-cream/10 hover:underline hover:decoration-gold hover:underline-offset-8"}`;
+  }
 
   return (
-    <nav className="sticky top-0 z-50 bg-orange-800/95 backdrop-blur-sm text-amber-50 shadow-lg">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-6">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-xl font-bold tracking-wide hover:text-amber-200 transition-colors"
-        >
-          Dipsgiving
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-cream/15 bg-forest text-cream shadow-[0_3px_18px_rgba(43,36,32,0.08)]">
+      <nav aria-label="Main navigation" className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="flex min-h-20 items-center justify-between gap-4">
+          <Link
+            href="/"
+            onClick={() => setOpenPathname(null)}
+            className="inline-flex min-h-11 items-center rounded-lg font-display text-3xl tracking-tight transition-colors hover:text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold sm:text-[2.1rem]"
+            aria-label="Dipsgiving home"
+          >
+            Dipsgiving<span aria-hidden="true" className="ml-0.5 text-gold">.</span>
+          </Link>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="lg:hidden p-2 rounded-lg hover:bg-orange-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-200/50"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
-          aria-expanded={open}
-        >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+          <div className="hidden items-center gap-1 lg:flex">
+            {siteNavigation.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={pathname === link.href ? "page" : undefined}
+                className={linkClass(link.href)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
-        {/* Desktop Links */}
-        <div className="hidden lg:flex items-center gap-1">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                pathname === link.href
-                  ? "bg-amber-200/20 text-amber-200"
-                  : "hover:bg-orange-700/50 hover:text-amber-200"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <button
+            ref={menuButton}
+            type="button"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-cream/30 transition-colors hover:border-gold hover:bg-cream/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold lg:hidden"
+            onClick={() => setOpenPathname(open ? null : pathname)}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
+          >
+            {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+          </button>
         </div>
-      </div>
 
-      {/* Mobile Dropdown */}
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="bg-orange-700/90 backdrop-blur-sm px-4 py-3 space-y-1 border-t border-orange-600/50">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className={`block px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                pathname === link.href
-                  ? "bg-amber-200/20 text-amber-200"
-                  : "text-amber-50 hover:bg-orange-600/50 hover:text-amber-200"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div
+          id="mobile-navigation"
+          hidden={!open}
+          className={`${open ? "festival-menu-enter" : ""} border-t border-cream/15 pb-5 pt-4 lg:hidden`}
+        >
+          <div className="grid gap-2 sm:grid-cols-2">
+            {siteNavigation.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setOpenPathname(null)}
+                aria-current={pathname === link.href ? "page" : undefined}
+                className={linkClass(link.href, true)}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

@@ -1,55 +1,37 @@
 import Image from "next/image";
+import { HeartHandshake } from "lucide-react";
 
-export default function Sponsors() {
-  const sponsors = [
-    {
-      name: "Point Ybel Brewing",
-      url: "https://pointybelbrew.com/",
-      logo: "/sponsors/pointybelbrew.png",
-    },
-    {
-      name: "One Fresh Hat",
-      url: "https://www.onefreshhat.com/",
-      logo: "/sponsors/onefreshhat.png",
-    },
-    {
-      name: "A T PRECISION PRESSURE WASHING 239-219-9513",
-      url: "https://atppw.com/",
-      logo: "/sponsors/AT.png",
-    },
-  ];
+type Sponsor = { name: string; url: string; logo: string };
 
+const defaultSponsors: readonly Sponsor[] = [
+  { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
+  { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
+  { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
+];
+
+export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: readonly Sponsor[] }) {
   return (
-    <section className="bg-gradient-to-b from-amber-50 to-orange-50 py-10 sm:py-12">
-      <div className="mx-auto max-w-5xl px-4 text-center">
-        <p className="mb-1 text-xs font-medium uppercase tracking-widest text-orange-600">
-          Thank You To
-        </p>
-        <h2 className="mb-6 text-xl font-semibold text-orange-900 sm:mb-8 sm:text-2xl">
-          Our Sponsors
-        </h2>
-
-        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-4 sm:gap-8">
-          {sponsors.map((s) => (
-            <a
-              key={s.name}
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex h-28 w-32 items-center justify-center rounded-lg p-2 transition-colors hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600 sm:h-32 sm:w-44 sm:p-3"
-            >
-              <span className="relative block h-full w-full">
-                <Image
-                  src={s.logo}
-                  alt={s.name}
-                  fill
-                  sizes="(min-width: 640px) 152px, 112px"
-                  className="object-contain opacity-90 transition-opacity group-hover:opacity-100"
-                />
-              </span>
-            </a>
-          ))}
+    <section className="border-t border-border bg-background py-12 sm:py-16" aria-labelledby="sponsors-heading">
+      <div className="festival-container">
+        <div className="mb-8 text-center">
+          <p className="festival-kicker">A little local love</p>
+          <h2 id="sponsors-heading" className="mt-2 text-3xl text-forest sm:text-4xl">Good company. Great supporters.</h2>
         </div>
+        {sponsors.length ? (
+          <div className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
+            {sponsors.map(sponsor => (
+              <a key={sponsor.name} href={sponsor.url} target="_blank" rel="noopener noreferrer" className="festival-card festival-lift flex h-32 items-center justify-center p-5 sm:h-36 sm:p-6">
+                <Image src={sponsor.logo} alt={sponsor.name} width={180} height={88} sizes="(max-width: 639px) 180px, 180px" className="h-20 w-full object-contain" />
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="festival-card mx-auto max-w-xl px-6 py-8 text-center">
+            <HeartHandshake className="mx-auto mb-3 h-8 w-8 text-primary" aria-hidden="true" />
+            <h3 className="text-xl text-forest">There’s room at the table.</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Sponsor announcements will appear here. Thanks for being part of Dipsgiving.</p>
+          </div>
+        )}
       </div>
     </section>
   );

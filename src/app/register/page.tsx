@@ -1,19 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import InlineRegisterForm from "../../components/InlineRegisterForm";
 
 export default function RegisterPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50">
-      <section className="mx-auto max-w-4xl px-4 py-10">
-        <h2 className="mb-4 text-3xl font-bold text-orange-900 text-center">
-          RSVP for Dipsgiving
-        </h2>
-
-        <p className="mb-6 text-center text-orange-800/80">
-          Before submitting your dip, please check the Dip List below to make sure no one has already registered the same dip. Let’s keep the table diverse!
-        </p>
+    <main className="festival-page">
+      <section className="festival-container">
+        <header className="festival-page-heading mx-auto mb-10 max-w-2xl">
+          <p className="festival-kicker mb-3">A seat at the table</p>
+          <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
+            RSVP for Dipsgiving
+          </h1>
+          <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+            Before submitting your dip, please check the Dip List below to make sure no one has already registered the same dip. Let’s keep the table diverse!
+          </p>
+        </header>
 
         <InlineRegisterForm />
       </section>

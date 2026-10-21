@@ -64,55 +64,55 @@ function Podium({
   const [first, second, third] = top3;
 
   return (
-    <section className="rounded-2xl border border-orange-200 bg-white/80 p-5 shadow-sm">
-      <h2 className="text-xl font-semibold text-orange-900 text-center mb-4">
+    <section className="festival-card p-4 sm:p-7">
+      <h2 className="mb-6 text-center font-display text-2xl text-foreground sm:text-3xl">
         Current Top 3 Dips
       </h2>
 
-      <div className="grid grid-cols-3 gap-3 items-end">
+      <div className="grid grid-cols-3 items-end gap-2 sm:gap-4">
         {/* 2nd */}
-        <div className="text-center">
+        <div className="min-w-0 text-center">
           <div className="text-3xl">🥈</div>
-          <div className="mt-1 rounded-xl bg-amber-100 p-3 min-h-[90px] flex flex-col justify-center">
-            <div className="font-semibold text-orange-900 text-sm sm:text-base">
+          <div className="mt-2 flex min-h-32 flex-col justify-center rounded-xl bg-background px-2 py-4 sm:px-4">
+            <div className="break-words font-display text-base text-foreground sm:text-xl">
               {second?.dip_name}
             </div>
-            <div className="text-xs text-orange-700/80">
+            <div className="mt-1 break-words text-xs text-muted-foreground">
               {second?.name ? `by ${second.name}` : "by guest"}
             </div>
-            <div className="mt-1 text-sm font-bold text-orange-800">
+            <div className="mt-3 text-sm font-bold text-orange-700">
               {second?.votes ?? 0} votes
             </div>
           </div>
         </div>
 
         {/* 1st */}
-        <div className="text-center">
+        <div className="min-w-0 text-center">
           <div className="text-4xl">🥇</div>
-          <div className="mt-1 rounded-xl bg-orange-100 p-4 min-h-[120px] flex flex-col justify-center border-2 border-orange-300">
-            <div className="font-extrabold text-orange-900 text-base sm:text-lg">
+          <div className="mt-2 flex min-h-40 flex-col justify-center rounded-xl border-2 border-gold bg-gold/20 px-2 py-5 sm:px-4">
+            <div className="break-words font-display text-lg text-foreground sm:text-2xl">
               {first?.dip_name}
             </div>
-            <div className="text-xs text-orange-700/80">
+            <div className="mt-1 break-words text-xs text-muted-foreground">
               {first?.name ? `by ${first.name}` : "by guest"}
             </div>
-            <div className="mt-1 text-base font-extrabold text-orange-800">
+            <div className="mt-3 text-sm font-bold text-orange-700 sm:text-base">
               {first?.votes ?? 0} votes
             </div>
           </div>
         </div>
 
         {/* 3rd */}
-        <div className="text-center">
+        <div className="min-w-0 text-center">
           <div className="text-3xl">🥉</div>
-          <div className="mt-1 rounded-xl bg-yellow-100 p-3 min-h-[90px] flex flex-col justify-center">
-            <div className="font-semibold text-orange-900 text-sm sm:text-base">
+          <div className="mt-2 flex min-h-32 flex-col justify-center rounded-xl bg-background px-2 py-4 sm:px-4">
+            <div className="break-words font-display text-base text-foreground sm:text-xl">
               {third?.dip_name}
             </div>
-            <div className="text-xs text-orange-700/80">
+            <div className="mt-1 break-words text-xs text-muted-foreground">
               {third?.name ? `by ${third.name}` : "by guest"}
             </div>
-            <div className="mt-1 text-sm font-bold text-orange-800">
+            <div className="mt-3 text-sm font-bold text-orange-700">
               {third?.votes ?? 0} votes
             </div>
           </div>
@@ -268,19 +268,20 @@ export default function VotePage() {
   const top3 = dips.slice(0, 3);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
-      <div className="mx-auto max-w-5xl px-4 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-orange-900">
+    <main className="festival-page">
+      <div className="festival-container space-y-6">
+        <header className="festival-page-heading mx-auto mb-10 max-w-2xl">
+          <p className="festival-kicker mb-3">A taste of glory</p>
+          <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
             Vote for Best Dip
           </h1>
-          <Link href="/" className="text-sm text-orange-700 underline">
+          <Link href="/" className="mt-4 inline-flex min-h-11 items-center rounded-md text-sm font-semibold text-orange-700 underline underline-offset-4 transition-colors hover:text-foreground">
             Back to About
           </Link>
-        </div>
+        </header>
 
         {!votingOpen && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+          <div className="rounded-2xl border border-gold/60 bg-gold/15 px-5 py-4 text-sm leading-relaxed text-foreground sm:text-base">
             Voting opens after Dipsgiving starts. Date and time are{" "}
             <strong>
               {eventSettings.dateLabel}
@@ -292,38 +293,38 @@ export default function VotePage() {
         {/* ✅ Top 3 podium (only after at least 1 vote exists) */}
         {showPodium && top3.length > 0 && <Podium top3={top3} />}
 
-        <div className="rounded-xl border border-orange-200 bg-white/70 p-4">
-          <div className="text-orange-900 font-semibold">
+        <div className="festival-card px-5 py-5 sm:px-7">
+          <div className="font-display text-2xl text-foreground">
             Your votes used: {myVotes.length} / 3
           </div>
-          <div className="text-sm text-orange-700/80">
+          <div className="mt-1 text-sm leading-relaxed text-muted-foreground">
             You can vote for up to three different dips.
           </div>
         </div>
 
         {status && (
-          <div className="rounded-xl border border-orange-200 bg-white/70 p-3 text-orange-900">
+          <div className="festival-card px-5 py-4 text-sm text-foreground" aria-live="polite">
             {status}
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           {dips.map((d) => {
             const alreadyVoted = myVotes.includes(d.id);
             return (
               <div
                 key={d.id}
-                className="rounded-2xl border border-orange-200 bg-white/80 p-4 shadow-sm"
+                className="festival-card min-w-0 p-5 sm:p-7"
               >
-                <div className="text-lg font-semibold text-orange-900">
+                <h2 className="break-words font-display text-2xl leading-snug text-foreground">
                   {d.dip_name}
-                </div>
-                <div className="text-xs text-orange-700/70">
+                </h2>
+                <div className="mt-2 text-sm text-muted-foreground">
                   {d.name ? `by ${d.name}` : "by RSVP’d guest"}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between">
-                  <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+                  <span className="rounded-full bg-background px-3 py-2 text-sm font-semibold text-orange-700">
                     {d.votes ?? 0} vote{(d.votes ?? 0) === 1 ? "" : "s"}
                   </span>
 
@@ -335,16 +336,16 @@ export default function VotePage() {
                       busyId === d.id
                     }
                     onClick={() => voteFor(d.id)}
-                    className={`rounded-xl px-3 py-1.5 text-sm font-medium transition
+                    className={`min-h-12 min-w-24 rounded-xl px-5 py-3 text-sm font-bold transition-colors disabled:cursor-not-allowed
                       ${
                         !authReady ||
                         !votingOpen ||
                         (!alreadyVoted && myVotes.length >= 3) ||
                         busyId === d.id
-                          ? "bg-orange-300 text-white/80"
+                          ? "bg-primary/15 text-espresso/60"
                           : alreadyVoted
-                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                          : "bg-orange-600 text-white hover:bg-orange-700"
+                          ? "bg-forest text-white hover:bg-forest/90"
+                          : "bg-primary text-white hover:bg-orange-700"
                       }`}
                   >
                     {busyId === d.id
@@ -362,7 +363,7 @@ export default function VotePage() {
         </div>
 
         {!dips.length && (
-          <div className="rounded-xl border border-orange-200 bg-white/60 p-4 text-orange-800/80">
+          <div className="festival-card px-6 py-12 text-center leading-relaxed text-muted-foreground">
             No dips are registered for the next Dipsgiving yet.
           </div>
         )}

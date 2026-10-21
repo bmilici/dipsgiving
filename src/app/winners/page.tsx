@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 
 type PodiumEntry = {
@@ -107,14 +107,17 @@ export default function HistoricDipChampions() {
     .sort((a, b) => b - a);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
-      <div className="mx-auto max-w-5xl px-4 space-y-10">
-        <h1 className="text-4xl font-extrabold text-center text-orange-900">
-          Historic Dip Champions
-        </h1>
-        <p className="text-center text-orange-800/80">
-          A legendary archive of Dipsgiving greatness.
-        </p>
+    <main className="festival-page">
+      <div className="festival-container space-y-10">
+        <header className="festival-page-heading mx-auto mb-12 max-w-2xl">
+          <p className="festival-kicker mb-3">The hall of fame</p>
+          <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
+            Historic Dip Champions
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            A legendary archive of Dipsgiving greatness.
+          </p>
+        </header>
 
         {error && (
           <p className="text-red-700 bg-red-100 border border-red-300 p-3 rounded-lg text-center">
@@ -123,7 +126,7 @@ export default function HistoricDipChampions() {
         )}
 
         {years.length === 0 && !error && (
-          <p className="text-center text-orange-700/90">
+          <p className="festival-card mx-auto max-w-2xl px-6 py-12 text-center leading-relaxed text-muted-foreground">
             No champions yet — the hall awaits its first legends.
           </p>
         )}
@@ -131,22 +134,22 @@ export default function HistoricDipChampions() {
         {years.map((year) => (
           <section
             key={year.id}
-            className="bg-white/70 border border-amber-200 rounded-xl p-6 space-y-6"
+            className="festival-card space-y-7 p-5 sm:p-8"
           >
-            <h2 className="text-3xl font-bold text-orange-900">
+            <h2 className="border-b border-border pb-5 font-display text-3xl text-foreground sm:text-4xl">
               Dipsgiving {year.id}
             </h2>
 
             {/* Podium */}
-            <div className="grid sm:grid-cols-3 gap-6 text-center">
+            <div className="grid gap-4 text-center sm:grid-cols-3">
               {year.podium
                 .sort((a, b) => a.place - b.place)
                 .map((entry) => (
                   <div
                     key={entry.place}
-                    className="p-4 rounded-lg border border-orange-200 bg-orange-50/50"
+                    className="min-w-0 rounded-2xl border border-gold/40 bg-background p-5"
                   >
-                    <div className="text-xl font-bold text-orange-900 mb-2">
+                    <div className="mb-4 text-sm font-bold uppercase tracking-wider text-orange-700">
                       🏆 {entry.place === 1 ? "1st Place" : entry.place === 2 ? "2nd Place" : "3rd Place"}
                     </div>
 
@@ -154,14 +157,14 @@ export default function HistoricDipChampions() {
                       <img
                         src={entry.image}
                         alt={entry.dip_name}
-                        className="mx-auto rounded-lg h-40 w-auto object-contain mb-3"
+                        className="mx-auto mb-5 h-40 w-auto max-w-full rounded-xl object-contain"
                       />
                     )}
 
-                    <div className="text-lg font-semibold text-orange-900">
+                    <div className="break-words font-display text-2xl leading-snug text-foreground">
                       {entry.dip_name}
                     </div>
-                    <div className="text-sm text-orange-700">
+                    <div className="mt-2 text-sm text-muted-foreground">
                       by {entry.by}
                     </div>
                   </div>
@@ -173,25 +176,25 @@ export default function HistoricDipChampions() {
         {archivedYears.map((year) => (
           <section
             key={year}
-            className="bg-white/70 border border-amber-200 rounded-xl p-6 space-y-4"
+            className="space-y-5"
           >
-            <h2 className="text-2xl font-bold text-orange-900">
+            <h2 className="font-display text-3xl text-foreground sm:text-4xl">
               {year} Historical Dips
             </h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {dipsByYear[year].map((dip) => (
                 <li
                   key={dip.id}
-                  className="rounded-lg border border-orange-200 bg-orange-50/50 p-4"
+                  className="festival-card min-w-0 p-5"
                 >
-                  <div className="font-semibold text-orange-900">
+                  <div className="break-words font-display text-xl text-foreground">
                     {dip.dip_name}
                   </div>
-                  <div className="text-sm text-orange-700">
+                  <div className="mt-2 text-sm text-muted-foreground">
                     {dip.by ? `by ${dip.by}` : "by guest"}
                   </div>
                   {dip.notes && (
-                    <div className="mt-2 text-xs text-orange-700/80">
+                    <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
                       {dip.notes}
                     </div>
                   )}

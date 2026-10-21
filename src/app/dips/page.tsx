@@ -59,11 +59,17 @@ export default function DipListPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-14">
-      <div className="mx-auto max-w-5xl px-4">
-        <h1 className="text-3xl font-bold text-orange-900 mb-6 text-center">
-          Dip List
-        </h1>
+    <main className="festival-page">
+      <div className="festival-container">
+        <header className="festival-page-heading mx-auto mb-10 max-w-2xl">
+          <p className="festival-kicker mb-3">Meet the competition</p>
+          <h1 className="font-display text-4xl leading-tight text-foreground sm:text-5xl md:text-6xl">
+            The Dip Lineup
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            A little friendly competition. A whole lot of dip.
+          </p>
+        </header>
 
         {error && (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
@@ -72,24 +78,24 @@ export default function DipListPage() {
         )}
 
         {!error && dips.length === 0 ? (
-          <p className="text-center text-orange-700">
+          <p className="festival-card mx-auto max-w-2xl px-6 py-12 text-center leading-relaxed text-muted-foreground">
             No dips are registered for the next Dipsgiving yet.
           </p>
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {dips.map((d) => (
               <li
                 key={d.id}
-                className="rounded-xl border border-orange-200 bg-white/70 p-4 shadow-sm"
+                className="festival-card min-w-0 p-6 transition-transform duration-200 motion-safe:hover:-translate-y-1"
               >
-                <div className="font-semibold text-orange-900">
+                <h2 className="break-words font-display text-2xl leading-snug text-foreground">
                   {d.dip_name}
-                </div>
-                <div className="text-sm text-orange-700/80">
+                </h2>
+                <div className="mt-2 text-sm text-muted-foreground">
                   {d.name ? `by ${d.name}` : "by RSVP’d guest"}
                 </div>
                 {d.notes && (
-                  <div className="mt-1 text-xs text-orange-700/80">{d.notes}</div>
+                  <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">{d.notes}</div>
                 )} 
               </li>
             ))}
