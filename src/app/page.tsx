@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CalendarDays, Clock3, MapPin, MessageCircle, Soup, Star, Trophy, Vote } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Clock3, MapPin, MessageCircle, Soup, Trophy, Vote } from "lucide-react";
 import EventCountdown from "@/components/EventCountdown";
 import Sponsors from "@/components/Sponsors";
 import { useEventSettings } from "@/lib/eventSettings";
@@ -29,7 +29,7 @@ export default function Page() {
         <div className="festival-container festival-hero-layout">
           <div className="festival-entrance festival-hero-copy">
             <p className="festival-anniversary-badge">
-              <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> {annualLabel} <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+              {annualLabel}
             </p>
             <h1 id="hero-heading" className="festival-hero-title font-display text-forest uppercase">{heroTitle}</h1>
             <p className="mt-4 font-display text-[clamp(1.5rem,3vw,2.25rem)] leading-tight text-primary text-balance">The Ultimate Dip Showdown</p>

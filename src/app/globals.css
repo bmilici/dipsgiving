@@ -193,7 +193,7 @@
   .festival-section { padding-block: clamp(2.75rem, 5vw, 4rem); }
   .festival-hero-layout { display: grid; align-items: center; gap: 1.25rem; padding-block: clamp(2rem, 4vw, 4rem) clamp(2.5rem, 4.5vw, 4.5rem); }
   .festival-hero-copy { position: relative; z-index: 1; min-width: 0; text-align: center; }
-  .festival-anniversary-badge { display: inline-flex; align-items: center; gap: .65rem; margin-bottom: 1.4rem; padding: .65rem 1.05rem; border: 1px solid #324F3C; border-radius: .45rem; background: #E7AA42; color: #2B2420; box-shadow: 0 0 0 3px #F7EBD6, 0 0 0 4px #324F3C26; font-size: .75rem; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; transform: none; }
+  .festival-anniversary-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 12rem; margin-bottom: 1.4rem; padding: .8rem 1.35rem; border: 1px solid #324F3C; border-radius: .45rem; background: #E7AA42; color: #2B2420; box-shadow: 0 0 0 3px #F7EBD6, 0 0 0 4px #324F3C26; font-size: clamp(1rem, 2vw, 1.25rem); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; transform: none; }
   .festival-hero-title { font-size: clamp(3.2rem, 7.3vw, 6rem); line-height: .98; letter-spacing: -.045em; overflow-wrap: anywhere; }
   .festival-hero-actions { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: .85rem; max-width: 28rem; margin: 1.75rem auto 0; }
   .festival-hero-actions > a { min-height: 3.25rem; padding-inline: .9rem; }
