@@ -1,18 +1,48 @@
-import Image from "next/image";
-
-const sponsors = [
-  { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
-  { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
-  { name: "A T Precision Pressure Washing", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
-];
-
 export default function Sponsors() {
+  const sponsors = [
+    {
+      name: "Point Ybel Brewing",
+      url: "https://pointybelbrew.com/",
+      logo: "/sponsors/pointybelbrew.png",
+    },
+    {
+      name: "One Fresh Hat",
+      url: "https://www.onefreshhat.com/",
+      logo: "/sponsors/onefreshhat.png",
+    },
+    {
+      name: "A T PRECISION PRESSURE WASHING 239-219-9513",
+      url: "https://atppw.com/",
+      logo: "/sponsors/AT.png",
+    },
+  ];
+
   return (
-    <section className="bg-[#faf6ed] px-6 py-12 sm:px-8 sm:py-16" aria-labelledby="sponsors-heading">
-      <div className="mx-auto max-w-6xl">
-        <h2 id="sponsors-heading" className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#706052]">Made even better by our sponsors</h2>
-        <div className="mx-auto mt-8 grid max-w-2xl grid-cols-3 items-center gap-5 sm:gap-12">
-          {sponsors.map(s => <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer" className="flex h-24 items-center justify-center rounded-lg bg-white/65 px-3 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b74727]"><Image src={s.logo} alt={s.name} width={160} height={72} className="max-h-16 w-auto max-w-full object-contain" /></a>)}
+    <section className="py-16 sm:py-20 bg-gradient-to-b from-amber-50 to-orange-50">
+      <div className="mx-auto max-w-5xl px-4 text-center">
+        <p className="mb-2 text-sm font-medium uppercase tracking-widest text-orange-600">
+          Thank You To
+        </p>
+        <h2 className="text-3xl sm:text-4xl font-bold text-orange-900 mb-10">
+          Our Sponsors
+        </h2>
+
+        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          {sponsors.map((s) => (
+            <a
+              key={s.name}
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center rounded-2xl bg-white p-6 shadow-sm border border-orange-100 hover:shadow-md hover:border-orange-200 transition-all"
+            >
+              <img
+                src={s.logo}
+                alt={s.name}
+                className="h-24 sm:h-28 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+              />
+            </a>
+          ))}
         </div>
       </div>
     </section>

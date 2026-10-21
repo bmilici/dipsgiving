@@ -3,54 +3,125 @@
 import Link from "next/link";
 import Sponsors from "@/components/Sponsors";
 import { useEventSettings } from "@/lib/eventSettings";
-import { ArrowUpRight, MapPin, MessageCircle } from "lucide-react";
-
-const steps = [
-  { number: "01", title: "Bring a dip.", description: "Your signature recipe or a new contender. Register each dip separately so everyone can find it." },
-  { number: "02", title: "Taste everything.", description: "Grab some dippers, discover a new favorite, and settle in for a good time." },
-  { number: "03", title: "Crown a champion.", description: "When voting opens, pick your favorites and help decide who takes home the bragging rights." },
-];
+import { MapPin, MessageCircle } from "lucide-react";
 
 export default function Page() {
   const eventSettings = useEventSettings();
+
   return (
-    <main className="bg-[#faf6ed] text-[#35291f]">
-      <section className="mx-auto max-w-6xl px-6 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
-        <div className="max-w-3xl">
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-[#9b4a2c]">{eventSettings.eventNumberLabel} · Fort Myers, Florida</p>
-          <h1 className="text-5xl font-extrabold leading-[1.06] tracking-tight sm:text-7xl">{eventSettings.eventName}</h1>
-          <p className="mt-6 max-w-lg text-lg leading-relaxed text-[#706052] sm:text-xl">Bring a bathing suit and a dip. We have the booze and dippers.</p>
-          <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium sm:text-base" aria-label="Event date, time, and city">
-            <span>{eventSettings.dateLabel}</span><span aria-hidden="true" className="text-[#bda68b]">/</span><span>{eventSettings.timeLabel}</span><span aria-hidden="true" className="text-[#bda68b]">/</span><span>Fort Myers</span>
+    <main className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50">
+      {/* Hero */}
+      <section className="relative mx-auto max-w-4xl px-4 py-12 sm:py-16 lg:py-20">
+        <div className="text-center mb-8">
+          <p className="mb-3 text-sm font-medium uppercase tracking-widest text-orange-600">
+            {eventSettings.eventNumberLabel}
+          </p>
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-orange-900 sm:text-5xl lg:text-6xl text-balance">
+            {eventSettings.eventName}
+          </h1>
+          <p className="text-lg text-orange-700/80 max-w-md mx-auto">
+            Bring a bathing suit and a dip. We have the booze and dippers.
+          </p>
+        </div>
+
+        {/* Compact event details */}
+        <div className="mx-auto mb-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-base font-medium text-orange-800 sm:text-lg" aria-label="Event date, time, and location">
+          <span>{eventSettings.dateLabel}</span>
+          <span aria-hidden="true" className="text-orange-400">·</span>
+          <span>{eventSettings.timeLabel}</span>
+          <span aria-hidden="true" className="text-orange-400">·</span>
+          <span>Fort Myers</span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+          <Link
+            href="/register"
+            className="inline-flex items-center justify-center rounded-xl bg-orange-600 px-8 py-4 text-lg font-semibold text-white shadow-md hover:bg-orange-700 hover:shadow-lg transition-all active:scale-[0.98]"
+          >
+            RSVP Now
+          </Link>
+          <Link
+            href="/register/dip"
+            className="inline-flex items-center justify-center rounded-xl bg-transparent px-8 py-4 text-lg font-semibold text-orange-700 border border-orange-300 hover:bg-orange-100/60 hover:border-orange-400 transition-all active:scale-[0.98]"
+          >
+            Register Your Dip
+          </Link>
+        </div>
+      </section>
+
+      {/* Event Details */}
+      <section className="bg-[#0f3b3a] py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#f9e7b1] mb-4">
+              Event Details
+            </h2>
+            <p className="text-emerald-100/85 max-w-lg mx-auto text-pretty">
+              Join us for an unforgettable celebration of dips. One form per dip, please!
+            </p>
           </div>
-          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-5">
-            <Link href="/register" className="inline-flex items-center gap-6 rounded-full bg-[#b74727] px-7 py-4 font-semibold text-white transition-colors hover:bg-[#94391f] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b74727]">RSVP Now <ArrowUpRight className="h-4 w-4" /></Link>
-            <Link href="/register/dip" className="border-b border-[#a38c75] pb-1 text-sm font-semibold transition-colors hover:text-[#b74727]">Register your dip</Link>
+
+          {/* Details Grid */}
+          <div className="grid gap-8 sm:grid-cols-2 sm:gap-12 max-w-2xl mx-auto">
+            {/* Location Card */}
+            <a
+              href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-4 border-t border-white/20 pt-6 transition-colors hover:border-amber-300/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300"
+            >
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center text-amber-300">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-300/90 mb-1">Location</p>
+                <p className="text-[#f9e7b1] font-medium group-hover:text-amber-200 transition-colors">
+                  10600 Highgrove Place
+                </p>
+                <p className="text-emerald-100/70 text-sm">
+                  Fort Myers, Florida 33913
+                </p>
+                <p className="text-amber-300/80 text-sm mt-2 font-medium">
+                  Gate Code: 18445
+                </p>
+              </div>
+            </a>
+
+            {/* Contact Card */}
+            <a
+              href="sms:+13016611626"
+              className="group flex items-start gap-4 border-t border-white/20 pt-6 transition-colors hover:border-amber-300/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300"
+            >
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center text-amber-300">
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-300/90 mb-1">Questions?</p>
+                <p className="text-[#f9e7b1] font-medium group-hover:text-amber-200 transition-colors">
+                  Contact Erika
+                </p>
+                <p className="text-emerald-100/70 text-sm">
+                  (301) 661-1626
+                </p>
+                <p className="text-amber-300/80 text-sm mt-2">
+                  Tap to send a text
+                </p>
+              </div>
+            </a>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-[#ded3c2]" aria-labelledby="how-it-works">
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:px-8 sm:py-20">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9b4a2c]">The recipe for a good time</p>
-          <h2 id="how-it-works" className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">A little friendly dip-petition.</h2>
-          <div className="mt-10 grid gap-9 sm:grid-cols-3 sm:gap-10">
-            {steps.map(step => <div key={step.number}><span className="text-xs font-semibold tracking-widest text-[#9b4a2c]">{step.number}</span><h3 className="mt-4 text-xl font-bold">{step.title}</h3><p className="mt-3 text-sm leading-7 text-[#706052]">{step.description}</p></div>)}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-[#173f3b] text-[#faf6ed]" aria-labelledby="details-heading">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1fr_1.5fr] lg:gap-20">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d9b883]">Make yourself at home</p><h2 id="details-heading" className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">See you by<br className="hidden lg:block" /> the dip table.</h2></div>
-          <div className="grid gap-8 sm:grid-cols-2">
-            <a href="https://maps.google.com/?q=10600+Highgrove+Place+Fort+Myers+Florida+33913" target="_blank" rel="noopener noreferrer" className="group border-t border-white/25 pt-5"><MapPin className="mb-4 h-5 w-5 text-[#d9b883]" /><h3 className="font-semibold">The place</h3><p className="mt-3 text-sm leading-7 text-[#d4ded7]">10600 Highgrove Place<br />Fort Myers, Florida 33913</p><p className="mt-3 text-sm text-[#d9b883]">Gate code: 18445</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold group-hover:underline">Get directions <ArrowUpRight className="h-4 w-4" /></span></a>
-            <a href="sms:+13016611626" className="group border-t border-white/25 pt-5"><MessageCircle className="mb-4 h-5 w-5 text-[#d9b883]" /><h3 className="font-semibold">A question or two?</h3><p className="mt-3 text-sm leading-7 text-[#d4ded7]">Erika has you covered.<br />(301) 661-1626</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold group-hover:underline">Send Erika a text <ArrowUpRight className="h-4 w-4" /></span></a>
-          </div>
-        </div>
-      </section>
+      {/* Sponsors */}
       <Sponsors />
-      <footer className="border-t border-[#ded3c2] px-6 py-7"><div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-3 text-xs text-[#706052]"><span className="font-semibold">Dipsgiving</span><span>Good dips. Great company. · {new Date().getFullYear()}</span></div></footer>
+
+      {/* Footer */}
+      <footer className="border-t border-orange-200/60 bg-white/80 py-8">
+        <p className="text-center text-sm text-orange-800/70">
+          dipsgiving.com &bull; {new Date().getFullYear()}
+        </p>
+      </footer>
     </main>
   );
 }
