@@ -50,41 +50,6 @@ export default function Page() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="border-t border-orange-200/60" aria-labelledby="how-it-works-heading">
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:py-16">
-          <div className="mb-9 text-center">
-            <h2 id="how-it-works-heading" className="text-2xl font-bold tracking-tight text-orange-900 sm:text-3xl">
-              How it works
-            </h2>
-            <p className="mt-3 text-orange-700/80">Three steps to a very good time.</p>
-          </div>
-          <ol className="mx-auto grid max-w-3xl gap-8 sm:grid-cols-3 sm:gap-10">
-            <li className="border-t border-orange-200 pt-5">
-              <span aria-hidden="true" className="text-sm font-semibold tracking-widest text-orange-600">01</span>
-              <h3 className="mt-3 text-xl font-bold text-orange-900">Bring a dip.</h3>
-              <p className="mt-2 text-sm leading-7 text-orange-800/80">
-                Your signature recipe or a new contender. Register each dip separately so everyone can find it.
-              </p>
-            </li>
-            <li className="border-t border-orange-200 pt-5">
-              <span aria-hidden="true" className="text-sm font-semibold tracking-widest text-orange-600">02</span>
-              <h3 className="mt-3 text-xl font-bold text-orange-900">Taste everything.</h3>
-              <p className="mt-2 text-sm leading-7 text-orange-800/80">
-                We have the booze and dippers. Try the lineup, find a new favorite, and enjoy the company.
-              </p>
-            </li>
-            <li className="border-t border-orange-200 pt-5">
-              <span aria-hidden="true" className="text-sm font-semibold tracking-widest text-orange-600">03</span>
-              <h3 className="mt-3 text-xl font-bold text-orange-900">Crown a champion.</h3>
-              <p className="mt-2 text-sm leading-7 text-orange-800/80">
-                When voting opens, pick your favorites and help decide who takes home the bragging rights.
-              </p>
-            </li>
-          </ol>
-        </div>
-      </section>
-
       {/* Event Details */}
       <section className="bg-[#0f3b3a] py-16 sm:py-20">
         <div className="mx-auto max-w-4xl px-4">
