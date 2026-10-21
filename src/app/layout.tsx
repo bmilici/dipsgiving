@@ -65,10 +65,10 @@ export const metadata: Metadata = {
     siteName: "Dipsgiving",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Dipsgiving — The Ultimate Dip Showdown",
+        url: "/og-image-5th-2026.png",
+        width: 1536,
+        height: 1024,
+        alt: "5th Annual Dipsgiving — December 5, 2026",
       },
     ],
     locale: "en_US",
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Dipsgiving",
     description: "Celebrate the art of dip — one scoop at a time.",
-    images: ["/og-image.png"],
+    images: ["/og-image-5th-2026.png"],
   },
 };
 
