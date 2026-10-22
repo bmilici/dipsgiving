@@ -120,7 +120,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         return;
       }
       if (!normalizedPhone || phone.length > 40) {
-        setStatus(mode === "lookup" ? LOOKUP_ERROR : "Please enter a valid US phone number, including the area code.");
+        setStatus(mode === "lookup" ? LOOKUP_ERROR : "Please enter a valid phone number, including the area code.");
         return;
       }
     }
@@ -210,7 +210,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         {isTestingMode && <p className="rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm leading-relaxed text-foreground">
           Test RSVP flow. These entries are separate from the event guest list.
         </p>}
-        {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the name and US phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
+        {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the name and phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
         {mode === "edit" && <p className="text-sm leading-relaxed text-muted-foreground">Add or update your dip below. This keeps your existing RSVP and party size.</p>}
         <fieldset disabled={busy} className="min-w-0 space-y-6">
           {mode !== "edit" && <>
@@ -219,7 +219,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               <input id="phone-rsvp-name" name="name" autoComplete="name" required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} className="festival-input w-full" />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="phone-rsvp-phone" className="text-sm font-semibold text-foreground">US Phone Number</label>
+              <label htmlFor="phone-rsvp-phone" className="text-sm font-semibold text-foreground">Phone Number</label>
               <input id="phone-rsvp-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} aria-describedby="phone-rsvp-phone-help" className="festival-input w-full" />
               <p id="phone-rsvp-phone-help" className="text-sm text-muted-foreground">Include your area code. Use this number to find your RSVP later.</p>
             </div>

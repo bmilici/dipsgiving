@@ -64,7 +64,7 @@ export function validateNewRsvp(value: unknown): NewRsvpInput {
   const input = record(value, ["name", "phone", "party_size", "bringing_dip", "dip_name", "notes"]);
   const name = guestName(input.name);
   const phone = normalizeUsPhone(input.phone);
-  if (!phone) throw new RsvpValidationError("Please enter a valid US phone number.");
+  if (!phone) throw new RsvpValidationError("Please enter a valid phone number.");
   if (typeof input.party_size !== "number" || !Number.isInteger(input.party_size) || input.party_size < 1 || input.party_size > 20) {
     throw new RsvpValidationError("Please choose a party size from 1 to 20.");
   }
@@ -77,7 +77,7 @@ export function validateLookup(value: unknown): { name: string; phone: string } 
   const input = record(value, ["name", "phone"]);
   const name = guestName(input.name);
   const phone = normalizeUsPhone(input.phone);
-  if (!phone) throw new RsvpValidationError("Please enter a valid US phone number.");
+  if (!phone) throw new RsvpValidationError("Please enter a valid phone number.");
   return { name, phone };
 }
 

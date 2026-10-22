@@ -134,7 +134,7 @@ test("a new RSVP requires name, valid US phone, and an integer party size", asyn
   fill(form, "name", "Taylor");
   fill(form, "phone", "1234");
   await submit(form);
-  assert.match(text(form.render()), /valid US phone/);
+  assert.match(text(form.render()), /valid phone number/);
   guest(form);
   fill(form, "party_size", "1.5");
   await submit(form);
