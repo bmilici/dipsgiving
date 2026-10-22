@@ -21,6 +21,13 @@ added. Voting verifies real Firebase ID tokens with the already validated
 production Admin app; it cannot fall back to unsigned emulator tokens.
 The voting and Champions APIs return private, uncached responses.
 
+Production also sets `NODE_OPTIONS=--experimental-require-module`, the
+[documented Vercel setting](https://vercel.com/docs/functions/runtimes/node-js/advanced-node-configuration#experimental-nodejs-require-of-es-module)
+needed by the current Firebase Admin Auth SDK's CommonJS/ESM dependency chain.
+Staging caught the platform's disabled default; the corresponding disabled-flag
+local process reproduced the exact error. This runtime setting preserves the
+current dependency versions and Firebase signature verification.
+
 ## Records and compatibility
 
 No migration, bulk record edits, vote resets, or winner rewrites are performed.

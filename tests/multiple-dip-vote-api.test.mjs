@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
@@ -198,23 +199,31 @@ test("hosted previews cannot use the local unsigned-token verification path", as
   assert.equal(route.calls.initialized.length, 0);
 });
 
-test("the actual production Firebase verifier rejects unsigned emulator tokens and wrong-project tokens offline", async () => {
-  const { initializeApp, deleteApp } = await import("firebase-admin/app");
-  const { getAuth } = await import("firebase-admin/auth");
-  const previous = process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  const app = initializeApp({ projectId: "dipsgiving" }, `production-token-safety-${Date.now()}`);
-  const encoded = data => Buffer.from(JSON.stringify(data)).toString("base64url");
-  const payload = { aud: "dipsgiving", iss: "https://securetoken.google.com/dipsgiving", sub: "synthetic-offline", iat: 1, exp: 9999999999 };
-  try {
-    const unsigned = `${encoded({ alg: "none", kid: "synthetic" })}.${encoded(payload)}.`;
-    const wrongProject = `${encoded({ alg: "RS256", kid: "synthetic" })}.${encoded({ ...payload, aud: "demo-dipsgiving-rsvp-test" })}.invalid-signature`;
-    for (const token of [unsigned, wrongProject]) {
-      await assert.rejects(getAuth(app).verifyIdToken(token), error => error.code === "auth/argument-error");
-    }
-  } finally {
-    await deleteApp(app);
-    if (previous === undefined) delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
-    else process.env.FIREBASE_AUTH_EMULATOR_HOST = previous;
-  }
+test("the Vercel require-ESM runtime flag loads actual Firebase Auth and rejects unsigned/wrong-project tokens offline", () => {
+  const environment = { ...process.env, NODE_OPTIONS: "--experimental-require-module" };
+  delete environment.FIREBASE_AUTH_EMULATOR_HOST;
+  delete environment.GOOGLE_APPLICATION_CREDENTIALS;
+  delete environment.DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS;
+  const program = `
+    import assert from "node:assert/strict";
+    import { initializeApp, deleteApp } from "firebase-admin/app";
+    import { getAuth } from "firebase-admin/auth";
+    assert.equal(process.features.require_module, true);
+    const app = initializeApp({ projectId: "dipsgiving" }, "production-auth-runtime-smoke");
+    const encoded = data => Buffer.from(JSON.stringify(data)).toString("base64url");
+    const payload = { aud: "dipsgiving", iss: "https://securetoken.google.com/dipsgiving", sub: "synthetic-offline", iat: 1, exp: 9999999999 };
+    try {
+      const unsigned = encoded({ alg: "none", kid: "synthetic" }) + "." + encoded(payload) + ".";
+      const wrongProject = encoded({ alg: "RS256", kid: "synthetic" }) + "." + encoded({ ...payload, aud: "demo-dipsgiving-rsvp-test" }) + ".invalid-signature";
+      for (const token of [unsigned, wrongProject]) {
+        await assert.rejects(getAuth(app).verifyIdToken(token), error => error.code === "auth/argument-error");
+      }
+      console.log("FIREBASE_AUTH_RUNTIME_PASS");
+    } finally { await deleteApp(app); }
+  `;
+  const result = spawnSync(process.execPath, ["--input-type=module", "--eval", program], {
+    cwd: new URL("..", import.meta.url), env: environment, encoding: "utf8", timeout: 15_000,
+  });
+  assert.equal(result.status, 0, result.stderr || String(result.error || "Firebase Auth runtime failed"));
+  assert.match(result.stdout, /FIREBASE_AUTH_RUNTIME_PASS/);
 });
