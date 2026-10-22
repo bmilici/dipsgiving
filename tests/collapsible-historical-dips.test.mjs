@@ -66,7 +66,7 @@ test("the native toggle starts closed with no archived descendants in the DOM or
   assert.equal(control.props["aria-expanded"], false);
   assert.equal(control.props["aria-controls"], region.props.id);
   assert.equal(region.props["aria-labelledby"], control.props.id);
-  assert.equal(text(control), "See the Dips That Never Got Their Glory");
+  assert.equal(text(control), "View the Victims of the 2025 Voting Disaster");
   assert.equal(region.props.hidden, true);
   assert.equal(region.props.inert, true);
   assert.equal(region.props["aria-hidden"], true);
@@ -82,7 +82,7 @@ test("opening paints a collapsed frame before smoothly exposing the unchanged fu
   const controls = button(tree).props["aria-controls"];
   button(tree).props.onClick(); tree = page.render(); page.commit();
   assert.equal(button(tree).props["aria-expanded"], true);
-  assert.equal(text(button(tree)), "Hide the 2025 Contenders");
+  assert.equal(text(button(tree)), "Hide the 2025 Dip Lineup");
   assert.equal(panel(tree).props.hidden, false);
   assert.equal(panel(tree).props.inert, true);
   assert.match(panel(tree).props.className, /grid-rows-\[0fr\].*opacity-0/);
@@ -112,7 +112,7 @@ test("collapse immediately removes reading/focus access, then unmounts the archi
   tree = page.render(); page.commit();
   assert.equal(panel(tree).props.hidden, true);
   assert.equal(nodes(tree, node => node.type === "li").length, 0);
-  assert.equal(text(button(tree)), "See the Dips That Never Got Their Glory");
+  assert.equal(text(button(tree)), "View the Victims of the 2025 Voting Disaster");
   assert.equal(page.clock.timers, 0);
 });
 

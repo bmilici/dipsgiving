@@ -14,8 +14,8 @@ type Phase = "closed" | "opening" | "open" | "closing";
 export default function CollapsibleHistoricalDips({
   id,
   children,
-  showLabel = "See the Dips That Never Got Their Glory",
-  hideLabel = "Hide the 2025 Contenders",
+  showLabel = "View the Victims of the 2025 Voting Disaster",
+  hideLabel = "Hide the 2025 Dip Lineup",
 }: Props) {
   const [phase, setPhase] = useState<Phase>("closed");
   const expanded = phase === "opening" || phase === "open";

@@ -280,7 +280,7 @@ test("only the 2025 contenders collapse, reopen intact, and disappear from the D
   assert.equal(nodes(region, node => node.type === "li").length, 0);
   assert.doesNotMatch(content(tree), /Original Queso|Original Salsa|Original chef A|Contains dairy|2025 Historical Dips/);
   assert.match(content(tree), /Preserved 2024 champion.*Visible older archive/);
-  assert.match(content(tree), /The Great Voting Disaster of 2025.*See the Dips That Never Got Their Glory/);
+  assert.match(content(tree), /The Great Voting Disaster of 2025.*View the Victims of the 2025 Voting Disaster/);
   tree = openContenders(page, tree);
   const expanded = nodes(tree, node => node.props?.id === "historical-dips-2025-panel")[0];
   assert.equal(expanded.props.inert, false);
