@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
-import { prepareSource } from "../scripts/build-testing-preview.mjs";
+import { buildEnvironment, prepareSource } from "../scripts/build-testing-preview.mjs";
 
 const files = ["src/components/InlineRegisterForm.tsx", "src/app/vote/page.tsx", "src/app/layout.tsx"];
 
@@ -32,6 +32,7 @@ test("static preview preparation strips writes, disables phone lookup, and prese
     assert.match(config, /basePath: '\/testing'/);
     assert.match(config, /NEXT_PUBLIC_DESIGN_PREVIEW: 'true'/);
     assert.match(config, /NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false'/);
+    assert.match(config, /NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false'/);
     const form = await readFile(path.join(directory, files[0]), "utf8");
     assert.match(form, /watchPublicDips/);
     assert.doesNotMatch(form, /await addDoc|onSnapshot|orderBy|query\(/);
@@ -70,4 +71,33 @@ test("the preview builder documents HEAD as its default source", () => {
   const help = spawnSync(process.execPath, [new URL("../scripts/build-testing-preview.mjs", import.meta.url).pathname, "--help"], { encoding: "utf8" });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /--source-ref HEAD/);
+});
+
+test("hosted static builds override inherited local demo and emulator settings", async () => {
+  const overrides = {
+    NEXT_PUBLIC_RSVP_LOCAL_DEMO: "true",
+    DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true",
+    FIRESTORE_EMULATOR_HOST: "127.0.0.1:8189",
+    FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9199",
+    NEXT_PUBLIC_FIREBASE_API_KEY: "public-fixture",
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "fixture.invalid",
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: "fixture-project",
+    NEXT_PUBLIC_FIREBASE_APP_ID: "fixture-app",
+  };
+  const before = Object.fromEntries(Object.keys(overrides).map(key => [key, process.env[key]]));
+  Object.assign(process.env, overrides);
+  try {
+    const env = await buildEnvironment(new URL("..", import.meta.url).pathname);
+    assert.equal(env.NEXT_PUBLIC_RSVP_LOCAL_DEMO, "false");
+    assert.equal(env.DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST, "false");
+    assert.equal(env.FIRESTORE_EMULATOR_HOST, undefined);
+    assert.equal(env.FIREBASE_AUTH_EMULATOR_HOST, undefined);
+    assert.equal(env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, "fixture-project");
+    assert.equal(process.env.NEXT_PUBLIC_RSVP_LOCAL_DEMO, "true");
+  } finally {
+    for (const [key, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });

@@ -117,7 +117,7 @@ async function copyDependencies(directory, environment) {
   }
 }
 
-async function buildEnvironment(directory) {
+export async function buildEnvironment(directory) {
   // Snapshot the inherited environment before @next/env reads the local files.
   // The loader can mutate process.env, so restore it before doing any build work.
   const inherited = { ...process.env };
@@ -143,7 +143,11 @@ async function buildEnvironment(directory) {
     NEXT_PUBLIC_DESIGN_PREVIEW: 'true',
     NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false',
     DIPSGIVING_RSVP_LOOKUP_TESTING: 'false',
+    NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false',
+    DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: 'false',
   };
+  delete result.FIRESTORE_EMULATOR_HOST;
+  delete result.FIREBASE_AUTH_EMULATOR_HOST;
   for (const key of publicKeys) {
     delete result[key];
     if (candidate[key]) result[key] = candidate[key];
@@ -180,7 +184,7 @@ const nextConfig: NextConfig = {
   output: 'export',
   basePath: '${previewPrefix}',
   images: { unoptimized: true },
-  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true', NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false' },
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true', NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false', NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false' },
   eslint: { ignoreDuringBuilds: true },
 };
 export default nextConfig;
