@@ -5,6 +5,7 @@ import { collection, getDocs } from "firebase/firestore";
 import VotingDisaster2025 from "@/components/VotingDisaster2025";
 import { getClientDB } from "@/lib/firebase";
 import ChampionPhoto from "@/components/ChampionPhoto";
+import CollapsibleHistoricalDips from "@/components/CollapsibleHistoricalDips";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
 import MultiDipChampionsPage from "@/components/MultiDipChampionsPage";
 
@@ -150,8 +151,35 @@ function HistoricDipChampions() {
           </p>
         )}
 
-        {timelineYears.map((timelineYear) => (
-          <div key={timelineYear} data-champions-year={timelineYear} className="space-y-8">
+        {timelineYears.map((timelineYear) => {
+          const archive = dipsByYear[timelineYear] && (
+            <section className="space-y-5">
+              <h2 className="font-display text-3xl text-foreground sm:text-4xl">
+                {timelineYear} Historical Dips
+              </h2>
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {dipsByYear[timelineYear].map((dip) => (
+                  <li
+                    key={dip.id}
+                    className="festival-card festival-lift min-w-0 p-5"
+                  >
+                    <h3 className="break-words font-display text-xl text-foreground">
+                      {dip.dip_name}
+                    </h3>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      {dip.by ? `by ${dip.by}` : "by guest"}
+                    </div>
+                    {dip.notes && (
+                      <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
+                        {dip.notes}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+          return <div key={timelineYear} data-champions-year={timelineYear} className="space-y-8">
             {timelineYear === 2025 && <VotingDisaster2025 />}
 
             {years.filter(year => winnerYear(year) === timelineYear).map((year) => (
@@ -195,35 +223,11 @@ function HistoricDipChampions() {
               </section>
             ))}
 
-            {dipsByYear[timelineYear] && (
-              <section className="space-y-5">
-                <h2 className="font-display text-3xl text-foreground sm:text-4xl">
-                  {timelineYear} Historical Dips
-                </h2>
-                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {dipsByYear[timelineYear].map((dip) => (
-                    <li
-                      key={dip.id}
-                      className="festival-card festival-lift min-w-0 p-5"
-                    >
-                      <h3 className="break-words font-display text-xl text-foreground">
-                        {dip.dip_name}
-                      </h3>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        {dip.by ? `by ${dip.by}` : "by guest"}
-                      </div>
-                      {dip.notes && (
-                        <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
-                          {dip.notes}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-          </div>
-        ))}
+            {timelineYear === 2025 && archive ? (
+              <CollapsibleHistoricalDips id="historical-dips-2025">{archive}</CollapsibleHistoricalDips>
+            ) : archive}
+          </div>;
+        })}
       </div>
     </main>
   );

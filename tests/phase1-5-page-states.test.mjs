@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { navigationModule } from "./helpers/navigation-module.mjs";
+import { createAnimationClock } from "./helpers/animation-clock.mjs";
 
 // Real page and EmptyState components run against a closed import map. Reads
 // resolve only when a test supplies local records; Firebase and network modules
@@ -52,6 +53,7 @@ const snapshot = (rows) => ({
 });
 
 function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false, testingMode = true } = {}) {
+  const clock = createAnimationClock();
   const state = [];
   const reads = [];
   const events = [];
@@ -107,6 +109,10 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
       "react/jsx-runtime": jsx,
       "@/lib/testingMode": { testingAssetPath: path => testingMode ? `/testing${path}` : path },
     }),
+    "@/components/CollapsibleHistoricalDips": loadComponent("src/components/CollapsibleHistoricalDips.tsx", {
+      react,
+      "react/jsx-runtime": jsx,
+    }, { window: clock.window }),
     "@/components/ChampionPhoto": loadComponent("src/components/ChampionPhoto.tsx", {
       react,
       "react/jsx-runtime": jsx,
@@ -126,12 +132,14 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     reads,
     events,
     errors,
+    clock,
     render() {
       cursor = 0;
       effects = [];
       return Page();
     },
     startEffects() { return effects.map((effect) => effect()); },
+    disclosureEffects() { return effects.slice(1).map(effect => effect()); },
     emitDips(rows) {
       assert.equal(subscription?.source, "public-api");
       assert.equal(subscription.scope, "current", "the Dip List must request only the current event");
@@ -180,6 +188,12 @@ const emptyCards = (tree) => nodes(tree, (node) =>
 const statusMessages = (tree) => nodes(tree, (node) => node.props.role === "status");
 const dipPage = (options) => pageHarness("src/app/dips/page.tsx", options);
 const championsPage = (options) => pageHarness("src/app/winners/page.tsx", options);
+function openContenders(page, tree) {
+  nodes(tree, node => node.type === "button" && node.props["aria-controls"] === "historical-dips-2025-panel")[0].props.onClick();
+  page.render(); page.disclosureEffects();
+  page.clock.flushFrames(); page.clock.flushFrames();
+  return page.render();
+}
 
 test("dip list waits for a read before displaying its actionable empty state", () => {
   const page = dipPage();
@@ -329,7 +343,9 @@ test("legacy Champions interleaves custom-ID future results and archives by year
   const page = championsPage(); page.render(); page.startEffects();
   await page.resolveRead("winners", winners);
   await page.resolveRead("historicalDips", archives);
-  const tree = page.render();
+  let tree = page.render();
+  assert.doesNotMatch(content(tree), /Archive 2025|Original 2025/);
+  tree = openContenders(page, tree);
   assert.deepEqual(nodes(tree, node => node.props["data-champions-year"] !== undefined).map(node => node.props["data-champions-year"]), [2027, 2026, 2025, 2024]);
   const text = content(tree);
   const ordered = ["Winner 2027", "Archive 2027", "Winner 2026", "Archive 2026", "The Great Voting Disaster of 2025", "Archive 2025", "Smoked Jalapeño", "Archive 2024"];

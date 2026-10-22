@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
+import { createAnimationClock } from "./helpers/animation-clock.mjs";
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const feed = {
@@ -11,6 +12,7 @@ const feed = {
   has_unresolved: false,
 };
 function harness({ testing = false } = {}) {
+  const clock = createAnimationClock();
   const state = [], requests = [], effects = [];
   const componentStates = new Map(), activeComponents = new Set();
   let currentState = state;
@@ -36,12 +38,12 @@ function harness({ testing = false } = {}) {
     "@/components/EmptyState": props => element("empty-state", props),
     "@/lib/testingMode": { testingAssetPath: path => testing && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/testing/") ? `/testing${path}` : path },
   };
-  for (const component of ["ChampionPhoto", "VotingDisaster2025"]) {
+  for (const component of ["ChampionPhoto", "VotingDisaster2025", "CollapsibleHistoricalDips"]) {
     const child = {};
     const childCode = ts.transpileModule(readFileSync(new URL(`../src/components/${component}.tsx`, import.meta.url), "utf8"), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
-    vm.runInNewContext(childCode, { exports: child, require(name) { assert(Object.hasOwn(modules, name), `Unexpected child dependency blocked: ${name}`); return modules[name]; } });
+    vm.runInNewContext(childCode, { exports: child, window: clock.window, require(name) { assert(Object.hasOwn(modules, name), `Unexpected child dependency blocked: ${name}`); return modules[name]; } });
     modules[`@/components/${component}`] = { __esModule: true, default: child.default };
   }
   const exports = {};
@@ -52,7 +54,7 @@ function harness({ testing = false } = {}) {
     fetch(url, config) { requests.push({ url, config }); return new Promise(resolve => { finish = resolve; }); },
     require(name) { assert(Object.hasOwn(modules, name), `Unexpected dependency blocked: ${name}`); return modules[name]; },
   });
-  return { state, requests, effects,
+  return { state, requests, effects, clock,
     render() {
       cursor = 0; currentState = state; scope = "page"; effects.length = 0; activeComponents.clear();
       const tree = exports.default();
@@ -80,6 +82,13 @@ function content(tree) {
 }
 const photos = tree => nodes(tree, node => node.type === "img" && /\/(?:testing\/)?winners\//.test(node.props.src));
 const disasterCards = tree => nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title");
+function openContenders(page, tree) {
+  const button = nodes(tree, node => node.type === "button" && node.props["aria-controls"] === "historical-dips-2025-panel")[0];
+  button.props.onClick(); page.render();
+  page.effects.slice(1).forEach(effect => effect());
+  page.clock.flushFrames(); page.clock.flushFrames();
+  return page.render();
+}
 
 test("champions loading waits for the public read and never flashes a false empty state", async () => {
   const page = harness();
@@ -228,7 +237,9 @@ test("winner and archive years share one descending timeline around the 2025 sto
   }
   freeze(mixed);
   const page = harness(); page.render(); page.effects[0](); await page.respond(mixed);
-  const tree = page.render();
+  let tree = page.render();
+  assert.doesNotMatch(content(tree), /Archived recipe 2025/);
+  tree = openContenders(page, tree);
   const text = content(tree);
   const ordered = ["Winning recipe 2027", "Archived recipe 2027", "Winning recipe 2026", "Archived recipe 2026", "The Great Voting Disaster of 2025", "Archived recipe 2025", "Winning recipe 2024", "Archived recipe 2024"];
   const indices = ordered.map(marker => text.indexOf(marker));
@@ -247,4 +258,46 @@ test("the static 2025 story preserves any explicitly supplied result instead of 
   assert.match(content(tree), /The Great Voting Disaster of 2025.*Stored result.*Recorded chef/);
   assert.match(content(tree), /2nd Place.*Stored award.*Stored category/);
   assert.equal(JSON.stringify(supplied), before);
+});
+
+test("only the 2025 contenders collapse, reopen intact, and disappear from the DOM again without another read", async () => {
+  const supplied = {
+    years: [{ id: "2024", year: 2024, podium: [{ id: "champion", dip_name: "Preserved 2024 champion", by: "Recorded chef", place: 1, image: "/winners/2024-1st.jpeg" }] }],
+    historicalDips: [
+      { id: "contender-a", archive_year: 2025, dip_name: "Original Queso", by: "Original chef A", notes: "Contains dairy", votes: 8 },
+      { id: "contender-b", archive_year: 2025, dip_name: "Original Salsa", by: "Original chef B", notes: "Fresh peppers", votes: 3 },
+      { id: "archive-2024", archive_year: 2024, dip_name: "Visible older archive", by: "Older chef", notes: "Older notes", votes: 7 },
+    ],
+    has_unresolved: false,
+  };
+  const original = JSON.stringify(supplied);
+  const page = harness(); page.render(); page.effects[0](); await page.respond(supplied);
+  let tree = page.render();
+  const story = content(disasterCards(tree));
+  const region = nodes(tree, node => node.props?.id === "historical-dips-2025-panel")[0];
+  assert.equal(region.props.hidden, true);
+  assert.equal(region.props.inert, true);
+  assert.equal(nodes(region, node => node.type === "li").length, 0);
+  assert.doesNotMatch(content(tree), /Original Queso|Original Salsa|Original chef A|Contains dairy|2025 Historical Dips/);
+  assert.match(content(tree), /Preserved 2024 champion.*Visible older archive/);
+  assert.match(content(tree), /The Great Voting Disaster of 2025.*See the Dips That Never Got Their Glory/);
+  tree = openContenders(page, tree);
+  const expanded = nodes(tree, node => node.props?.id === "historical-dips-2025-panel")[0];
+  assert.equal(expanded.props.inert, false);
+  assert.equal(expanded.props["aria-hidden"], false);
+  assert.equal(nodes(expanded, node => node.type === "li").length, 2);
+  assert.match(nodes(expanded, node => node.type === "ul")[0].props.className, /sm:grid-cols-2 lg:grid-cols-3/);
+  for (const expected of ["Original Queso", "Original Salsa", "Original chef A", "Original chef B", "Contains dairy", "Fresh peppers"]) assert(content(expanded).includes(expected));
+  assert.equal(content(disasterCards(tree)), story);
+  nodes(tree, node => node.type === "button" && node.props["aria-controls"] === expanded.props.id)[0].props.onClick();
+  tree = page.render(); page.effects.slice(1).forEach(effect => effect());
+  const closing = nodes(tree, node => node.props?.id === expanded.props.id)[0];
+  assert.equal(closing.props.inert, true);
+  assert.equal(closing.props["aria-hidden"], true);
+  page.clock.flushTimers(); tree = page.render();
+  assert.doesNotMatch(content(tree), /Original Queso|Original Salsa|2025 Historical Dips/);
+  assert.match(content(tree), /Preserved 2024 champion.*Visible older archive/);
+  assert.equal(content(disasterCards(tree)), story);
+  assert.equal(JSON.stringify(supplied), original);
+  assert.equal(page.requests.length, 1, "Expanding and collapsing do not query or mutate data");
 });

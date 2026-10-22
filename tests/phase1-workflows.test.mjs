@@ -113,6 +113,7 @@ function componentHarness(file, options = {}) {
     },
     "@/components/EmptyState": "empty-state",
     "@/components/ChampionPhoto": "champion-photo",
+    "@/components/CollapsibleHistoricalDips": "collapsible-historical-dips",
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
   };

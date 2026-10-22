@@ -1122,3 +1122,83 @@ test("throttled, unavailable, and offline lookups do not claim there is no RSVP 
     assert.deepEqual(form.replacements, []);
   }
 });
+
+test("confirmed RSVP dip fields belong inside the first option and precede the remaining radio choices", async () => {
+  const form = harness({ multiDip: true });
+  await form.mount();
+  choose(form, "confirmed");
+  const tree = form.render();
+  const option = nodes(tree, node => node.type === "div" && node.key === "confirmed")[0];
+  assert.ok(option);
+  assert.match(option.props.className, /rounded-xl/);
+  assert.match(option.props.className, /bg-background/);
+  assert.equal(nodes(option, node => node.props.name === "dip_name").length, 1);
+  assert.equal(nodes(option, node => node.props.name === "notes").length, 1);
+  const radioLabel = nodes(option, node => node.type === "label" && nodes(node, child => child.props.type === "radio").length === 1)[0];
+  assert.ok(radioLabel, "The radio and its label text remain a clickable label");
+  assert.equal(nodes(radioLabel, node => node.type === "input" || node.type === "textarea").length, 1, "Dip inputs cannot be nested inside the radio label");
+  const order = nodes(tree, node => node.props.type === "radio" || ["dip_name", "notes"].includes(node.props.name))
+    .map(node => node.props.type === "radio" ? node.props.value : node.props.name);
+  assert.deepEqual(order, ["confirmed", "dip_name", "notes", "pending", "none"]);
+  assert.equal(field(form, "dip_name").props.required, true);
+  assert.notEqual(field(form, "notes").props.required, true);
+  assert.equal(nodes(tree, node => node.props.id === "phone-rsvp-dip-name").length, 1);
+  assert.equal(nodes(tree, node => node.props.id === "phone-rsvp-notes").length, 1);
+});
+
+test("changing dip choices only toggles inline fields and preserves their draft until an explicit submission", async () => {
+  const form = harness({ multiDip: true });
+  await form.mount();
+  guest(form);
+  choose(form, "confirmed");
+  fill(form, "dip_name", "Garden Hummus");
+  fill(form, "notes", "Contains sesame");
+  for (const choice of ["pending", "none", "pending", "none"]) {
+    choose(form, choice);
+    const tree = form.render();
+    assert.equal(nodes(tree, node => ["dip_name", "notes"].includes(node.props.name)).length, 0, "Hidden dip fields are absent from required form controls");
+    assert.deepEqual(posts(form), [], "A radio change must never submit the form");
+    const help = nodes(tree, node => node.props.id === `phone-rsvp-${choice}-help`)[0];
+    assert.equal(text(help), choice === "pending"
+      ? "No pressure! Save your spot now and come back to register your dip once you've decided what to bring."
+      : "Just here for the food and good times? We love that! No dip required—just bring your appetite. If you change your mind, you can always come back and register a dip later!");
+  }
+  choose(form, "confirmed");
+  assert.equal(field(form, "dip_name").props.value, "Garden Hummus");
+  assert.equal(field(form, "notes").props.value, "Contains sesame");
+  assert.deepEqual(posts(form), []);
+  await submit(form);
+  assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 1, bringing_dip: true, dip_status: "confirmed", dip_name: "Garden Hummus", notes: "Contains sesame" }]);
+});
+
+test("lookup shows Checking... during one guarded request and restores the correct view after success or failure", async () => {
+  for (const outcome of ["success", 404, 503, "offline"]) {
+    let complete;
+    let fail;
+    const form = harness({ multiDip: true, initialMode: "lookup", post: () => new Promise((resolve, reject) => { complete = resolve; fail = reject; }) });
+    await form.mount();
+    fill(form, "phone", "2125550198");
+    const pendingRequest = submit(form);
+    const checking = button(form, "Checking...");
+    assert.equal(checking.props.disabled, true);
+    assert.equal(nodes(form.render(), node => node.type === "fieldset")[0].props.disabled, true);
+    assert.equal(nodes(form.render(), node => node.type === "form")[0].props["aria-busy"], true);
+    await submit(form);
+    assert.deepEqual(posts(form), [{ action: "lookup", phone: "+12125550198" }]);
+    if (outcome === "success") complete(matched([]));
+    else if (outcome === "offline") fail(new Error("Network unavailable"));
+    else complete(reply({ ok: false }, outcome));
+    await pendingRequest;
+    assert.equal(nodes(form.render(), node => node.type === "button" && text(node) === "Checking...").length, 0);
+    assert.equal(nodes(form.render(), node => node.type === "form")[0].props["aria-busy"], false);
+    if (outcome === "success") {
+      assert.ok(button(form, "Add Dip"));
+      assert.equal(nodes(form.render(), node => node.props.name === "phone").length, 0);
+    } else {
+      assert.equal(button(form, "Find My RSVP").props.disabled, false);
+      assert.equal(field(form, "phone").props.value, "2125550198");
+      assert.match(text(form.render()), outcome === 404 ? /couldn’t find a matching RSVP/ : /Please try again shortly/);
+    }
+    assert.deepEqual(form.replacements, []);
+  }
+});

@@ -74,6 +74,7 @@ function uiModules(env) {
     "@/components/MultiDipChampionsPage": "individual-dip-champions-page",
     "@/components/EmptyState": "empty-state",
     "@/components/ChampionPhoto": "champion-photo",
+    "@/components/CollapsibleHistoricalDips": "collapsible-historical-dips",
     "@/components/VotingDisaster2025": load("src/components/VotingDisaster2025.tsx", env, {
       "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
       "@/lib/testingMode": testing,

@@ -355,7 +355,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   }
 
   function submitLabel() {
-    if (busy) return "Submitting…";
+    if (busy) return mode === "lookup" ? "Checking..." : "Submitting…";
     if (mode === "lookup") return "Find My RSVP";
     if (mode === "rsvp") return "Click to RSVP";
     if (!isMultiDipEnabled) return originalDip ? "Update Dip" : "Add Dip";
@@ -363,6 +363,20 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     if (dipPending) return "Save TBD Dip";
     if (!editingDipId) return "Add Dip";
     return selectedDip?.status === "pending" ? "Confirm Dip" : "Update Dip";
+  }
+
+  function renderDipFields() {
+    return <>
+      {!(isMultiDipEnabled && dipPending) && <div className="space-y-1.5">
+        <label htmlFor="phone-rsvp-dip-name" className="text-sm font-semibold text-foreground">Dip Name</label>
+        <input id="phone-rsvp-dip-name" name="dip_name" required maxLength={120} value={dipName} onChange={(event) => setDipName(event.target.value)} className="festival-input w-full" aria-describedby={duplicateDip ? "phone-rsvp-duplicate" : undefined} />
+        {duplicateDip && <p id="phone-rsvp-duplicate" className="text-sm text-muted-foreground">A dip with this name is already registered. Please choose another name.</p>}
+      </div>}
+      <div className="space-y-1.5">
+        <label htmlFor="phone-rsvp-notes" className="text-sm font-semibold text-foreground">Notes / Allergens (optional)</label>
+        <textarea id="phone-rsvp-notes" name="notes" rows={3} maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} className="festival-input w-full resize-y" />
+      </div>
+    </>;
   }
 
   return (
@@ -428,11 +442,13 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               {DIP_CHOICES.map(choice => {
                 const showHelp = dipChoice === choice.value && choice.value !== "confirmed";
                 const helpId = `phone-rsvp-${choice.value}-help`;
-                return <div key={choice.value} className="space-y-2">
-                  <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
+                const confirmedOption = choice.value === "confirmed";
+                return <div key={choice.value} className={confirmedOption ? "overflow-hidden rounded-xl border border-border bg-background" : "space-y-2"}>
+                  <label className={`flex min-h-12 cursor-pointer items-center gap-3 px-4 py-3${confirmedOption ? "" : " rounded-xl border border-border bg-background"}`}>
                     <input name="dip_status" type="radio" required value={choice.value} checked={dipChoice === choice.value} onChange={() => setDipChoice(choice.value)} aria-describedby={showHelp ? helpId : undefined} className="h-5 w-5 shrink-0 accent-primary" />
                     <span className="text-sm font-semibold text-foreground">{choice.label}</span>
                   </label>
+                  {confirmedOption && dipChoice === "confirmed" && <div className="space-y-5 px-4 pb-4 sm:px-5 sm:pb-5">{renderDipFields()}</div>}
                   {showHelp && <p id={helpId} className="px-4 text-sm leading-relaxed text-muted-foreground">{choice.help}</p>}
                 </div>;
               })}
@@ -441,7 +457,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               <span className="text-sm font-semibold text-foreground">I’m bringing a dip</span>
             </label>}
           </>}
-          {showDipFields && <div className="space-y-5 rounded-2xl border border-border bg-background p-4 sm:p-5">
+          {showDipFields && !(isMultiDipEnabled && mode === "rsvp") && <div className="space-y-5 rounded-2xl border border-border bg-background p-4 sm:p-5">
             {isMultiDipEnabled && mode === "edit" && <>
               {mode === "edit" && <h3 className="font-display text-xl text-foreground">{requestingReview ? "Request a Change" : editingDipId ? selectedDip?.status === "pending" && !dipPending ? "Confirm Your TBD Dip" : "Edit This Dip" : "Add Another Dip"}</h3>}
               {requestingReview && <p className="text-sm leading-relaxed text-muted-foreground">This sends your proposed change to the host for review. Your dip and its votes will stay unchanged.</p>}
@@ -451,15 +467,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               </label>
               <p id="phone-rsvp-pending-help" className="text-sm text-muted-foreground">TBD entries stay off the Dip List and voting ballot until you confirm a dip name.</p>
             </>}
-            {!(isMultiDipEnabled && dipPending) && <div className="space-y-1.5">
-              <label htmlFor="phone-rsvp-dip-name" className="text-sm font-semibold text-foreground">Dip Name</label>
-              <input id="phone-rsvp-dip-name" name="dip_name" required maxLength={120} value={dipName} onChange={(event) => setDipName(event.target.value)} className="festival-input w-full" aria-describedby={duplicateDip ? "phone-rsvp-duplicate" : undefined} />
-              {duplicateDip && <p id="phone-rsvp-duplicate" className="text-sm text-muted-foreground">A dip with this name is already registered. Please choose another name.</p>}
-            </div>}
-            <div className="space-y-1.5">
-              <label htmlFor="phone-rsvp-notes" className="text-sm font-semibold text-foreground">Notes / Allergens (optional)</label>
-              <textarea id="phone-rsvp-notes" name="notes" rows={3} maxLength={1000} value={notes} onChange={(event) => setNotes(event.target.value)} className="festival-input w-full resize-y" />
-            </div>
+            {renderDipFields()}
           </div>}
           <div className="flex flex-col items-center gap-4">
             {(!selectedDipLocked || requestingReview) && <button type="submit" disabled={busy} className="festival-button w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-52">
