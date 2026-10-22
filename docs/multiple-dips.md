@@ -1,5 +1,9 @@
 # Multiple dips per RSVP — development implementation
 
+This report records the first development stage. See
+`docs/rsvp-multiple-dips-improvements.md` for the current RSVP choices, verified
+legacy-status handling, Champions integration, and later validation results.
+
 This change is limited to isolated development data. It does not deploy the
 application, change production Firestore rules, migrate production records, or
 alter saved champions and historical dip records.

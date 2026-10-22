@@ -1,14 +1,25 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { normalizeDipName, normalizeGuestName, normalizeUsPhone } from "@/lib/rsvp/validation";
 import { isTestingMode, testingAssetPath } from "@/lib/testingMode";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
+import { siteRoutes } from "@/lib/siteNavigation";
 
 type Mode = "rsvp" | "lookup" | "edit";
 type PublicDip = { id?: string; name: string; dip_name: string };
-type OwnDip = { id: string; dip_name: string | null; notes: string | null; status: "pending" | "confirmed"; editable: boolean };
-type ApiReply = { ok?: boolean; error?: string; dip_name?: string; notes?: string; context?: string; dips?: unknown; dip_id?: string };
+type DipChoice = "confirmed" | "pending" | "none";
+type OwnDip = { id: string; dip_name: string | null; notes: string | null; status: "pending" | "confirmed" | "unverified"; editable: boolean };
+type RegistrationSummary = { name: string; party_size: number | null; confirmed_dips: number; pending_dips: number; unverified_dips: number };
+type Confirmation = { title: string; message: string; kind: "rsvp_pending" | "rsvp_none" | "dip_confirmed" | "dip_added" | "dip_pending" | "dip_updated" };
+type ApiReply = { ok?: boolean; error?: string; dip_name?: string; notes?: string; context?: string; dips?: unknown; dip_id?: string; registration_summary?: unknown; confirmation?: unknown };
+
+const DIP_CHOICES: { value: DipChoice; label: string }[] = [
+  { value: "confirmed", label: "Yes! I know what I'm bringing." },
+  { value: "pending", label: "Yes, but I'll decide later." },
+  { value: "none", label: "No dip for me!" },
+];
 
 const ENDPOINT = testingAssetPath("/api/rsvp");
 const LOOKUP_ERROR = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host for help.";
@@ -21,12 +32,30 @@ function ownedDips(value: unknown): OwnDip[] | null {
   const ids = new Set<string>();
   for (const dip of value) {
     if (!dip || typeof dip !== "object" || typeof dip.id !== "string" || !dip.id || dip.id.length > 1500 || dip.id.includes("/") ||
-      ids.has(dip.id) || !["pending", "confirmed"].includes(dip.status) || typeof dip.editable !== "boolean" ||
+      ids.has(dip.id) || !["pending", "confirmed", "unverified"].includes(dip.status) || typeof dip.editable !== "boolean" ||
       !(dip.dip_name === null || typeof dip.dip_name === "string") || !(dip.notes === null || typeof dip.notes === "string") ||
-      (dip.status === "confirmed" && !dip.dip_name?.trim())) return null;
+      (dip.status === "confirmed" && !dip.dip_name?.trim()) || (dip.status === "unverified" && dip.editable)) return null;
     ids.add(dip.id);
   }
   return value.map((dip) => ({ id: dip.id, dip_name: dip.dip_name, notes: dip.notes, status: dip.status, editable: dip.editable }));
+}
+
+function registrationSummary(value: unknown): RegistrationSummary | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  if (typeof data.name !== "string" || !data.name.trim() || data.name.length > 100 ||
+    !(data.party_size === null || (Number.isSafeInteger(data.party_size) && Number(data.party_size) >= 1)) ||
+    [data.confirmed_dips, data.pending_dips, data.unverified_dips].some(count => !Number.isSafeInteger(count) || Number(count) < 0)) return null;
+  return { name: data.name, party_size: data.party_size as number | null, confirmed_dips: Number(data.confirmed_dips), pending_dips: Number(data.pending_dips), unverified_dips: Number(data.unverified_dips) };
+}
+
+function confirmationMessage(value: unknown): Confirmation | null {
+  if (!value || typeof value !== "object") return null;
+  const data = value as Record<string, unknown>;
+  if (typeof data.title !== "string" || !data.title.trim() || data.title.length > 200 ||
+    typeof data.message !== "string" || !data.message.trim() || data.message.length > 1000 ||
+    typeof data.kind !== "string" || !["rsvp_pending", "rsvp_none", "dip_confirmed", "dip_added", "dip_pending", "dip_updated"].includes(data.kind)) return null;
+  return { title: data.title, message: data.message, kind: data.kind as Confirmation["kind"] };
 }
 
 export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: "rsvp" | "lookup" }) {
@@ -35,6 +64,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   const [phone, setPhone] = useState("");
   const [partySize, setPartySize] = useState("1");
   const [bringingDip, setBringingDip] = useState(false);
+  const [dipChoice, setDipChoice] = useState<DipChoice | "">("");
   const [dipName, setDipName] = useState("");
   const [notes, setNotes] = useState("");
   const [originalDip, setOriginalDip] = useState("");
@@ -43,6 +73,8 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   const [editingDipId, setEditingDipId] = useState<string | null>(null);
   const [dipPending, setDipPending] = useState(false);
   const [requestingReview, setRequestingReview] = useState(false);
+  const [summary, setSummary] = useState<RegistrationSummary | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const requestId = useRef("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -79,13 +111,13 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
 
   const selectedDip = myDips.find((dip) => dip.id === editingDipId);
   const selectedDipLocked = isMultiDipEnabled && mode === "edit" && selectedDip?.editable === false;
-  const showDipFields = (!selectedDipLocked || requestingReview) && (mode === "edit" || (mode === "rsvp" && bringingDip));
+  const showDipFields = (!selectedDipLocked || requestingReview) && (mode === "edit" || (mode === "rsvp" && (isMultiDipEnabled ? dipChoice === "confirmed" : bringingDip)));
   const duplicateDip = showDipFields && !(isMultiDipEnabled && dipPending) && dipKey(dipName) !== "" &&
     !(mode === "edit" && dipKey(dipName) === dipKey(originalDip)) &&
     dips.some((dip) => !(isMultiDipEnabled && editingDipId && dip.id === editingDipId) && dipKey(dip.dip_name) === dipKey(dipName));
 
   function editDip(dip: OwnDip | null, forReview = false) {
-    if (pending.current || (dip && !dip.editable && !forReview)) return;
+    if (pending.current || dip?.status === "unverified" || (dip && !dip.editable && !forReview)) return;
     setEditingDipId(dip?.id ?? null);
     setDipName(dip?.dip_name ?? "");
     setOriginalDip(dip?.dip_name ?? "");
@@ -95,6 +127,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     setRequestingReview(forReview);
     requestId.current = "";
     setStatus(null);
+    setConfirmation(null);
   }
 
   function clearDip() {
@@ -103,10 +136,13 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     setOriginalDip("");
     setEditorContext("");
     setBringingDip(false);
+    setDipChoice("");
     setMyDips([]);
     setEditingDipId(null);
     setDipPending(false);
     setRequestingReview(false);
+    setSummary(null);
+    setConfirmation(null);
     requestId.current = "";
   }
 
@@ -152,6 +188,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     event.preventDefault();
     if (pending.current) return;
     setStatus(null);
+    setConfirmation(null);
     if (selectedDipLocked && !requestingReview) {
       setStatus("This dip is locked to protect voting. Contact the host for admin review of any changes.");
       return;
@@ -173,6 +210,10 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
       setStatus("Please enter a party size from 1 to 20.");
       return;
     }
+    if (isMultiDipEnabled && mode === "rsvp" && !dipChoice) {
+      setStatus("Please choose whether you’re bringing a dip.");
+      return;
+    }
     if (showDipFields && ((!(isMultiDipEnabled && dipPending) && (!dipName.trim() || dipName.trim().length > 120)) || notes.trim().length > 1000)) {
       setStatus("Please enter a dip name (up to 120 characters) and keep notes under 1,000 characters.");
       return;
@@ -190,11 +231,14 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         : { action: "saveDip", dip_name: dipName.trim(), notes: notes.trim() }
       : mode === "lookup"
       ? { action: "lookup", name: name.trim().replace(/\s+/g, " "), phone: normalizedPhone }
-      : {
+      : isMultiDipEnabled ? {
+          action: "create", name: name.trim().replace(/\s+/g, " "), phone: normalizedPhone,
+          party_size: party, bringing_dip: dipChoice !== "none", dip_status: dipChoice,
+          dip_name: dipChoice === "confirmed" ? dipName.trim() : null, notes: dipChoice === "confirmed" ? notes.trim() : null,
+        } : {
           action: "create", name: name.trim().replace(/\s+/g, " "), phone: normalizedPhone,
           party_size: party, bringing_dip: bringingDip,
-          dip_name: bringingDip ? (isMultiDipEnabled && dipPending ? null : dipName.trim()) : "", notes: bringingDip ? notes.trim() : "",
-          ...(isMultiDipEnabled && bringingDip ? { dip_status: dipPending ? "pending" : "confirmed" } : {}),
+          dip_name: bringingDip ? dipName.trim() : "", notes: bringingDip ? notes.trim() : "",
         };
 
     pending.current = true;
@@ -219,7 +263,8 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
       }
       if (submittedMode === "lookup") {
         const matchedDips = isMultiDipEnabled ? ownedDips(data.dips) : [];
-        if (typeof data.context !== "string" || !/^[a-f0-9]{64}$/.test(data.context) || matchedDips === null) {
+        const matchedSummary = isMultiDipEnabled ? registrationSummary(data.registration_summary) : null;
+        if (typeof data.context !== "string" || !/^[a-f0-9]{64}$/.test(data.context) || matchedDips === null || (isMultiDipEnabled && !matchedSummary)) {
           clearDip();
           setStatus(RETRY_ERROR);
           return;
@@ -228,6 +273,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         const editableDip = matchedDips.find((dip) => dip.editable && dip.status === "pending") ?? matchedDips.find((dip) => dip.editable);
         if (isMultiDipEnabled) {
           setMyDips(matchedDips);
+          setSummary(matchedSummary);
           setEditingDipId(editableDip?.id ?? null);
           setDipPending(false);
           setRequestingReview(false);
@@ -246,17 +292,21 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         setPhone("");
         setPartySize("1");
         clearDip();
-        setStatus("You’re on the list! You can return later and add or update your dip using the same name and phone number.");
+        const confirmed = isMultiDipEnabled ? confirmationMessage(data.confirmation) : null;
+        if (confirmed) setConfirmation(confirmed);
+        else setStatus("You’re on the list! You can return later and add or update your dip using the same name and phone number.");
         await loadDips();
       } else {
         if (isMultiDipEnabled) {
           const savedDips = ownedDips(data.dips);
           const savedDip = savedDips?.find((dip) => dip.id === data.dip_id);
-          if (!savedDips || !savedDip) {
+          const savedSummary = registrationSummary(data.registration_summary);
+          if (!savedDips || !savedDip || !savedSummary) {
             setStatus("We couldn’t confirm the result. Find your RSVP again before trying to add another dip.");
             return;
           }
           setMyDips(savedDips);
+          setSummary(savedSummary);
           setEditingDipId(savedDip.id);
           setDipName(savedDip.dip_name ?? "");
           setOriginalDip(savedDip.dip_name ?? "");
@@ -264,7 +314,9 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
           setDipPending(savedDip.status === "pending");
           setRequestingReview(false);
           requestId.current = "";
-          setStatus(savedDip.status === "pending" ? "Your TBD dip is saved. Return here to confirm it or add another dip. Your RSVP and party size stay the same." : "Your dip is saved! Your RSVP and party size stay the same. You can edit this dip or add another below.");
+          const confirmed = confirmationMessage(data.confirmation);
+          if (confirmed) setConfirmation(confirmed);
+          else setStatus(savedDip.status === "pending" ? "Your TBD dip is saved. Return here to confirm it or add another dip. Your RSVP and party size stay the same." : "Your dip is saved! Your RSVP and party size stay the same. You can edit this dip or add another below.");
           await loadDips();
           return;
         }
@@ -300,24 +352,34 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the name and phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
         {mode === "edit" && <p className="text-sm leading-relaxed text-muted-foreground">{isMultiDipEnabled ? "Each confirmed dip is a separate entry on the Dip List and voting ballot. Adding or editing a dip keeps your existing RSVP, party size, and phone number." : "Add or update your dip below. This keeps your existing RSVP and party size."}</p>}
         <fieldset disabled={busy} className="min-w-0 space-y-6">
+          {isMultiDipEnabled && mode === "edit" && summary && <section className="space-y-3 rounded-xl border border-border bg-background p-4" aria-labelledby="phone-rsvp-summary">
+            <h2 id="phone-rsvp-summary" className="font-display text-2xl text-foreground">Your RSVP</h2>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div><dt className="text-muted-foreground">Name</dt><dd className="break-words font-semibold text-foreground">{summary.name}</dd></div>
+              <div><dt className="text-muted-foreground">Party Size</dt><dd className="font-semibold text-foreground">{summary.party_size ?? "Contact the host"}</dd></div>
+              <div><dt className="text-muted-foreground">Confirmed Dips</dt><dd className="font-semibold text-foreground">{summary.confirmed_dips}</dd></div>
+              <div><dt className="text-muted-foreground">Pending / TBD Dips</dt><dd className="font-semibold text-foreground">{summary.pending_dips}</dd></div>
+              {summary.unverified_dips > 0 && <div><dt className="text-muted-foreground">Needs Host Review</dt><dd className="font-semibold text-foreground">{summary.unverified_dips}</dd></div>}
+            </dl>
+          </section>}
           {isMultiDipEnabled && mode === "edit" && <section className="space-y-4" aria-labelledby="phone-rsvp-my-dips">
-            <h2 id="phone-rsvp-my-dips" className="font-display text-2xl text-foreground">Your Dips</h2>
+            <h2 id="phone-rsvp-my-dips" className="font-display text-2xl text-foreground">Your Registered Dips</h2>
             {myDips.length === 0 ? <p className="text-sm text-muted-foreground">No dips yet. Add a confirmed dip or save a TBD entry below.</p> : <ul className="space-y-3">
               {myDips.map((dip, index) => <li key={dip.id} className="min-w-0 space-y-3 rounded-xl border border-border bg-background p-4">
                 <div className="space-y-1">
-                  <h3 className="break-words font-semibold text-foreground">{dip.status === "pending" ? `TBD Dip ${index + 1}` : dip.dip_name}</h3>
-                  <p className="text-sm text-muted-foreground">{dip.status === "pending" ? "Pending — excluded from the Dip List and voting" : "Confirmed — separate dip and voting entry"}</p>
+                  <h3 className="break-words font-semibold text-foreground">{dip.status === "pending" ? `TBD Dip ${index + 1}` : dip.dip_name ?? "Entry Needing Review"}</h3>
+                  <p className="text-sm text-muted-foreground">{dip.status === "pending" ? "Pending — excluded from the Dip List and voting" : dip.status === "unverified" ? "Needs Host Review — contact the host to verify this entry" : "Confirmed — separate dip and voting entry"}</p>
                   {dip.notes && <p className="break-words text-sm text-muted-foreground">Notes / Allergens: {dip.notes}</p>}
                 </div>
-                {dip.editable ? <button type="button" disabled={busy} onClick={() => editDip(dip)} aria-pressed={editingDipId === dip.id} className="min-h-11 max-w-full break-words rounded-md px-2 text-left text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
-                  {dip.status === "pending" ? `Confirm Dip ${index + 1}` : `Edit ${dip.dip_name}`}
-                </button> : <div className="space-y-2">
+                {dip.editable ? <button type="button" disabled={busy} onClick={() => editDip(dip)} aria-label={dip.status === "pending" ? `Choose My Dip: TBD Dip ${index + 1}` : `Edit Dip: ${dip.dip_name}`} aria-pressed={editingDipId === dip.id} className="min-h-11 max-w-full break-words rounded-md px-2 text-left text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+                  {dip.status === "pending" ? "Choose My Dip" : "Edit Dip"}
+                </button> : dip.status !== "unverified" && <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Locked to protect voting. Request a change for admin review or contact the host.</p>
                   <button type="button" disabled={busy} onClick={() => editDip(dip, true)} aria-label={`Request a Change to ${dip.dip_name ?? `TBD Dip ${index + 1}`}`} className="min-h-11 rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">Request a Change</button>
                 </div>}
               </li>)}
             </ul>}
-            <button type="button" disabled={busy} onClick={() => editDip(null)} className="min-h-11 rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">Add Another Dip</button>
+            <button type="button" disabled={busy} onClick={() => editDip(null)} className="min-h-11 rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">+ Add Another Dip</button>
           </section>}
           {mode !== "edit" && <>
             <div className="space-y-1.5">
@@ -335,13 +397,19 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               <label htmlFor="phone-rsvp-party-size" className="text-sm font-semibold text-foreground">Party Size</label>
               <input id="phone-rsvp-party-size" name="party_size" type="number" required min={1} max={20} step={1} value={partySize} onChange={(event) => setPartySize(event.target.value)} className="festival-input w-full" />
             </div>
-            <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
+            {isMultiDipEnabled ? <fieldset className="min-w-0 space-y-3">
+              <legend className="mb-3 text-sm font-semibold text-foreground">Are you bringing a dip?</legend>
+              {DIP_CHOICES.map(choice => <label key={choice.value} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
+                <input name="dip_status" type="radio" required value={choice.value} checked={dipChoice === choice.value} onChange={() => setDipChoice(choice.value)} className="h-5 w-5 shrink-0 accent-primary" />
+                <span className="text-sm font-semibold text-foreground">{choice.label}</span>
+              </label>)}
+            </fieldset> : <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
               <input name="bringing_dip" type="checkbox" checked={bringingDip} onChange={(event) => setBringingDip(event.target.checked)} className="h-5 w-5 shrink-0 accent-primary" />
               <span className="text-sm font-semibold text-foreground">I’m bringing a dip</span>
-            </label>
+            </label>}
           </>}
           {showDipFields && <div className="space-y-5 rounded-2xl border border-border bg-background p-4 sm:p-5">
-            {isMultiDipEnabled && <>
+            {isMultiDipEnabled && mode === "edit" && <>
               {mode === "edit" && <h3 className="font-display text-xl text-foreground">{requestingReview ? "Request a Change" : editingDipId ? selectedDip?.status === "pending" && !dipPending ? "Confirm Your TBD Dip" : "Edit This Dip" : "Add Another Dip"}</h3>}
               {requestingReview && <p className="text-sm leading-relaxed text-muted-foreground">This sends your proposed change to the host for review. Your dip and its votes will stay unchanged.</p>}
               <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border px-4 py-3">
@@ -368,6 +436,14 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
               : <button type="button" disabled={busy} onClick={() => void switchMode("rsvp")} className="min-h-11 rounded-md px-2 text-sm font-semibold text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground">Back to RSVP</button>}
           </div>
         </fieldset>
+        {isMultiDipEnabled && confirmation && <section className="space-y-3 rounded-xl bg-background p-4 text-center" role="status" aria-live="polite" aria-atomic="true">
+          <h2 className="font-display text-2xl text-foreground">{confirmation.title}</h2>
+          <p className="text-sm leading-relaxed text-foreground">{confirmation.message}</p>
+          <nav aria-label="After registration" className="flex flex-wrap justify-center gap-3">
+            <Link href={siteRoutes.dips.href} className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">{siteRoutes.dips.label}</Link>
+            <Link href={siteRoutes.registerDip.href} className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">{siteRoutes.registerDip.label}</Link>
+          </nav>
+        </section>}
         <p role="status" aria-live="polite" aria-atomic="true" className={status ? "rounded-xl bg-background p-4 text-center text-sm leading-relaxed text-foreground" : "sr-only"}>{status ?? ""}</p>
       </form>
       <div className="mt-12">

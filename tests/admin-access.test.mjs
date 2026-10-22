@@ -300,6 +300,8 @@ test("development admin dip totals join independent confirmed entries without du
   }, adminDb({
     "registrations/legacy": { name: "Legacy", event: "Current", phone: "2025550101", party_size: 2, dip_name: "Legacy Queso", votes: 7 },
     "registrations/new": { name: "Two Dips", event: "Current", phone: "2025550102", party_size: 4, dip_schema_version: 2, bringing_dip: true, dip_name: null },
+    "registrations/none": { name: "No Dip", event: "Current", party_size: 1, dip_schema_version: 2, bringing_dip: false },
+    "registrations/unverified": { name: "Legacy TBD", event: "Current", dip_name: "TBD1", party_size: 1, votes: 0 },
     "registrationDips/a": { registration_id: "new", event: "Current", status: "confirmed", dip_name: "Salsa", votes: 10 },
     "registrationDips/b": { registration_id: "new", event: "Current", status: "confirmed", dip_name: "Hummus", votes: 6 },
     "registrationDips/pending": { registration_id: "new", event: "Current", status: "pending", dip_name: null, votes: 0 },
@@ -312,8 +314,8 @@ test("development admin dip totals join independent confirmed entries without du
   const response = await route.GET(request("registrations", token));
   assert.equal(response.status, 200);
   const result = await response.json();
-  assert.equal(result.registrations.length, 2);
-  assert.equal(result.registrations.reduce((sum, row) => sum + row.party_size, 0), 6);
+  assert.equal(result.registrations.length, 4);
+  assert.equal(result.registrations.reduce((sum, row) => sum + row.party_size, 0), 8);
   assert.deepEqual(result.dips.map(row => row.id).sort(), ["a", "b", "legacy"]);
   assert.equal(result.dips.find(row => row.id === "a").votes, 10);
   assert.equal(result.dips.find(row => row.id === "b").votes, 6);
@@ -323,7 +325,16 @@ test("development admin dip totals join independent confirmed entries without du
   assert.equal(result.dipEditReviews[0].name, "Two Dips");
   assert.equal(result.dipEditReviews[0].current_dip_name, "Salsa");
   assert.equal(result.dipEditReviews[0].proposed.notes, "Dairy");
+  assert.deepEqual(result.dipStatusCounts, { confirmed: 3, pending: 1, without_dips: 1, unverified: 1 });
+  assert.equal(result.registrationDips.filter(dip => dip.registration_id === "new").length, 3);
+  assert.equal(result.registrationDips.find(dip => dip.id === "unverified").status, "unverified");
+  assert.equal(result.registrationDips.find(dip => dip.id === "unverified").dip_name, "TBD1");
   assert.deepEqual(fixture.db.registrations(), before);
+  // Counts follow actual dip association after a guest changes their mind.
+  fixture.db.records.set("registrationDips/later", { registration_id: "none", event: "Current", status: "confirmed", dip_name: "Later Salsa", votes: 0 });
+  const later = await (await route.GET(request("registrations", token))).json();
+  assert.deepEqual(later.dipStatusCounts, { confirmed: 4, pending: 1, without_dips: 0, unverified: 1 });
+  assert.deepEqual(fixture.db.records.get("registrations/none"), before["registrations/none"]);
 });
 
 test("failed admin retry returns a generic error, logs no private values, and safely retries", async (t) => {

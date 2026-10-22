@@ -119,12 +119,15 @@ export async function POST(request: Request) {
       : "local";
     if (action === "create") {
       const result = await service.create(input, client);
-      return reply({ ok: true, message: result.message }, 201, cookieValue(request));
+      return reply({ ok: true, message: result.message,
+        ...(isMultiDipEnabled && "confirmation" in result ? { confirmation: result.confirmation } : {}),
+      }, 201, cookieValue(request));
     }
     if (action === "lookup") {
       const result = await service.lookup(input, client);
       return reply({ ok: true, dip_name: result.dip_name, notes: result.notes, context: editorContext(result.token),
         ...(isMultiDipEnabled && "dips" in result ? { dips: result.dips } : {}),
+        ...(isMultiDipEnabled && "registration_summary" in result ? { registration_summary: result.registration_summary } : {}),
       }, 200,
         cookieValue(request, result.token, SESSION_TTL_SECONDS));
     }
@@ -140,6 +143,8 @@ export async function POST(request: Request) {
       const result = await service.saveDip(token, input, client);
       return reply({ ok: true, message: result.message,
         ...(isMultiDipEnabled && "dips" in result && "dip_id" in result ? { dips: result.dips, dip_id: result.dip_id } : {}),
+        ...(isMultiDipEnabled && "registration_summary" in result ? { registration_summary: result.registration_summary } : {}),
+        ...(isMultiDipEnabled && "confirmation" in result ? { confirmation: result.confirmation } : {}),
       });
     }
     if (action === "logout" && Object.keys(input).length === 0) {

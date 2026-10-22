@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       };
     });
     if (multiDipServerEnabled()) {
-      const { readCompetitionRecords, publicCompetitionDips } = await import("@/lib/rsvp/dip-records");
+      const { readCompetitionRecords, publicCompetitionDips, competitionStatusCounts } = await import("@/lib/rsvp/dip-records");
       const records = await readCompetitionRecords(db);
       const dips = publicCompetitionDips(records);
       const reviews = await db.collection("_dipEditReviews").get();
@@ -38,7 +38,13 @@ export async function GET(request: Request) {
           },
         };
       });
-      return adminReply({ registrations, dips, dipEditReviews });
+      const registrationDips = records.map(dip => ({
+        id: dip.id, registration_id: dip.registration_id, name: dip.name,
+        dip_name: dip.dip_name, notes: dip.notes, status: dip.status,
+      }));
+      return adminReply({ registrations, dips, dipEditReviews, registrationDips,
+        dipStatusCounts: competitionStatusCounts(records, registrations),
+      });
     }
     return adminReply({ registrations });
   } catch (error) { return adminFailure(error); }

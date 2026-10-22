@@ -46,9 +46,11 @@ function harness(options = {}) {
   const element = (type, props, key) => ({ type, props: props ?? {}, key });
   const modules = {
     react,
+    "next/link": "a",
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/lib/rsvp/validation": validation,
     "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: options.multiDip ?? false },
+    "@/lib/siteNavigation": { siteRoutes: { dips: { href: "/dips", label: "Dip List" }, registerDip: { href: "/register/dip", label: "Register Dip" } } },
     "@/lib/testingMode": {
       isTestingMode: options.testingMode ?? true,
       testingAssetPath: (path) => (options.testingMode ?? true) ? `/testing${path}` : path,
@@ -108,7 +110,7 @@ function fill(form, name, value) {
   node.props.onChange({ target: node.props.type === "checkbox" ? { checked: value } : { value } });
 }
 function button(form, label) {
-  const node = nodes(form.render(), (node) => node.type === "button" && text(node) === label)[0];
+  const node = nodes(form.render(), (node) => node.type === "button" && (text(node) === label || node.props["aria-label"] === label))[0];
   assert.ok(node, `Missing button ${label}`);
   return node;
 }
@@ -414,9 +416,16 @@ test("production RSVP uses the root API and displays live guest copy", async () 
 });
 
 const ownDip = (id, dip_name, status = "confirmed", editable = true, notes = null) => ({ id, dip_name, notes, status, editable });
-const matched = (dips) => reply({ ok: true, context: CONTEXT_A, dips });
-const saved = (dips, dip_id) => reply({ ok: true, dips, dip_id });
+const summaryFor = (dips) => ({ name: "Taylor Guest", party_size: 1, confirmed_dips: Array.isArray(dips) ? dips.filter(dip => dip.status === "confirmed").length : 0, pending_dips: Array.isArray(dips) ? dips.filter(dip => dip.status === "pending").length : 0, unverified_dips: Array.isArray(dips) ? dips.filter(dip => dip.status === "unverified").length : 0 });
+const matched = (dips, extra = {}) => reply({ ok: true, context: CONTEXT_A, dips, registration_summary: summaryFor(dips), ...extra });
+const saved = (dips, dip_id, extra = {}) => reply({ ok: true, dips, dip_id, registration_summary: summaryFor(dips), ...extra });
 const ownList = (form) => nodes(form.render(), (node) => node.props["aria-labelledby"] === "phone-rsvp-my-dips")[0];
+
+function choose(form, value) {
+  const option = nodes(form.render(), node => node.props.type === "radio" && node.props.name === "dip_status" && node.props.value === value)[0];
+  assert.ok(option, `Missing dip option ${value}`);
+  option.props.onChange({ target: { value, checked: true } });
+}
 
 test("multi-dip lookup shows each entry separately and confirms only the selected pending ID", async () => {
   const before = [ownDip("dip-a", "Hot Sausage Cowboy Dip"), ownDip("dip-b", "Smoked Queso"), ownDip("dip-c", null, "pending")];
@@ -451,11 +460,11 @@ test("adding another dip appends without submitting RSVP identity or overwriting
   await form.mount();
   guest(form);
   await submit(form);
-  await click(form, "Add Another Dip");
+  await click(form, "+ Add Another Dip");
   assert.equal(field(form, "dip_name").props.value, "");
   fill(form, "dip_name", second.dip_name);
   await submit(form);
-  await click(form, "Add Another Dip");
+  await click(form, "+ Add Another Dip");
   fill(form, "dip_name", third.dip_name);
   await submit(form);
   const payloads = posts(form).filter((payload) => payload.action === "saveDip");
@@ -476,7 +485,7 @@ test("editing a particular confirmed dip sends its persistent ID and leaves the 
   await form.mount();
   guest(form);
   await submit(form);
-  await click(form, "Edit Salsa");
+  await click(form, "Edit Dip: Salsa");
   assert.equal(field(form, "dip_name").props.value, "Salsa");
   assert.equal(field(form, "notes").props.value, "Tomatoes");
   fill(form, "dip_name", "Smoked Salsa");
@@ -498,7 +507,7 @@ test("multiple pending entries are independent and only the chosen one is confir
   guest(form);
   await submit(form);
   assert.equal(nodes(ownList(form), (node) => node.type === "li").length, 3);
-  await click(form, "Confirm Dip 2");
+  await click(form, "Choose My Dip: TBD Dip 2");
   fill(form, "dip_name", updatedB.dip_name);
   await submit(form);
   assert.equal(posts(form).at(-1).dip_id, "pending-b");
@@ -511,11 +520,10 @@ test("a new RSVP may save a TBD dip without a name and keep the usual return ins
   await form.mount();
   guest(form);
   fill(form, "party_size", "4");
-  fill(form, "bringing_dip", true);
-  fill(form, "dip_pending", true);
+  choose(form, "pending");
   assert.equal(nodes(form.render(), (node) => node.props.name === "dip_name").length, 0);
   await submit(form);
-  assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 4, bringing_dip: true, dip_name: null, notes: "", dip_status: "pending" }]);
+  assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 4, bringing_dip: true, dip_name: null, notes: null, dip_status: "pending" }]);
   assert.match(text(form.render()), /return later and add or update your dip/);
 });
 
@@ -526,7 +534,7 @@ test("a returning guest can append another independent TBD dip", async () => {
   await form.mount();
   guest(form);
   await submit(form);
-  await click(form, "Add Another Dip");
+  await click(form, "+ Add Another Dip");
   fill(form, "dip_pending", true);
   fill(form, "notes", "Contains nuts");
   assert.ok(button(form, "Save TBD Dip"));
@@ -609,9 +617,9 @@ test("multi-dip logout clears all matched entries and save requests retain sessi
   assert.doesNotMatch(text(form.render()), /private-own-id/);
   await click(form, "Back to RSVP");
   assert.equal(ownList(form), undefined);
-  fill(form, "bringing_dip", true);
+  choose(form, "confirmed");
   assert.equal(field(form, "dip_name").props.value, "");
-  assert.equal(field(form, "dip_pending").props.checked, false);
+  assert.equal(nodes(form.render(), node => node.props.name === "dip_pending").length, 0);
   assert.deepEqual(posts(form).at(-1), { action: "logout" });
 });
 
@@ -634,7 +642,7 @@ test("a locked dip can request admin review while its own entry and other dips s
   assert.match(text(form.render()), /Your change was sent to the host for review/);
   assert.match(text(ownList(form)), /Voted Queso.*Dairy.*Garden Salsa/);
   assert.doesNotMatch(text(ownList(form)), /Proposed Queso|Updated allergen note/);
-  await click(form, "Add Another Dip");
+  await click(form, "+ Add Another Dip");
   assert.equal(field(form, "dip_name").props.value, "");
   assert.ok(button(form, "Add Dip"));
   assert.equal(posts(form).some((payload) => payload.action === "create"), false);
@@ -653,4 +661,179 @@ test("a valid legacy Firestore ID longer than 200 characters remains editable wi
   assert.equal(posts(form).at(-1).dip_id, entry.id);
   assert.match(text(ownList(form)), /Legacy Roasted Hummus/);
   assert.doesNotMatch(text(form.render()), /legacy-legacy-/);
+});
+
+const CONFIRMATIONS = {
+  rsvp_pending: { kind: "rsvp_pending", title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your name and phone number." },
+  rsvp_none: { kind: "rsvp_none", title: "You're on the list!", message: "Your RSVP is confirmed. You can register a dip later if you change your mind." },
+  dip_confirmed: { kind: "dip_confirmed", title: "Your dip is officially in the competition!", message: "Your dip has been added to the lineup. Let the showdown begin!" },
+  dip_added: { kind: "dip_added", title: "Another contender enters the showdown!", message: "Your additional dip has been registered successfully." },
+  dip_pending: { kind: "dip_pending", title: "Your dip is marked as TBD!", message: "Return to Register Dip once you've chosen your dip." },
+  dip_updated: { kind: "dip_updated", title: "Your dip is updated!", message: "Your RSVP and party size have not changed." },
+};
+
+function assertConfirmation(form, expected) {
+  assert.equal(nodes(form.render(), node => node.type === "h2" && text(node) === expected.title).length, 1);
+  assert.match(text(form.render()), new RegExp(expected.message.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  const navigation = nodes(form.render(), node => node.type === "nav" && node.props["aria-label"] === "After registration")[0];
+  assert.ok(navigation);
+  const links = nodes(navigation, node => node.type === "a");
+  assert.deepEqual(links.map(link => [link.props.href, text(link)]), [["/dips", "Dip List"], ["/register/dip", "Register Dip"]]);
+}
+
+test("the development RSVP requires one of three exact radio choices and selects none by default", async () => {
+  const form = harness({ multiDip: true });
+  await form.mount();
+  const radios = nodes(form.render(), node => node.props.type === "radio");
+  assert.equal(radios.length, 3);
+  assert.deepEqual(radios.map(node => [node.props.name, node.props.value, node.props.required, node.props.checked]), [["dip_status", "confirmed", true, false], ["dip_status", "pending", true, false], ["dip_status", "none", true, false]]);
+  const labels = nodes(form.render(), node => node.type === "label" && nodes(node, child => child.props.type === "radio").length > 0).map(text);
+  assert.deepEqual(labels, ["Yes! I know what I'm bringing.", "Yes, but I'll decide later.", "No dip for me!"]);
+  assert.equal(field(form, "name").props.required, true);
+  assert.equal(field(form, "phone").props.required, true);
+  assert.equal(field(form, "party_size").props.required, true);
+  assert.equal(nodes(form.render(), node => ["bringing_dip", "dip_pending", "dip_name", "notes"].includes(node.props.name)).length, 0);
+  guest(form);
+  await submit(form);
+  assert.match(text(form.render()), /Please choose whether you’re bringing a dip/);
+  assert.deepEqual(posts(form), []);
+});
+
+test("known, pending, and no-dip radio choices control fields and submit coherent distinct statuses", async () => {
+  for (const choice of ["confirmed", "pending", "none"]) {
+    const confirmation = CONFIRMATIONS[choice === "confirmed" ? "dip_confirmed" : choice === "pending" ? "rsvp_pending" : "rsvp_none"];
+    const form = harness({ multiDip: true, post: () => reply({ ok: true, confirmation }) });
+    await form.mount();
+    guest(form);
+    choose(form, choice);
+    const visibleDipFields = nodes(form.render(), node => ["dip_name", "notes"].includes(node.props.name));
+    assert.equal(visibleDipFields.length, choice === "confirmed" ? 2 : 0);
+    assert.equal(nodes(form.render(), node => node.props.name === "dip_pending").length, 0);
+    if (choice === "confirmed") {
+      assert.equal(field(form, "dip_name").props.required, true);
+      await submit(form);
+      assert.match(text(form.render()), /Please enter a dip name/);
+      assert.deepEqual(posts(form), []);
+      fill(form, "dip_name", "  Garden Hummus  ");
+      fill(form, "notes", "  Contains sesame  ");
+    }
+    await submit(form);
+    assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 1, bringing_dip: choice !== "none", dip_status: choice, dip_name: choice === "confirmed" ? "Garden Hummus" : null, notes: choice === "confirmed" ? "Contains sesame" : null }]);
+    assertConfirmation(form, confirmation);
+    assert.equal(nodes(form.render(), node => node.props.type === "radio" && node.props.checked).length, 0);
+  }
+});
+
+test("switching away from a known dip hides both fields and does not submit their stale values", async () => {
+  for (const choice of ["pending", "none"]) {
+    const form = harness({ multiDip: true, dips: [{ id: "already-registered", name: "Another Guest", dip_name: "Queso" }] });
+    await form.mount();
+    guest(form);
+    choose(form, "confirmed");
+    fill(form, "dip_name", "Queso");
+    fill(form, "notes", "Dairy that should not be submitted");
+    assert.match(text(form.render()), /already registered/);
+    choose(form, choice);
+    assert.equal(nodes(form.render(), node => ["dip_name", "notes"].includes(node.props.name)).length, 0);
+    assert.doesNotMatch(text(form.render()), /already registered/);
+    await submit(form);
+    assert.equal(posts(form).at(-1).dip_status, choice);
+    assert.equal(posts(form).at(-1).dip_name, null);
+    assert.equal(posts(form).at(-1).notes, null);
+  }
+});
+
+test("lookup shows only an allowlisted readonly registration summary and refreshes its dip counts after saving", async () => {
+  const pending = ownDip("pending-summary", null, "pending");
+  const confirmed = ownDip("existing-summary", "Queso", "confirmed", true, "Dairy");
+  const next = ownDip(pending.id, "Salsa", "confirmed", true, "Tomatoes");
+  const originalSummary = { name: "Kim and Brian", party_size: 4, confirmed_dips: 1, pending_dips: 1, unverified_dips: 0, phone: "Private Phone", registration_id: "Private RSVP ID", unrelated: "Private Extra" };
+  const finalSummary = { ...originalSummary, confirmed_dips: 2, pending_dips: 0 };
+  const form = harness({ multiDip: true, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([pending, confirmed], { registration_summary: originalSummary }) : saved([next, confirmed], next.id, { registration_summary: finalSummary, confirmation: CONFIRMATIONS.dip_confirmed }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  const summaryTree = () => nodes(form.render(), node => node.props["aria-labelledby"] === "phone-rsvp-summary")[0];
+  assert.match(text(summaryTree()), /NameKim and BrianParty Size4Confirmed Dips1Pending \/ TBD Dips1/);
+  assert.equal(nodes(form.render(), node => ["name", "phone", "party_size"].includes(node.props.name)).length, 0);
+  assert.doesNotMatch(text(form.render()), /Private Phone|Private RSVP ID|Private Extra/);
+  assert.ok(button(form, "Choose My Dip"));
+  fill(form, "dip_name", "Salsa");
+  fill(form, "notes", "Tomatoes");
+  await submit(form);
+  assert.match(text(summaryTree()), /Confirmed Dips2Pending \/ TBD Dips0/);
+  assert.equal(posts(form).at(-1).dip_id, pending.id);
+  assert.equal(Object.hasOwn(posts(form).at(-1), "party_size"), false);
+  assertConfirmation(form, CONFIRMATIONS.dip_confirmed);
+});
+
+test("adding another contender displays the required confirmation and keeps existing confirmed notes intact", async () => {
+  const first = ownDip("confirmed-original", "Cowboy Dip", "confirmed", true, "Original allergens");
+  const next = ownDip("confirmed-added", "Smoked Queso", "confirmed", true, "Dairy");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([first]) : saved([first, next], next.id, { confirmation: CONFIRMATIONS.dip_added }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.ok(button(form, "Edit Dip"));
+  await click(form, "+ Add Another Dip");
+  fill(form, "dip_name", next.dip_name);
+  fill(form, "notes", next.notes);
+  await submit(form);
+  assert.equal(Object.hasOwn(posts(form).at(-1), "dip_id"), false);
+  assert.match(text(ownList(form)), /Cowboy Dip.*Original allergens.*Smoked Queso.*Dairy/);
+  assertConfirmation(form, CONFIRMATIONS.dip_added);
+});
+
+test("ambiguous legacy TBD records remain readonly for host review while another dip may be added", async () => {
+  const unverified = ownDip("legacy-tbd-one", "TBD1", "unverified", false, "Keep historical notes");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: () => matched([unverified]) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.match(text(ownList(form)), /TBD1.*Needs Host Review.*Keep historical notes/);
+  assert.equal(nodes(ownList(form), node => node.type === "button").length, 1);
+  assert.equal(text(nodes(ownList(form), node => node.type === "button")[0]), "+ Add Another Dip");
+  assert.doesNotMatch(text(ownList(form)), /Choose My Dip|Edit Dip|Request a Change/);
+  assert.equal(field(form, "dip_name").props.value, "");
+  assert.equal(field(form, "notes").props.value, "");
+  assert.equal(posts(form).some(payload => payload.action === "saveDip"), false);
+});
+
+test("malformed or missing registration summaries never reveal a matched editor", async () => {
+  for (const registration_summary of [undefined, null, {}, { ...summaryFor([]), phone: "Private Phone", name: "" }, { ...summaryFor([]), party_size: "4" }, { ...summaryFor([]), confirmed_dips: -1 }]) {
+    const form = harness({ multiDip: true, initialMode: "lookup", post: () => matched([ownDip("private-id", "Private Matched Dip")], { registration_summary }) });
+    await form.mount();
+    guest(form);
+    await submit(form);
+    assert.ok(button(form, "Find My RSVP"));
+    assert.equal(ownList(form), undefined);
+    assert.doesNotMatch(text(form.render()), /Private Matched Dip|Private Phone/);
+  }
+});
+
+test("a save with an invalid registration summary does not replace the displayed dip list", async () => {
+  const first = ownDip("unchanged-original", "Original Dip");
+  const next = ownDip("uncertain-addition", "New Dip");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([first]) : saved([first, next], next.id, { registration_summary: undefined, confirmation: CONFIRMATIONS.dip_added }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "+ Add Another Dip");
+  fill(form, "dip_name", next.dip_name);
+  await submit(form);
+  assert.match(text(form.render()), /couldn’t confirm the result.*Find your RSVP again/);
+  assert.match(text(ownList(form)), /Original Dip/);
+  assert.doesNotMatch(text(ownList(form)), /New Dip/);
+  assert.equal(nodes(form.render(), node => node.type === "h2" && text(node) === CONFIRMATIONS.dip_added.title).length, 0);
+});
+
+test("an existing party size above the new-RSVP limit remains visible and cannot be edited", async () => {
+  const form = harness({ multiDip: true, initialMode: "lookup", post: () => matched([], { registration_summary: { ...summaryFor([]), party_size: 25 } }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  const summary = nodes(form.render(), node => node.props["aria-labelledby"] === "phone-rsvp-summary")[0];
+  assert.match(text(summary), /Party Size25/);
+  assert.equal(nodes(form.render(), node => node.props.name === "party_size").length, 0);
+  assert.ok(button(form, "Add Dip"));
 });

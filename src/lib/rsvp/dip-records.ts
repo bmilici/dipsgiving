@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import type { DocumentReference, Firestore, Transaction } from "firebase-admin/firestore";
 
-export type DipStatus = "pending" | "confirmed";
+// `unverified` is a read-time review flag, never a migration of stored records.
+export type DipStatus = "pending" | "confirmed" | "unverified";
 export type CompetitionRecord = {
   id: string; ref: DocumentReference; registration_id: string; event: string;
   status: DipStatus; dip_name: string | null; notes: string | null;
@@ -15,7 +16,7 @@ const text = (value: unknown, max: number) => typeof value === "string" ? value.
 const counter = (value: unknown) => value === undefined ? 0 :
   typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : NaN;
 export const isPendingName = (value: unknown) => typeof value === "string" &&
-  /^(?:t\.?b\.?d\.?|to be (?:determined|decided)|undecided|not (?:sure|decided)(?: yet)?)$/iu.test(value.trim());
+  /^(?:t\.?b\.?d\.?\s*\d*|to be (?:determined|decided)|undecided|not (?:sure|decided)(?: yet)?)$/iu.test(value.trim());
 export function competitionYear(data: Record<string, unknown> | undefined): number {
   if (Number.isInteger(data?.year) && Number(data?.year) >= 2000 && Number(data?.year) <= 9999) return Number(data?.year);
   const match = typeof data?.dateLabel === "string" && data.dateLabel.match(/\b(20\d{2})\b/);
@@ -39,11 +40,13 @@ export async function readCompetitionRecords(db: Firestore, tx?: Transaction, ev
     const dip_name = text(data.dip_name, 120);
     if (!dip_name && data.bringing_dip !== true && data.bringingDip !== true) continue;
     const explicitStatus = data.dip_status === "pending" || data.dip_status === "confirmed" ? data.dip_status : data.status;
-    const pending = !dip_name || isPendingName(dip_name) || explicitStatus === "pending";
+    const status: DipStatus = explicitStatus === "pending" ? "pending" : !dip_name
+      ? explicitStatus === "confirmed" ? "unverified" : "pending"
+      : explicitStatus === "confirmed" ? "confirmed" : isPendingName(dip_name) ? "unverified" : "confirmed";
     records.push({
       id: doc.id, ref: doc.ref, registration_id: doc.id, legacy: true,
       event: typeof data.event === "string" ? data.event : "",
-      status: pending ? "pending" : "confirmed", dip_name: pending ? null : dip_name,
+      status, dip_name: status === "pending" ? null : dip_name,
       notes: text(data.notes, 1000), name: text(data.name, 100),
       votes: counter(data.votes),
       year: Number.isInteger(data.year) ? data.year : null,
@@ -58,10 +61,10 @@ export async function readCompetitionRecords(db: Firestore, tx?: Transaction, ev
     // A collision must never silently combine two different competition entries.
     if (byOwner.has(doc.id)) throw new Error("Conflicting competition identifiers");
     const dip_name = text(data.dip_name, 120);
-    const status = data.status === "confirmed" && dip_name && !isPendingName(dip_name) ? "confirmed" : "pending";
+    const status: DipStatus = data.status === "pending" ? "pending" : dip_name ? "confirmed" : "unverified";
     records.push({
       id: doc.id, ref: doc.ref, registration_id: data.registration_id, legacy: false,
-      event: data.event, status, dip_name: status === "confirmed" ? dip_name : null,
+      event: data.event, status, dip_name: status === "pending" ? null : dip_name,
       notes: text(data.notes, 1000), name: text(owner.name, 100),
       votes: counter(data.votes),
       year: Number.isInteger(data.year) ? data.year : null,
@@ -81,4 +84,15 @@ export function publicCompetitionDips(records: CompetitionRecord[]) {
     id: dip.id, name: dip.name, dip_name: dip.dip_name!, notes: dip.notes,
     votes: Number.isSafeInteger(dip.votes) ? dip.votes : 0, year: dip.year, created_at: dip.created_at,
   })).sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0) || a.id.localeCompare(b.id));
+}
+
+/** Host-only totals use actual associated entries, never the initial checkbox. */
+export function competitionStatusCounts(records: CompetitionRecord[], owners: Array<{ id: string; type?: unknown }>) {
+  const registered = new Set(records.map(dip => dip.registration_id));
+  return {
+    confirmed: records.filter(dip => dip.status === "confirmed").length,
+    pending: records.filter(dip => dip.status === "pending").length,
+    unverified: records.filter(dip => dip.status === "unverified").length,
+    without_dips: owners.filter(owner => owner.type !== "dip_only" && !registered.has(owner.id)).length,
+  };
 }

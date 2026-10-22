@@ -26,7 +26,9 @@ function object(value: unknown, keys: string[]): Record<string, unknown> {
 function dipFields(input: Record<string, unknown>, rawStatus: unknown) {
   if (rawStatus !== undefined && rawStatus !== "pending" && rawStatus !== "confirmed")
     throw new RsvpError("invalid_input", 400, "Please check your dip status.");
-  const status: DipStatus = rawStatus === "pending" || isPendingName(input.dip_name) ? "pending" : "confirmed";
+  const status: DipStatus = rawStatus === "pending" ? "pending" : "confirmed";
+  if (status === "confirmed" && isPendingName(input.dip_name))
+    throw new RsvpError("invalid_input", 400, "Please enter your dip’s name, or choose the TBD option if you’re still deciding.");
   const validated = checked(() => validateDip({ dip_name: status === "pending" ? "Pending dip" : input.dip_name, notes: input.notes }));
   return { status, dip_name: status === "pending" ? null : validated.dip_name, notes: validated.notes };
 }
@@ -35,7 +37,7 @@ function unique(records: CompetitionRecord[], name: string | null, ownId?: strin
     throw new RsvpError("dip_unavailable", 409, "That dip name is already registered. Please choose another name.");
 }
 const locked = (dip: CompetitionRecord, open: boolean, voted: Set<string>) =>
-  dip.voting_locked || !Number.isSafeInteger(dip.votes) || dip.votes > 0 || voted.has(dip.id) || (open && dip.status === "confirmed");
+  dip.status === "unverified" || dip.voting_locked || !Number.isSafeInteger(dip.votes) || dip.votes > 0 || voted.has(dip.id) || (open && dip.status === "confirmed");
 function ownDips(records: CompetitionRecord[], owner: string, open: boolean, voted: Set<string>) {
   return records.filter(dip => dip.registration_id === owner).map(dip => ({
     id: dip.id, dip_name: dip.dip_name, notes: dip.notes, status: dip.status, editable: !locked(dip, open, voted),
@@ -46,6 +48,27 @@ const ballotIds = (docs: Array<{ data: () => DocumentData }>) => new Set<string>
 }));
 const sessionError = () => new RsvpError("session_expired", 401, LOOKUP_FAILURE);
 
+type ConfirmationKind = "rsvp_pending" | "rsvp_none" | "dip_confirmed" | "dip_added" | "dip_pending" | "dip_updated";
+const confirmations: Record<ConfirmationKind, { title: string; message: string }> = {
+  rsvp_pending: { title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your name and phone number." },
+  rsvp_none: { title: "You're on the list!", message: "Your RSVP is confirmed. You can return later to Register Dip with your name and phone number if you decide to bring a dip." },
+  dip_confirmed: { title: "Your dip is officially in the competition!", message: "Your dip has been added to the lineup. Let the showdown begin!" },
+  dip_added: { title: "Another contender enters the showdown!", message: "Your additional dip has been registered successfully." },
+  dip_pending: { title: "Your dip is marked as TBD!", message: "When you've decided, use Choose My Dip to add this entry to the competition." },
+  dip_updated: { title: "Your dip has been updated!", message: "Your changes are saved. Your other dips, RSVP, and party size have not changed." },
+};
+const confirmation = (kind: ConfirmationKind) => ({ kind, ...confirmations[kind] });
+function registrationSummary(data: DocumentData, dips: ReturnType<typeof ownDips>) {
+  const party = Number(data.partySize ?? data.party_size);
+  return {
+    name: typeof data.name === "string" ? data.name.trim().slice(0, 100) : "Guest",
+    party_size: Number.isSafeInteger(party) && party > 0 ? party : null,
+    confirmed_dips: dips.filter(dip => dip.status === "confirmed").length,
+    pending_dips: dips.filter(dip => dip.status === "pending").length,
+    unverified_dips: dips.filter(dip => dip.status === "unverified").length,
+  };
+}
+
 /** Development-only per-dip implementation; all connections come from guarded routes. */
 export class MultiDipRsvpService extends RsvpService {
   constructor(db: Firestore) { super(db); }
@@ -54,8 +77,11 @@ export class MultiDipRsvpService extends RsvpService {
     await this.rateLimit("create", clientKey, 30);
     const raw = object(input, ["name", "phone", "party_size", "bringing_dip", "dip_name", "notes", "dip_status"]);
     const { dip_status, ...legacyInput } = raw;
-    if (dip_status !== undefined && dip_status !== "confirmed" && dip_status !== "pending") throw new RsvpError("invalid_input", 400, "Please check your dip status.");
-    const pending = raw.bringing_dip === true && (dip_status === "pending" || isPendingName(raw.dip_name));
+    if (dip_status !== "confirmed" && dip_status !== "pending" && dip_status !== "none")
+      throw new RsvpError("invalid_input", 400, "Please choose whether you’re bringing a dip.");
+    if (raw.bringing_dip !== (dip_status !== "none"))
+      throw new RsvpError("invalid_input", 400, "Please check your dip choice and try again.");
+    const pending = dip_status === "pending";
     const fields = checked(() => validateNewRsvp({ ...legacyInput, ...(pending ? { dip_name: "Pending dip" } : {}) }));
     const initialDip = fields.bringing_dip ? dipFields({ dip_name: fields.dip_name, notes: fields.notes }, pending ? "pending" : "confirmed") : null;
     const registration = this.db.collection("registrations").doc();
@@ -83,7 +109,8 @@ export class MultiDipRsvpService extends RsvpService {
       logInvitationSyncFailure("create", error);
       throw new RsvpError("rsvp_save_failed", 503, "We couldn’t confirm your RSVP. Please try again, or use Add a Dip (Already Registered?) to check it.");
     }
-    return { message: "You’re RSVP’d! Return later using Add a Dip (Already Registered?) with your name and phone number to add or update individual dips." };
+    const result = confirmation(dip_status === "pending" ? "rsvp_pending" : dip_status === "none" ? "rsvp_none" : "dip_confirmed");
+    return { message: result.message, confirmation: result };
   }
 
   override async lookup(input: unknown, clientKey: string) {
@@ -107,7 +134,7 @@ export class MultiDipRsvpService extends RsvpService {
         registration_id: matches[0].id, event, identity: identity(fields!.name, fields!.phone),
         expires_at: Date.now() + SESSION_TTL_SECONDS * 1000, delete_after: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
       });
-      return { token, dips, dip_name: dips[0]?.dip_name ?? "", notes: dips[0]?.notes ?? "" };
+      return { token, dips, registration_summary: registrationSummary(matches[0].data(), dips), dip_name: dips[0]?.dip_name ?? "", notes: dips[0]?.notes ?? "" };
     });
   }
 
@@ -137,7 +164,9 @@ export class MultiDipRsvpService extends RsvpService {
       const prior = (await tx.get(operation)).data();
       if (prior) {
         if (prior.fingerprint !== fingerprint) throw new RsvpError("request_conflict", 409, "This request was already used. Refresh your dip list before making another change.");
-        return { review: prior.review === true, dip_id: prior.dip_id as string, dips: ownDips(records, registration.id, open, voted) };
+        const dips = ownDips(records, registration.id, open, voted);
+        const kind: ConfirmationKind = Object.hasOwn(confirmations, prior.confirmation_kind) ? prior.confirmation_kind : fields.status === "pending" ? "dip_pending" : "dip_updated";
+        return { review: prior.review === true, dip_id: prior.dip_id as string, dips, registration_summary: registrationSummary(current, dips), confirmation: confirmation(kind) };
       }
       const existing = raw.dip_id === undefined ? undefined : records.find(dip => dip.id === raw.dip_id && dip.registration_id === registration.id);
       if (raw.dip_id !== undefined && !existing) throw new RsvpError("dip_not_found", 404, "This dip could not be found on your RSVP. Please look it up again.");
@@ -153,7 +182,8 @@ export class MultiDipRsvpService extends RsvpService {
           status: "pending_review", created_at: FieldValue.serverTimestamp(),
         });
         tx.create(operation, { fingerprint, dip_id: dipId, review: true, created_at: FieldValue.serverTimestamp() });
-        return { review: true, dip_id: dipId, dips: ownDips(records, registration.id, open, voted) };
+        const dips = ownDips(records, registration.id, open, voted);
+        return { review: true, dip_id: dipId, dips, registration_summary: registrationSummary(current, dips), confirmation: confirmation("dip_updated") };
       }
       unique(records, fields.dip_name, existing?.id);
       const updated: CompetitionRecord = existing ? { ...existing, ...fields } : {
@@ -163,12 +193,16 @@ export class MultiDipRsvpService extends RsvpService {
       if (existing?.legacy) tx.update(dipRef, { bringing_dip: true, dip_name: fields.dip_name, notes: fields.notes, dip_status: fields.status });
       else if (existing) tx.update(dipRef, { ...fields, updated_at: FieldValue.serverTimestamp() });
       else tx.create(dipRef, { ...fields, registration_id: registration.id, event, votes: 0, year: competitionYear(settings), voting_locked: false, created_at: FieldValue.serverTimestamp(), updated_at: FieldValue.serverTimestamp() });
-      tx.create(operation, { fingerprint, dip_id: dipId, review: false, created_at: FieldValue.serverTimestamp() });
+      const kind: ConfirmationKind = fields.status === "pending" ? "dip_pending" : existing
+        ? existing.status === "pending" ? "dip_confirmed" : "dip_updated"
+        : records.some(dip => dip.registration_id === registration.id && dip.status === "confirmed") ? "dip_added" : "dip_confirmed";
+      tx.create(operation, { fingerprint, dip_id: dipId, review: false, confirmation_kind: kind, created_at: FieldValue.serverTimestamp() });
       tx.set(lock, { touched_at: FieldValue.serverTimestamp() });
-      return { review: false, dip_id: dipId, dips: ownDips([...records.filter(dip => dip.id !== dipId), updated], registration.id, open, voted) };
+      const dips = ownDips([...records.filter(dip => dip.id !== dipId), updated], registration.id, open, voted);
+      return { review: false, dip_id: dipId, dips, registration_summary: registrationSummary(current, dips), confirmation: confirmation(kind) };
     });
     if (result.review) throw new RsvpError("dip_review_required", 409, "Your change was sent to the host for review. This dip and its votes have not changed.");
-    return { message: "Your dip is saved on your existing RSVP. Your RSVP and party size have not changed.", dip_id: result.dip_id, dips: result.dips };
+    return { message: result.confirmation.message, dip_id: result.dip_id, dips: result.dips, registration_summary: result.registration_summary, confirmation: result.confirmation };
   }
 
   override async listDips() {

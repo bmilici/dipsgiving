@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdminGate from "@/components/AdminGate";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
 import type { PublicDip } from "@/lib/rsvp/public-dips";
+import type { DipStatus } from "@/lib/rsvp/dip-records";
 
 type Reg = {
   id: string;
@@ -18,6 +19,7 @@ type Reg = {
   notes?: string | null;
   created_at?: any;
   type?: string | null;                // "full_rsvp" | "dip_only" | undefined
+  status?: DipStatus;
 };
 
 export default function AdminDashboard() {
@@ -27,6 +29,8 @@ export default function AdminDashboard() {
 function AdminDashboardContent() {
   const [rows, setRows] = useState<Reg[]>([]);
   const [competitionDips, setCompetitionDips] = useState<PublicDip[]>([]);
+  const [registrationDips, setRegistrationDips] = useState<Array<Reg & { registration_id: string; status: DipStatus }>>([]);
+  const [dipCounts, setDipCounts] = useState<{ confirmed: number; pending: number; without_dips: number; unverified: number } | null>(null);
   const [dipReviews, setDipReviews] = useState<Array<{
     id: string; name: string | null; current_dip_name: string | null;
     proposed: { status: "pending" | "confirmed"; dip_name: string | null; notes: string | null };
@@ -40,7 +44,10 @@ function AdminDashboardContent() {
         const result = await adminRequest("registrations");
         if (active) {
           setRows(result.registrations);
-          if (isMultiDipEnabled) { setCompetitionDips(result.dips ?? []); setDipReviews(result.dipEditReviews ?? []); }
+          if (isMultiDipEnabled) {
+            setCompetitionDips(result.dips ?? []); setDipReviews(result.dipEditReviews ?? []);
+            setRegistrationDips(result.registrationDips ?? []); setDipCounts(result.dipStatusCounts ?? null);
+          }
           setError(null);
         }
       } catch (failure) {
@@ -88,9 +95,9 @@ function AdminDashboardContent() {
       totalAttendees,
       totalDips: dips.length,
       latestRSVPs: full.slice(0, 30),
-      latestDips: dips.slice(0, 30),
+      latestDips: isMultiDipEnabled ? registrationDips.slice(0, 30) : rows.filter(hasDip).slice(0, 30),
     };
-  }, [rows, competitionDips]);
+  }, [rows, competitionDips, registrationDips]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
@@ -131,11 +138,25 @@ function AdminDashboardContent() {
           </div>
 
           <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
-            <div className="text-sm text-orange-700/80">Registered Dips</div>
+            <div className="text-sm text-orange-700/80">{isMultiDipEnabled ? "Confirmed Dips" : "Registered Dips"}</div>
             <div className="mt-1 text-3xl font-extrabold text-orange-900">
-              {totalDips}
+              {isMultiDipEnabled ? dipCounts?.confirmed ?? "—" : totalDips}
             </div>
           </div>
+          {isMultiDipEnabled && <>
+            <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
+              <div className="text-sm text-orange-700/80">Pending / TBD Dips</div>
+              <div className="mt-1 text-3xl font-extrabold text-orange-900">{dipCounts?.pending ?? "—"}</div>
+            </div>
+            <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
+              <div className="text-sm text-orange-700/80">RSVPs Without Dips</div>
+              <div className="mt-1 text-3xl font-extrabold text-orange-900">{dipCounts?.without_dips ?? "—"}</div>
+            </div>
+            <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
+              <div className="text-sm text-orange-700/80">Dips Needing Status Review</div>
+              <div className="mt-1 text-3xl font-extrabold text-orange-900">{dipCounts?.unverified ?? "—"}</div>
+            </div>
+          </>}
         </section>
 
         {/* Latest lists */}
@@ -194,11 +215,15 @@ function AdminDashboardContent() {
                   className="rounded-lg border border-orange-200/70 bg-orange-50/60 px-3 py-2"
                 >
                   <div className="font-medium text-orange-900">
-                    {r.dip_name}
+                    {isMultiDipEnabled && r.status === "pending" ? "Pending / TBD Dip" : r.dip_name || "Unnamed dip"}
                   </div>
                   <div className="text-xs text-orange-700/80">
                     {r.name ? `by ${r.name}` : "by RSVP’d guest"}
                   </div>
+                  {isMultiDipEnabled && <div className="mt-1 text-xs font-semibold text-orange-800">
+                    {r.status === "pending" ? "Pending — not in the competition" : r.status === "unverified" ? "Needs host review — stored entry preserved" : "Confirmed competition entry"}
+                  </div>}
+                  {isMultiDipEnabled && r.notes && <div className="mt-1 text-xs text-orange-700/80">Notes / Allergens: {r.notes}</div>}
                 </li>
               ))}
               {!latestDips.length && (

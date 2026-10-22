@@ -94,10 +94,10 @@ test("racing different selections cannot exceed the three-dip limit", async () =
   assert.equal(["a", "b", "c", "d"].reduce((total, id) => total + db.records.get(`registrationDips/${id}`).votes, 0), 3);
 });
 
-test("pending, missing, malformed and other-event candidates are rejected without creating a ballot", async () => {
+test("pending, unverified, missing, malformed and other-event candidates are rejected without creating a ballot", async () => {
   const { db, service } = setup({
     "registrationDips/other": { ...entry("Another event"), event: "Another event" },
-    "registrationDips/tbd": { ...entry("TBD") },
+    "registrations/tbd": { name: "Unverified legacy guest", event, dip_name: "TBD", votes: 0 },
   });
   for (const dip_id of ["pending", "missing", "other", "tbd"]) {
     await assert.rejects(service.setVote("ineligible", { dip_id, selected: true }), /not available/);

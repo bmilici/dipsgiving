@@ -54,6 +54,7 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
   const { MultiDipRsvpService } = loadService("src/lib/rsvp/multi-dip-service.ts");
   const { VotingService } = loadService("src/lib/rsvp/voting-service.ts");
   const { readCompetitionRecords, publicCompetitionDips } = loadService("src/lib/rsvp/dip-records.ts");
+  const { readChampions } = loadService("src/lib/rsvp/champions.ts");
   const service = new MultiDipRsvpService(db);
   const voting = new VotingService(db);
   const client = (label) => `${suffix}-${label}`;
@@ -88,13 +89,17 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
   let otherPendingId;
   let thirdId;
   let fourthId;
+  const unverifiedIds = [];
+  const verifiedPlaceholderIds = [];
 
   try {
     await settings.set({ eventName: event, votingOpen: false, registrationOpen: true, year });
     const manualRef = await seed(`invitationList/manual-${suffix}`, manual);
 
     await t.test("new RSVP with a dip creates one party and retains a deduplicated manual phone contact", async () => {
-      await service.create(input, client("initial-rsvp"));
+      const result = await service.create(input, client("initial-rsvp"));
+      assert.equal(result.confirmation.kind, "dip_confirmed");
+      assert.equal(result.confirmation.title, "Your dip is officially in the competition!");
       const registrations = await registrationRows();
       assert.equal(registrations.size, 1);
       original = registrations.docs[0];
@@ -109,6 +114,8 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       assert.deepEqual((await manualRef.get()).data(), manual);
       const found = await service.lookup({ name: `  ${input.name.toUpperCase()}  `, phone: "202.555.0101" }, client("lookup"));
       token = found.token;
+      assert.deepEqual(found.registration_summary, { name: input.name, party_size: 2, confirmed_dips: 1, pending_dips: 0, unverified_dips: 0 });
+      assert.equal(Object.hasOwn(found.registration_summary, "phone"), false);
       assert.equal(found.dips.length, 1, "schema marker prevents a phantom legacy pending entry");
       const dip = found.dips[0];
       firstId = dip.id;
@@ -120,6 +127,7 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       assert.equal(saved.registration_id, original.id);
       assert.equal(saved.event, event);
       assert.equal(saved.votes, 0);
+      assert.equal(saved.status, "confirmed");
     });
 
     await t.test("a second confirmed dip has a distinct persistent ID; request retries do not duplicate or overwrite it", async () => {
@@ -129,12 +137,17 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
         service.saveDip(token, request, client("second-concurrent-retry")),
       ]);
       secondId = added.dip_id;
+      assert.equal(added.confirmation.kind, "dip_added");
+      assert.equal(added.confirmation.title, "Another contender enters the showdown!");
       assert.equal(concurrentRetry.dip_id, secondId);
+      assert.deepEqual(concurrentRetry.confirmation, added.confirmation, "a concurrent retry keeps the same success message");
       assert.notEqual(secondId, firstId);
       assert.notEqual(secondId, original.id);
       const secondBefore = (await db.doc(`registrationDips/${secondId}`).get()).data();
       const repeated = await service.saveDip(token, request, client("second-retry"));
       assert.equal(repeated.dip_id, secondId);
+      assert.deepEqual(repeated.confirmation, added.confirmation);
+      assert.equal(repeated.registration_summary.confirmed_dips, 2);
       assert.equal((await dipRows()).size, 2);
       await assert.rejects(service.saveDip(token, { ...request, dip_name: `${prefix} Different Payload` }, client("bound-retry")), (error) => error.status === 409 || error.status === 400);
       assert.deepEqual((await db.doc(`registrationDips/${secondId}`).get()).data(), secondBefore);
@@ -146,7 +159,8 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
 
     await t.test("editing one confirmed dip preserves the other dip, RSVP, party size and phone list", async () => {
       const firstBefore = (await db.doc(`registrationDips/${firstId}`).get()).data();
-      await service.saveDip(token, { dip_id: secondId, request_id: requestId(), dip_name: `${prefix} Smoked Queso Updated`, notes: "Updated allergens", status: "confirmed" }, client("edit-second"));
+      const edited = await service.saveDip(token, { dip_id: secondId, request_id: requestId(), dip_name: `${prefix} Smoked Queso Updated`, notes: "Updated allergens", status: "confirmed" }, client("edit-second"));
+      assert.equal(edited.confirmation.kind, "dip_updated");
       assert.deepEqual((await db.doc(`registrationDips/${firstId}`).get()).data(), firstBefore);
       assert.equal((await db.doc(`registrationDips/${secondId}`).get()).data().notes, "Updated allergens");
       assert.deepEqual((await original.ref.get()).data(), registrationBefore);
@@ -158,12 +172,18 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       pendingId = pending.dip_id;
       const other = await service.saveDip(token, { request_id: requestId(), dip_name: "TBD", notes: "Another pending entry", status: "pending" }, client("pending-two"));
       otherPendingId = other.dip_id;
+      assert.equal(other.registration_summary.pending_dips, 2);
+      assert.equal(other.registration_summary.confirmed_dips, 2);
       assert.notEqual(pendingId, otherPendingId);
       for (const [index, phone] of ["2025550102", "2025550103"].entries()) {
-        await service.create({ ...input, name: `${prefix} Pending Guest ${index}`, phone, dip_name: "TBD", notes: "", dip_status: "pending" }, client(`pending-rsvp-${index}`));
+        const result = await service.create({ ...input, name: `${prefix} Pending Guest ${index}`, phone, dip_name: null, notes: "", dip_status: "pending" }, client(`pending-rsvp-${index}`));
+        assert.equal(result.confirmation.kind, "rsvp_pending");
+        assert.equal(result.confirmation.title, "You're on the list!");
+        assert.match(result.confirmation.message, /marked as TBD.*return to Register Dip/);
       }
       assert.equal((await registrationRows()).size, 3);
       assert.equal((await dipRows()).docs.filter((row) => row.data().status === "pending").length, 4);
+      assert((await dipRows()).docs.filter((row) => row.data().status === "pending").every((row) => row.data().dip_name === null), "new pending intentions use structured status without a placeholder competition name");
       const listed = await service.listDips();
       assert.equal(listed.length, 2);
       assert.deepEqual(new Set(listed.map((dip) => dip.id)), new Set([firstId, secondId]));
@@ -178,6 +198,9 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       const beforeCount = (await dipRows()).size;
       const confirmed = await service.saveDip(token, { dip_id: pendingId, request_id: requestId(), dip_name: `${prefix} Buffalo Chicken Dip`, notes: "Hot sauce", status: "confirmed" }, client("confirm-pending"));
       thirdId = confirmed.dip_id;
+      assert.equal(confirmed.confirmation.kind, "dip_confirmed");
+      assert.equal(confirmed.registration_summary.pending_dips, 1);
+      assert.equal(confirmed.registration_summary.confirmed_dips, 3);
       assert.equal(thirdId, pendingId);
       assert.equal((await dipRows()).size, beforeCount);
       assert.equal((await db.doc(`registrationDips/${pendingId}`).get()).data().status, "confirmed");
@@ -196,6 +219,54 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       const firstBefore = (await db.doc(`registrationDips/${firstId}`).get()).data();
       await assert.rejects(service.saveDip(secondGuest.token, { dip_id: firstId, request_id: requestId(), dip_name: `${prefix} Unauthorized Rename`, status: "confirmed" }, client("wrong-owner")));
       assert.deepEqual((await db.doc(`registrationDips/${firstId}`).get()).data(), firstBefore);
+    });
+
+    await t.test("a required no-dip choice creates no competition entry and permits a later dip on the same RSVP", async () => {
+      const beforeRegistrations = (await registrationRows()).size;
+      const beforeDips = (await dipRows()).size;
+      const noDip = { ...input, name: `${prefix} No Dip Guest`, phone: "2025550110", bringing_dip: false, dip_status: "none", dip_name: null, notes: null };
+      const result = await service.create(noDip, client("no-dip-rsvp"));
+      assert.equal(result.confirmation.kind, "rsvp_none");
+      const found = await service.lookup({ name: noDip.name, phone: "(202) 555-0110" }, client("no-dip-lookup"));
+      assert.deepEqual(found.dips, []);
+      assert.equal(found.registration_summary.confirmed_dips, 0);
+      assert.equal(found.registration_summary.pending_dips, 0);
+      assert.equal((await registrationRows()).size, beforeRegistrations + 1);
+      assert.equal((await dipRows()).size, beforeDips);
+      const [owner] = (await registrationRows()).docs.filter((row) => row.data().name === noDip.name);
+      const before = owner.data();
+      assert.equal(before.bringing_dip, false);
+      assert.equal(before.dip_schema_version, 2);
+      const contactsBefore = (await contactRows()).size;
+      const added = await service.saveDip(found.token, { request_id: requestId(), dip_name: `${prefix} Changed Mind Salsa`, status: "confirmed" }, client("no-dip-add-later"));
+      assert.equal(added.dips.length, 1);
+      assert.equal(added.dips[0].status, "confirmed");
+      assert.equal(added.confirmation.kind, "dip_confirmed");
+      assert.equal(added.registration_summary.confirmed_dips, 1);
+      assert.equal((await db.doc(`registrationDips/${added.dip_id}`).get()).data().registration_id, owner.id);
+      assert.deepEqual((await owner.ref.get()).data(), before);
+      assert.equal((await registrationRows()).size, beforeRegistrations + 1);
+      assert.equal((await contactRows()).size, contactsBefore);
+    });
+
+    await t.test("initial dip choice is mandatory and must agree with the bringing-dip boolean", async () => {
+      const missing = { ...input, name: `${prefix} Missing Choice Guest`, phone: "2025550114" };
+      delete missing.dip_status;
+      const invalid = [
+        missing,
+        { ...missing, dip_status: "none", bringing_dip: true },
+        { ...missing, dip_status: "pending", bringing_dip: false },
+        { ...missing, dip_status: "confirmed", bringing_dip: false },
+        { ...missing, dip_status: "confirmed", bringing_dip: true, dip_name: "" },
+        { ...missing, dip_status: "confirmed", bringing_dip: true, dip_name: "TBD" },
+        { ...missing, dip_status: "confirmed", bringing_dip: true, dip_name: "TBD1" },
+        { ...missing, dip_status: "unexpected" },
+      ];
+      const before = { registrations: (await registrationRows()).size, dips: (await dipRows()).size, contacts: (await contactRows()).size };
+      for (const [index, fields] of invalid.entries()) await assert.rejects(service.create(fields, client(`incoherent-choice-${index}`)), { status: 400 });
+      assert.equal((await registrationRows()).size, before.registrations);
+      assert.equal((await dipRows()).size, before.dips);
+      assert.equal((await contactRows()).size, before.contacts);
     });
 
     const legacyRef = await seed(`registrations/legacy-voted-${suffix}`, {
@@ -239,10 +310,10 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       assert.deepEqual((await archiveRef.get()).data(), archiveBefore);
     });
 
-    await t.test("a legacy TBD entry is confirmed under its original ID without overwriting an additional dip", async () => {
+    await t.test("a legacy explicitly pending TBD entry is confirmed under its original ID without overwriting an additional dip", async () => {
       const legacyPending = await seed(`registrations/legacy-pending-${suffix}`, {
         name: `${prefix} Legacy Pending Guest`, phone: "(202) 555-0105", party_size: 3,
-        type: "full_rsvp", event, bringing_dip: true, dip_name: "TBD", notes: "Legacy pending notes",
+        type: "full_rsvp", event, bringing_dip: true, dip_name: "TBD", dip_status: "pending", notes: "Legacy pending notes",
         created_at: "unchanged pending date", custom: "retain",
       });
       const before = (await legacyPending.get()).data();
@@ -282,6 +353,77 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       const projected = publicCompetitionDips(await readCompetitionRecords(db, undefined, event));
       assert.equal(projected.filter((dip) => dip.id === pending.id).length, 1);
       assert.equal(projected.find((dip) => dip.id === pending.id).dip_name, `${prefix} Confirmed Legacy Recipe`);
+    });
+
+    await t.test("legacy TBD and TBD1 names stay unverified and unchanged until host review", async () => {
+      for (const [index, rawName] of ["TBD", "TBD1"].entries()) {
+        const row = await seed(`registrations/legacy-unverified-${index}-${suffix}`, {
+          name: `${prefix} Unverified Guest ${index}`, phone: `+1202555010${index + 8}`, party_size: index + 2,
+          type: "full_rsvp", event, bringing_dip: true, dip_name: rawName, notes: "Original ambiguous note",
+          votes: index === 0 ? 0 : 9, year, created_at: "unchanged ambiguous date", custom: { preserve: true },
+        });
+        unverifiedIds.push(row.id);
+        const before = (await row.get()).data();
+        const found = await service.lookup({ name: before.name, phone: before.phone }, client(`unverified-lookup-${index}`));
+        const dip = found.dips.find((entry) => entry.id === row.id);
+        assert.equal(dip.status, "unverified");
+        assert.equal(dip.editable, false);
+        assert.equal(found.registration_summary.unverified_dips, 1);
+        assert.equal(found.registration_summary.pending_dips, 0);
+        assert.equal(found.registration_summary.confirmed_dips, 0);
+        const records = await readCompetitionRecords(db, undefined, event);
+        const projected = records.find((entry) => entry.id === row.id);
+        assert.equal(projected.status, "unverified");
+        assert.equal(projected.dip_name, rawName, "the ambiguous display name is retained for host review");
+        assert.equal(projected.votes, before.votes);
+        assert(!publicCompetitionDips(records).some((entry) => entry.id === row.id));
+        assert(!(await service.listDips()).some((entry) => entry.id === row.id));
+        await assert.rejects(service.saveDip(found.token, { dip_id: row.id, request_id: requestId(), dip_name: `${prefix} Unverified Proposed Dish ${index}`, status: "confirmed" }, client(`unverified-edit-${index}`)), (error) => error.status === 409 && /review/i.test(error.message));
+        assert.deepEqual((await row.get()).data(), before, "lookup, projections and public edit must never migrate an ambiguous historical record");
+      }
+    });
+
+    await t.test("explicit confirmed status is authoritative even when a verified dish is named TBD or TBD1", async () => {
+      const owner = await seed(`registrations/trusted-explicit-owner-${suffix}`, {
+        name: `${prefix} Verified Named TBD Guest`, phone: "+12025550111", party_size: 2,
+        type: "full_rsvp", event, bringing_dip: true, dip_name: null, notes: null, dip_schema_version: 2,
+      });
+      await seed(`registrationDips/trusted-explicit-confirmed-${suffix}`, {
+        registration_id: owner.id, event, status: "confirmed", dip_name: "TBD", notes: "Previously verified by host", votes: 0, year, voting_locked: false,
+      });
+      const found = await service.lookup({ name: `${prefix} Verified Named TBD Guest`, phone: "2025550111" }, client("verified-tbd-lookup"));
+      assert.equal(found.dips.length, 1);
+      assert.equal(found.dips[0].status, "confirmed");
+      assert.equal(found.dips[0].dip_name, "TBD");
+      verifiedPlaceholderIds.push(found.dips[0].id);
+      const legacy = await seed(`registrations/legacy-explicit-confirmed-${suffix}`, {
+        name: `${prefix} Verified Legacy Named TBD1 Guest`, phone: "+12025550112", party_size: 2,
+        type: "full_rsvp", event, bringing_dip: true, dip_name: "TBD1", dip_status: "confirmed", status: "pending", votes: 0, year,
+      });
+      verifiedPlaceholderIds.push(legacy.id);
+      const before = (await legacy.get()).data();
+      const records = await readCompetitionRecords(db, undefined, event);
+      for (const id of verifiedPlaceholderIds) {
+        assert.equal(records.find((entry) => entry.id === id).status, "confirmed");
+        assert.equal(publicCompetitionDips(records).filter((entry) => entry.id === id).length, 1);
+      }
+      assert.deepEqual((await legacy.get()).data(), before);
+    });
+
+    await t.test("a blank legacy bringing-dip intention can be confirmed without guessing a TBD name", async () => {
+      const row = await seed(`registrations/legacy-blank-pending-${suffix}`, {
+        name: `${prefix} Blank Legacy Pending Guest`, phone: "+12025550113", party_size: 3,
+        type: "full_rsvp", event, bringing_dip: true, dip_name: null, notes: null, custom: "retain",
+      });
+      const before = (await row.get()).data();
+      const found = await service.lookup({ name: before.name, phone: before.phone }, client("blank-legacy-pending-lookup"));
+      assert.equal(found.dips[0].status, "pending");
+      assert.equal(found.dips[0].editable, true);
+      const saved = await service.saveDip(found.token, { dip_id: row.id, request_id: requestId(), dip_name: `${prefix} Chosen Legacy Bean Dip`, status: "confirmed" }, client("blank-legacy-confirm"));
+      assert.equal(saved.dip_id, row.id);
+      assert.equal(saved.dips.find((entry) => entry.id === row.id).status, "confirmed");
+      const after = (await row.get()).data();
+      for (const field of ["name", "phone", "party_size", "event", "type", "custom"]) assert.deepEqual(after[field], before[field]);
     });
 
     await t.test("array-shaped initial dip statuses are rejected without creating an RSVP, dip or phone contact", async () => {
@@ -341,6 +483,31 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       assert(!listed.some((dip) => dip.id === otherPendingId));
     });
 
+    await t.test("an ID-linked champion resolves only the winning dip and its chef while preserving historical snapshots", async () => {
+      const champion = await seed(`winners/id-linked-${suffix}`, {
+        year, image: "/synthetic-year-photo.svg", podium: [
+          { dip_id: firstId, place: 1, award: "Best Dip", image: "/synthetic-dip-photo.svg" },
+        ],
+      });
+      const before = (await champion.get()).data();
+      const feed = await readChampions(db);
+      const resolved = feed.years.find((row) => row.id === champion.id);
+      assert.equal(resolved.year, year);
+      assert.equal(resolved.podium.length, 1, "other dips under the same RSVP do not become champions automatically");
+      assert.equal(resolved.podium[0].dip_id, firstId);
+      assert.equal(resolved.podium[0].dip_name, input.dip_name);
+      assert.equal(resolved.podium[0].by, input.name);
+      assert.equal(resolved.podium[0].place, 1);
+      assert.equal(resolved.podium[0].award, "Best Dip");
+      assert.equal(resolved.podium[0].image, "/synthetic-dip-photo.svg");
+      assert.equal(Object.hasOwn(resolved.podium[0], "registration_id"), false);
+      assert.equal(Object.hasOwn(resolved.podium[0], "phone"), false);
+      assert.equal(feed.historicalDips.find((row) => row.id === archiveRef.id).dip_name, archiveBefore.dip_name);
+      assert.deepEqual((await champion.get()).data(), before);
+      assert.deepEqual((await championRef.get()).data(), championBefore);
+      assert.deepEqual((await archiveRef.get()).data(), archiveBefore);
+    });
+
     await t.test("repeated or concurrent selection cannot duplicate a dip on a ballot or inflate its counter", async () => {
       const uid = `${prefix} voter-0`;
       const before = (await db.doc(`registrationDips/${firstId}`).get()).data();
@@ -361,6 +528,7 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       const before = (await db.doc(`userVotes/${uid}_${year}`).get()).data();
       await assert.rejects(voting.setVote(uid, { dip_id: fourthId, selected: true }), { status: 409 });
       await assert.rejects(voting.setVote(uid, { dip_id: otherPendingId, selected: true }), { status: 409 });
+      for (const id of unverifiedIds) await assert.rejects(voting.setVote(uid, { dip_id: id, selected: true }), { status: 409 });
       await assert.rejects(voting.setVote(uid, { dip_id: `missing-${suffix}`, selected: true }), { status: 409 });
       assert.deepEqual((await db.doc(`userVotes/${uid}_${year}`).get()).data(), before);
       assert.equal((await db.doc(`registrationDips/${fourthId}`).get()).data().votes, 0);
@@ -370,6 +538,10 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       assert.equal((await db.doc(`registrationDips/${thirdId}`).get()).data().votes, 0);
       assert.equal((await db.doc(`registrationDips/${firstId}`).get()).data().votes, 10);
       assert.equal((await db.doc(`registrationDips/${secondId}`).get()).data().votes, 6);
+      for (const id of verifiedPlaceholderIds) {
+        const eligible = await voting.setVote(`${prefix} verified-status-voter`, { dip_id: id, selected: false });
+        assert.deepEqual(eligible.dip_ids, [], "explicitly verified dishes are eligible without requiring a test vote increment");
+      }
     });
 
     await t.test("legacy votes continue to use the registration ID and preserve previously saved votes and archives", async () => {

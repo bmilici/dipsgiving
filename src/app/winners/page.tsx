@@ -5,6 +5,8 @@ import { collection, getDocs } from "firebase/firestore";
 import EmptyState from "@/components/EmptyState";
 import { getClientDB } from "@/lib/firebase";
 import { testingAssetPath } from "@/lib/testingMode";
+import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
+import MultiDipChampionsPage from "@/components/MultiDipChampionsPage";
 
 type PodiumEntry = {
   place: number;
@@ -28,7 +30,9 @@ type HistoricalDip = {
   votes?: number | null;
 };
 
-export default function HistoricDipChampions() {
+export default isMultiDipEnabled ? MultiDipChampionsPage : HistoricDipChampions;
+
+function HistoricDipChampions() {
   const [years, setYears] = useState<YearWinner[]>([]);
   const [historicalDips, setHistoricalDips] = useState<HistoricalDip[]>([]);
   const [error, setError] = useState<string | null>(null);

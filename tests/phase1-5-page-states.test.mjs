@@ -91,6 +91,8 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
       },
     },
     "@/lib/firebase": { getClientDB: () => databaseAvailable ? db : null },
+    "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: false },
+    "@/components/MultiDipChampionsPage": { __esModule: true, default: "multi-dip-champions-preview" },
     "@/lib/siteNavigation": navigationModule,
     "@/lib/rsvp/testing": { isRsvpLookupTestingEnabled: rsvpLookupEnabled },
     "@/lib/rsvp/public-dips": {
