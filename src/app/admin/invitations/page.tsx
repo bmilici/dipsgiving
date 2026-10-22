@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminRequest } from "@/lib/rsvp/admin-client";
 import { useEventSettings } from "@/lib/eventSettings";
@@ -29,6 +29,15 @@ const emptyDraft: Draft = {
   notes: "",
   invite_next_year: true,
 };
+
+function savedDraft(draft: Draft): Draft {
+  return { name: draft.name.trim(), phone: draft.phone.trim(), notes: draft.notes.trim(), invite_next_year: draft.invite_next_year };
+}
+
+function sameDraft(left: Draft, right: Draft): boolean {
+  return left.name.trim() === right.name.trim() && left.phone.trim() === right.phone.trim() &&
+    left.notes.trim() === right.notes.trim() && left.invite_next_year === right.invite_next_year;
+}
 
 function normalizeSmsPhone(phone: string) {
   const trimmed = phone.trim();
@@ -73,42 +82,73 @@ function InvitationListContent() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [savingAll, setSavingAll] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const syncPending = useRef(false);
-  const dirtyIdsRef = useRef(dirtyIds);
-  dirtyIdsRef.current = dirtyIds;
+  const inviteesRef = useRef<Invitee[]>([]);
+  const draftsRef = useRef<Record<string, Draft>>({});
+  const dirtyIdsRef = useRef<Set<string>>(new Set());
+  const mutationPending = useRef(false);
+  const refreshVersion = useRef(0);
+  const active = useRef(false);
 
-  async function refreshInvitees() {
-    const result = await adminRequest("invitations");
-    const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
+  const invalidateRefreshes = useCallback(() => { ++refreshVersion.current; }, []);
+
+  const applyInvitees = useCallback((rows: Invitee[], nextDrafts: Record<string, Draft>) => {
+    const nextDirty = new Set(rows.filter(row => nextDrafts[row.id] && !sameDraft(nextDrafts[row.id], row)).map(row => row.id));
+    // Event handlers read these immediately, before React commits effects.
+    inviteesRef.current = rows;
+    draftsRef.current = nextDrafts;
+    dirtyIdsRef.current = nextDirty;
     setInvitees(rows);
-    setDrafts((current) => Object.fromEntries(rows.map((invitee) => [invitee.id,
-      dirtyIdsRef.current.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
-        name: invitee.name, phone: invitee.phone, notes: invitee.notes, invite_next_year: invitee.invite_next_year,
-      }
-    ])));
+    setDrafts(nextDrafts);
+    setDirtyIds(nextDirty);
+  }, []);
+
+  const refreshInvitees = useCallback(async () => {
+    const version = ++refreshVersion.current;
+    try {
+      const result = await adminRequest("invitations");
+      if (!active.current || version !== refreshVersion.current) return;
+      const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
+      const nextDrafts = Object.fromEntries(rows.map(row => [row.id,
+        dirtyIdsRef.current.has(row.id) && draftsRef.current[row.id] ? draftsRef.current[row.id] : savedDraft(row),
+      ]));
+      applyInvitees(rows, nextDrafts);
+    } catch (failure) {
+      if (active.current && version === refreshVersion.current) throw failure;
+    }
+  }, [applyInvitees]);
+
+  function beginMutation() {
+    if (mutationPending.current) return false;
+    mutationPending.current = true;
+    // A poll started before a write cannot replace its acknowledged result.
+    invalidateRefreshes();
+    return true;
+  }
+
+  function acknowledgeSave(id: string, submitted: Draft) {
+    const saved = savedDraft(submitted);
+    const rows = inviteesRef.current.map(row => row.id === id ? { ...row, ...saved } : row);
+    const current = draftsRef.current[id];
+    applyInvitees(rows, {
+      ...draftsRef.current,
+      [id]: current && !sameDraft(current, submitted) ? current : saved,
+    });
   }
 
   useEffect(() => {
-    let active = true;
+    active.current = true;
     const refresh = async () => {
+      if (mutationPending.current) return;
       try {
-        const result = await adminRequest("invitations");
-        if (!active) return;
-        const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
-        setInvitees(rows);
-        setDrafts((current) => Object.fromEntries(rows.map((invitee) => [invitee.id,
-          dirtyIds.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
-            name: invitee.name, phone: invitee.phone, notes: invitee.notes, invite_next_year: invitee.invite_next_year,
-          }
-        ])));
+        await refreshInvitees();
       } catch (failure) {
-        if (active) setStatus(failure instanceof Error ? failure.message : "Could not load invitation list.");
+        if (active.current) setStatus(failure instanceof Error ? failure.message : "Could not load invitation list.");
       }
     };
     void refresh();
     const timer = window.setInterval(refresh, 15000);
-    return () => { active = false; window.clearInterval(timer); };
-  }, [dirtyIds]);
+    return () => { active.current = false; invalidateRefreshes(); window.clearInterval(timer); };
+  }, [refreshInvitees, invalidateRefreshes]);
 
   const filteredInvitees = useMemo(() => {
     const term = queryText.trim().toLowerCase();
@@ -189,6 +229,7 @@ function InvitationListContent() {
     if (!dirtyCount) return;
 
     const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirtyIdsRef.current.size) return;
       event.preventDefault();
       event.returnValue = "";
     };
@@ -201,6 +242,7 @@ function InvitationListContent() {
     if (!dirtyCount) return;
 
     const warnBeforeNavigation = (event: MouseEvent) => {
+      if (!dirtyIdsRef.current.size) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -224,14 +266,12 @@ function InvitationListContent() {
   }, [dirtyCount]);
 
   function updateDraft(id: string, patch: Partial<Draft>) {
-    setDrafts((current) => ({
-      ...current,
-      [id]: {
-        ...(current[id] ?? emptyDraft),
-        ...patch,
-      },
-    }));
-    setDirtyIds((current) => new Set(current).add(id));
+    const current = draftsRef.current[id];
+    if (!current) return;
+    const next = { ...current, ...patch };
+    if (Object.keys(patch).every(key => current[key as keyof Draft] === next[key as keyof Draft])) return;
+    applyInvitees(inviteesRef.current, { ...draftsRef.current, [id]: next });
+    setStatus(null);
   }
 
   function openSmsComposer() {
@@ -262,8 +302,7 @@ function InvitationListContent() {
   }
 
   async function retryPhoneSync() {
-    if (syncPending.current || dirtyCount || busyId || savingAll) return;
-    syncPending.current = true;
+    if (dirtyIdsRef.current.size || !beginMutation()) return;
     setSyncing(true);
     setStatus(null);
     try {
@@ -276,14 +315,15 @@ function InvitationListContent() {
     } catch (failure) {
       setStatus(failure instanceof Error ? failure.message : "Phone sync could not finish. Please try again.");
     } finally {
-      syncPending.current = false;
+      mutationPending.current = false;
       setSyncing(false);
     }
   }
 
   async function saveAllInvitees() {
-
-    const dirtyDrafts = [...dirtyIds].map((id) => [id, drafts[id]] as const);
+    if (mutationPending.current) return;
+    const dirtyDrafts = [...dirtyIdsRef.current].map((id) => [id, { ...draftsRef.current[id] }] as const);
+    if (!dirtyDrafts.length) return;
     const missingName = dirtyDrafts.some(([, draft]) => !draft?.name.trim());
 
     if (missingName) {
@@ -291,53 +331,64 @@ function InvitationListContent() {
       return;
     }
 
+    if (!beginMutation()) return;
     setSavingAll(true);
     setStatus(null);
 
     try {
-      await Promise.all(dirtyDrafts.map(([id, draft]) =>
-        adminRequest("invitations", { action: "update", id, ...draft })
-      ));
-      await refreshInvitees();
-
-      const savedCount = dirtyDrafts.length;
-      setDirtyIds(new Set());
-      setStatus(
-        savedCount === 1 ? "1 change saved." : `${savedCount} changes saved.`
-      );
-    } catch (err) {
-      console.error(err);
-      setStatus(err instanceof Error ? err.message : "Could not save changes.");
+      let savedCount = 0;
+      let firstError = "";
+      // Every invitation writer shares one database lock. Save rows in order
+      // and acknowledge each durable result instead of racing those writes.
+      for (const [id, draft] of dirtyDrafts) {
+        try {
+          await adminRequest("invitations", { action: "update", id, ...draft });
+          acknowledgeSave(id, draft);
+          savedCount++;
+        } catch (failure) {
+          firstError ||= failure instanceof Error ? failure.message : "Could not save changes.";
+        }
+      }
+      let refreshFailed = false;
+      try { await refreshInvitees(); } catch { refreshFailed = true; }
+      const savedMessage = savedCount === 1 ? "1 change saved." : `${savedCount} changes saved.`;
+      const remaining = dirtyIdsRef.current.size;
+      setStatus([
+        savedCount ? savedMessage : "Could not confirm your changes were saved.",
+        firstError,
+        remaining ? `${remaining} unsaved change${remaining === 1 ? " remains" : "s remain"}. Your edits are kept; select Save Changes to save them.` : "",
+        refreshFailed ? savedCount ? "The list could not refresh. Saved changes are confirmed; reload to see the latest list." : "The list could not refresh. Your edits are kept." : "",
+      ].filter(Boolean).join(" "));
     } finally {
+      mutationPending.current = false;
       setSavingAll(false);
     }
   }
 
   async function removeInvitee(id: string) {
-
+    if (!beginMutation()) return;
     setBusyId(id);
     setStatus(null);
 
     try {
       await adminRequest("invitations", { action: "delete", id });
+      const nextDrafts = { ...draftsRef.current };
+      delete nextDrafts[id];
+      applyInvitees(inviteesRef.current.filter(row => row.id !== id), nextDrafts);
       await refreshInvitees();
-      setDirtyIds((current) => {
-        const next = new Set(current);
-        next.delete(id);
-        return next;
-      });
       setStatus("Invitation removed.");
     } catch (err) {
       console.error(err);
       setStatus("Could not remove invitation.");
     } finally {
+      mutationPending.current = false;
       setBusyId(null);
     }
   }
 
   function goBackToDashboard() {
     if (
-      dirtyCount &&
+      dirtyIdsRef.current.size &&
       !window.confirm("You have unsaved invitation changes. Leave without saving?")
     ) {
       return;
@@ -349,11 +400,14 @@ function InvitationListContent() {
   async function addInvitee(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (mutationPending.current) return;
+
     if (!newInvitee.name.trim()) {
       setStatus("Name is required.");
       return;
     }
 
+    if (!beginMutation()) return;
     setBusyId("new");
     setStatus(null);
 
@@ -366,6 +420,7 @@ function InvitationListContent() {
       console.error(err);
       setStatus(err instanceof Error ? err.message : "Could not add invitation.");
     } finally {
+      mutationPending.current = false;
       setBusyId(null);
     }
   }
@@ -426,7 +481,7 @@ function InvitationListContent() {
           <button
             type="button"
             onClick={saveAllInvitees}
-            disabled={!dirtyCount || savingAll}
+            disabled={!dirtyCount || savingAll || syncing || busyId !== null}
             className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
           >
             {savingAll ? "Saving Changes" : "Save Changes"}
@@ -469,7 +524,7 @@ function InvitationListContent() {
           />
           <button
             type="submit"
-            disabled={busyId === "new"}
+            disabled={busyId !== null || savingAll || syncing}
             className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
           >
             Add
@@ -598,7 +653,7 @@ function InvitationListContent() {
                         <button
                           type="button"
                           onClick={() => removeInvitee(invitee.id)}
-                          disabled={busyId === invitee.id || savingAll}
+                          disabled={busyId !== null || savingAll || syncing}
                           className="rounded-lg border border-orange-300 px-3 py-1.5 text-xs font-medium text-orange-800 hover:bg-orange-50"
                         >
                           Remove
