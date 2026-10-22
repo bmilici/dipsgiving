@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "@/lib/rsvp/admin-client";
 import Link from "next/link";
 import AdminGate from "@/components/AdminGate";
+import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
+import type { PublicDip } from "@/lib/rsvp/public-dips";
 
 type Reg = {
   id: string;
@@ -24,6 +26,8 @@ export default function AdminDashboard() {
 
 function AdminDashboardContent() {
   const [rows, setRows] = useState<Reg[]>([]);
+  const [competitionDips, setCompetitionDips] = useState<PublicDip[]>([]);
+  const [dipReviews, setDipReviews] = useState<Array<{ id: string; dip_id: string; proposed: { dip_name?: string | null } }>>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,7 +35,11 @@ function AdminDashboardContent() {
     const refresh = async () => {
       try {
         const result = await adminRequest("registrations");
-        if (active) { setRows(result.registrations); setError(null); }
+        if (active) {
+          setRows(result.registrations);
+          if (isMultiDipEnabled) { setCompetitionDips(result.dips ?? []); setDipReviews(result.dipEditReviews ?? []); }
+          setError(null);
+        }
       } catch (failure) {
         if (active) setError(failure instanceof Error ? failure.message : "Failed to load registrations.");
       }
@@ -62,7 +70,7 @@ function AdminDashboardContent() {
     const isFull = (r: Reg) => (r.type ?? "full_rsvp") !== "dip_only";
 
     const full = rows.filter(isFull);
-    const dips = rows.filter(hasDip);
+    const dips = isMultiDipEnabled ? competitionDips : rows.filter(hasDip);
 
     const totalRSVPs = full.length;
 
@@ -79,7 +87,7 @@ function AdminDashboardContent() {
       latestRSVPs: full.slice(0, 30),
       latestDips: dips.slice(0, 30),
     };
-  }, [rows]);
+  }, [rows, competitionDips]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
@@ -128,6 +136,13 @@ function AdminDashboardContent() {
         </section>
 
         {/* Latest lists */}
+        {isMultiDipEnabled && dipReviews.length > 0 && (
+          <section className="rounded-2xl border border-orange-200 bg-white/80 p-5" aria-label="Dip changes for review">
+            <h2 className="text-xl font-semibold text-orange-900">Dip Changes for Review</h2>
+            <p className="mt-2 text-sm text-orange-800">These requests have not changed the competition entries or their votes. Contact the guest before making any approved change.</p>
+            <ul className="mt-3 space-y-2">{dipReviews.map(review => <li key={review.id} className="break-words text-sm">{review.proposed.dip_name || "Pending dip"} — entry {review.dip_id}</li>)}</ul>
+          </section>
+        )}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Latest RSVPs */}
           <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">

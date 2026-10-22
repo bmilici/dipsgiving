@@ -102,6 +102,7 @@ function harness(env = {}, behavior = {}) {
           "./testing-db": "src/lib/rsvp/testing-db.ts",
           "@/lib/rsvp/db": "src/lib/rsvp/db.ts",
           "@/lib/rsvp/testing": "src/lib/rsvp/testing.ts",
+          "@/lib/rsvp/multi-dip-mode": "src/lib/rsvp/multi-dip-mode.ts",
           "@/lib/testingMode": "src/lib/testingMode.ts",
           "@/lib/siteNavigation": "src/lib/siteNavigation.ts",
         }[name];

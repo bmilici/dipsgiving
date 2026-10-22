@@ -21,6 +21,7 @@ function api(records = [], { preview = false, lookup = false, fail = false, sett
     if (name === "@/lib/testingMode") return { isTestingMode: preview };
     if (name === "@/lib/rsvp/testing") return { isRsvpLookupTestingEnabled: lookup };
     if (name === "@/lib/rsvp/event") return eventExports;
+    if (name === "@/lib/rsvp/multi-dip-mode") return { isMultiDipEnabled: false, multiDipServerEnabled: () => false };
     if (name === "@/lib/rsvp/db") return { getRsvpDb() { reads++; return {
       doc(path) {
         assert.equal(path, "eventSettings/current");

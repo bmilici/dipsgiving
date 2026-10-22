@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_DESIGN_PREVIEW: developmentPreview ? "true" : "false",
     NEXT_PUBLIC_RSVP_LOOKUP_TESTING: rsvpLookupTesting ? "true" : "false",
     NEXT_PUBLIC_RSVP_LOCAL_DEMO: localDemoReview ? "true" : "false",
+    NEXT_PUBLIC_RSVP_MULTI_DIP: localDemoReview &&
+      process.env.DIPSGIVING_MULTI_DIP_TESTING === "true" &&
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === "demo-dipsgiving-rsvp-test" ? "true" : "false",
   },
   eslint: {
     // ⚠️ Temporarily ignore ESLint errors in production builds

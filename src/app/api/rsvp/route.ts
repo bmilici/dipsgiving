@@ -3,6 +3,7 @@ import { RsvpService, RsvpError, SESSION_TTL_SECONDS, LOOKUP_FAILURE } from "@/l
 import { RsvpTestingUnavailable } from "@/lib/rsvp/testing-db";
 import { getRsvpDb, RsvpUnavailable } from "@/lib/rsvp/db";
 import { isTestingMode } from "@/lib/testingMode";
+import { isMultiDipEnabled, multiDipServerEnabled } from "@/lib/rsvp/multi-dip-mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,9 +75,18 @@ async function body(request: Request): Promise<Record<string, unknown>> {
   }
 }
 
+async function rsvpService() {
+  if (isMultiDipEnabled) {
+    if (!multiDipServerEnabled()) throw new RsvpUnavailable(503);
+    const { MultiDipRsvpService } = await import("@/lib/rsvp/multi-dip-service");
+    return new MultiDipRsvpService(getRsvpDb());
+  }
+  return new RsvpService(getRsvpDb());
+}
+
 export async function GET(request: Request) {
   try {
-    const service = new RsvpService(getRsvpDb());
+    const service = await rsvpService();
     return reply({ dips: await service.listDips() });
   } catch (error) {
     return failure(request, error);
@@ -86,7 +96,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   let action: unknown;
   try {
-    const service = new RsvpService(getRsvpDb());
+    const service = await rsvpService();
     // A guest browser must submit from this host, with no cross-site writes.
     const origin = request.headers.get("origin");
     const host = request.headers.get("host") || new URL(request.url).host;
@@ -113,7 +123,9 @@ export async function POST(request: Request) {
     }
     if (action === "lookup") {
       const result = await service.lookup(input, client);
-      return reply({ ok: true, dip_name: result.dip_name, notes: result.notes, context: editorContext(result.token) }, 200,
+      return reply({ ok: true, dip_name: result.dip_name, notes: result.notes, context: editorContext(result.token),
+        ...(isMultiDipEnabled && "dips" in result ? { dips: result.dips } : {}),
+      }, 200,
         cookieValue(request, result.token, SESSION_TTL_SECONDS));
     }
     if (action === "saveDip") {
@@ -126,7 +138,9 @@ export async function POST(request: Request) {
         throw new RsvpError("context_mismatch", 401, LOOKUP_FAILURE);
       }
       const result = await service.saveDip(token, input, client);
-      return reply({ ok: true, message: result.message });
+      return reply({ ok: true, message: result.message,
+        ...(isMultiDipEnabled && "dips" in result && "dip_id" in result ? { dips: result.dips, dip_id: result.dip_id } : {}),
+      });
     }
     if (action === "logout" && Object.keys(input).length === 0) {
       return reply({ ok: true }, 200, cookieValue(request));

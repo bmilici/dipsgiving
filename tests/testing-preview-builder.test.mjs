@@ -33,6 +33,7 @@ test("static preview preparation strips writes, disables phone lookup, and prese
     assert.match(config, /NEXT_PUBLIC_DESIGN_PREVIEW: 'true'/);
     assert.match(config, /NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false'/);
     assert.match(config, /NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false'/);
+    assert.match(config, /NEXT_PUBLIC_RSVP_MULTI_DIP: 'false'/);
     const form = await readFile(path.join(directory, files[0]), "utf8");
     assert.match(form, /watchPublicDips/);
     assert.doesNotMatch(form, /await addDoc|onSnapshot|orderBy|query\(/);
@@ -41,6 +42,7 @@ test("static preview preparation strips writes, disables phone lookup, and prese
     assert.match(vote, /const votingOpen = false/);
     assert.match(vote, /watchPublicDips/);
     assert.doesNotMatch(vote, /await runTransaction|await signInAnonymously|onAuthStateChanged\(auth|tx\.get\(|tx\.update\(/);
+    assert.doesNotMatch(vote, /MultiDipVotePage|isMultiDipEnabled/);
     for (const forbidden of [".env.production", "src/app/api", "src/app/admin", "public/testing"]) {
       await assert.rejects(readFile(path.join(directory, forbidden)), { code: "ENOENT" });
     }
@@ -77,6 +79,8 @@ test("hosted static builds override inherited local demo and emulator settings",
   const overrides = {
     NEXT_PUBLIC_RSVP_LOCAL_DEMO: "true",
     DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true",
+    NEXT_PUBLIC_RSVP_MULTI_DIP: "true",
+    DIPSGIVING_MULTI_DIP_TESTING: "true",
     FIRESTORE_EMULATOR_HOST: "127.0.0.1:8189",
     FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9199",
     NEXT_PUBLIC_FIREBASE_API_KEY: "public-fixture",
@@ -90,6 +94,8 @@ test("hosted static builds override inherited local demo and emulator settings",
     const env = await buildEnvironment(new URL("..", import.meta.url).pathname);
     assert.equal(env.NEXT_PUBLIC_RSVP_LOCAL_DEMO, "false");
     assert.equal(env.DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST, "false");
+    assert.equal(env.NEXT_PUBLIC_RSVP_MULTI_DIP, "false");
+    assert.equal(env.DIPSGIVING_MULTI_DIP_TESTING, "false");
     assert.equal(env.FIRESTORE_EMULATOR_HOST, undefined);
     assert.equal(env.FIREBASE_AUTH_EMULATOR_HOST, undefined);
     assert.equal(env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, "fixture-project");

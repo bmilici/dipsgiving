@@ -84,7 +84,7 @@ export class FakeFirestore {
         return target instanceof Reference ? this.snapshot(target) : this.query(target);
       },
       create: (ref, data) => { writing = true; writes.push({ kind: "create", path: ref.path, data: structuredClone(data) }); },
-      set: (ref, data) => { writing = true; writes.push({ kind: "set", path: ref.path, data: structuredClone(data) }); },
+      set: (ref, data, options) => { writing = true; writes.push({ kind: "set", path: ref.path, data: structuredClone(data), ...(options?.merge ? { merge: true } : {}) }); },
       update: (ref, data) => { writing = true; writes.push({ kind: "update", path: ref.path, data: structuredClone(data) }); },
       delete: (ref) => { writing = true; writes.push({ kind: "delete", path: ref.path }); },
     };
@@ -96,7 +96,7 @@ export class FakeFirestore {
       }
       for (const write of writes) {
         if (write.kind === "delete") this.records.delete(write.path);
-        else this.records.set(write.path, write.kind === "update" ? { ...this.records.get(write.path), ...write.data } : write.data);
+        else this.records.set(write.path, write.kind === "update" || write.merge ? { ...this.records.get(write.path), ...write.data } : write.data);
       }
       this.writes.push(...writes);
       return result;

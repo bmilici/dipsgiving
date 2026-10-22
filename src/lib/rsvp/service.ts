@@ -55,10 +55,10 @@ function ensureUniqueDip(docs: QueryDocumentSnapshot[], dipName: string | null, 
 
 /** Server-only RSVP operations; the caller supplies a guarded database connection. */
 export class RsvpService {
-  constructor(private readonly db: Firestore) {}
+  constructor(protected readonly db: Firestore) {}
 
   /** Persistent, committed before the request transaction, including failures. */
-  private async rateLimit(scope: string, clientKey: string, limit: number, guestIdentity?: string): Promise<void> {
+  protected async rateLimit(scope: string, clientKey: string, limit: number, guestIdentity?: string): Promise<void> {
     const now = Date.now();
     const dimensions = [{ key: `client:${clientKey}`, max: limit }];
     if (guestIdentity) dimensions.push({ key: `identity:${guestIdentity}`, max: 20 });

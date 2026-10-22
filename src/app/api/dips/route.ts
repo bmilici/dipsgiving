@@ -2,6 +2,7 @@ import { getRsvpDb } from "@/lib/rsvp/db";
 import { isTestingMode } from "@/lib/testingMode";
 import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
 import { getCurrentEventName } from "@/lib/rsvp/event";
+import { isMultiDipEnabled, multiDipServerEnabled } from "@/lib/rsvp/multi-dip-mode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,14 @@ export async function GET(request: Request) {
   // Design-only previews have no database connection or write access.
   if (isTestingMode && !isRsvpLookupTestingEnabled) return Response.json({ dips: [] }, { headers });
   try {
+    if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Development database unavailable");
     const db = getRsvpDb();
+    if (multiDipServerEnabled()) {
+      const { readCompetitionRecords, publicCompetitionDips } = await import("@/lib/rsvp/dip-records");
+      const event = request && new URL(request.url).searchParams.get("event") === "current"
+        ? getCurrentEventName((await db.doc("eventSettings/current").get()).data()) : undefined;
+      return Response.json({ dips: publicCompetitionDips(await readCompetitionRecords(db, undefined, event)) }, { headers });
+    }
     const registrations = db.collection("registrations");
     const currentOnly = request && new URL(request.url).searchParams.get("event") === "current";
     // The Dip List follows the current event; the default feed retains every

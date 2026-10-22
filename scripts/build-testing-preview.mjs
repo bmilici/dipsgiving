@@ -145,6 +145,8 @@ export async function buildEnvironment(directory) {
     DIPSGIVING_RSVP_LOOKUP_TESTING: 'false',
     NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false',
     DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: 'false',
+    NEXT_PUBLIC_RSVP_MULTI_DIP: 'false',
+    DIPSGIVING_MULTI_DIP_TESTING: 'false',
   };
   delete result.FIRESTORE_EMULATOR_HOST;
   delete result.FIREBASE_AUTH_EMULATOR_HOST;
@@ -184,7 +186,7 @@ const nextConfig: NextConfig = {
   output: 'export',
   basePath: '${previewPrefix}',
   images: { unoptimized: true },
-  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true', NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false', NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false' },
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true', NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false', NEXT_PUBLIC_RSVP_LOCAL_DEMO: 'false', NEXT_PUBLIC_RSVP_MULTI_DIP: 'false' },
   eslint: { ignoreDuringBuilds: true },
 };
 export default nextConfig;
@@ -224,6 +226,13 @@ export default nextConfig;
 }
 
 `, 'vote/page.tsx');
+    // The static design export always uses the reviewed read-only legacy page;
+    // do not bundle the local experiment's authenticated write handler.
+    if (updated.includes('export default isMultiDipEnabled ? MultiDipVotePage : LegacyVotePage;')) {
+      updated = replaceOnce(updated, 'import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";\n', '', 'vote/page.tsx');
+      updated = replaceOnce(updated, 'import MultiDipVotePage from "@/components/MultiDipVotePage";\n', '', 'vote/page.tsx');
+      updated = replaceOnce(updated, 'export default isMultiDipEnabled ? MultiDipVotePage : LegacyVotePage;', 'export default LegacyVotePage;', 'vote/page.tsx');
+    }
     updated = replaceOnce(updated, '  const votingOpen = eventSettings.votingOpen;', '  const votingOpen = false;', 'vote/page.tsx');
     return replaceBetween(updated, '  async function voteFor(dipId: string) {', '  // Podium logic (Option C):',
       `  async function voteFor(_dipId: string) {

@@ -48,6 +48,7 @@ function harness(options = {}) {
     react,
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/lib/rsvp/validation": validation,
+    "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: options.multiDip ?? false },
     "@/lib/testingMode": {
       isTestingMode: options.testingMode ?? true,
       testingAssetPath: (path) => (options.testingMode ?? true) ? `/testing${path}` : path,
@@ -61,13 +62,14 @@ function harness(options = {}) {
   const exported = {};
   vm.runInNewContext(compiled, {
     exports: exported,
+    crypto: { randomUUID: () => `${String(calls.filter((call) => call.method === "POST").length + 1).padStart(8, "0")}-1234-4123-8123-123456789abc` },
     require(name) { assert.ok(Object.hasOwn(modules, name), `Unmocked import blocked: ${name}`); return modules[name]; },
     async fetch(url, config) {
       const payload = config.body ? JSON.parse(config.body) : undefined;
       calls.push({ url, ...plain(config), payload });
       if (config.method === "GET") {
         if (options.failGet) throw new Error("Offline");
-        return reply({ dips: options.dips ?? [] });
+        return reply({ dips: options.getDips ? options.getDips() : options.dips ?? [] });
       }
       return options.post ? options.post(payload) : reply({ ok: true });
     },
@@ -409,4 +411,246 @@ test("production RSVP uses the root API and displays live guest copy", async () 
   assert.ok(form.calls.length >= 3);
   for (const call of form.calls) assert.equal(call.url, "/api/rsvp");
   assert.doesNotMatch(text(form.render()), /Test RSVP flow|test dips|separate from the event guest list/);
+});
+
+const ownDip = (id, dip_name, status = "confirmed", editable = true, notes = null) => ({ id, dip_name, notes, status, editable });
+const matched = (dips) => reply({ ok: true, context: CONTEXT_A, dips });
+const saved = (dips, dip_id) => reply({ ok: true, dips, dip_id });
+const ownList = (form) => nodes(form.render(), (node) => node.props["aria-labelledby"] === "phone-rsvp-my-dips")[0];
+
+test("multi-dip lookup shows each entry separately and confirms only the selected pending ID", async () => {
+  const before = [ownDip("dip-a", "Hot Sausage Cowboy Dip"), ownDip("dip-b", "Smoked Queso"), ownDip("dip-c", null, "pending")];
+  const after = [before[0], before[1], ownDip("dip-c", "Garden Hummus", "confirmed", true, "Sesame")];
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched(before) : saved(after, "dip-c") });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.equal(nodes(ownList(form), (node) => node.type === "li").length, 3);
+  assert.match(text(ownList(form)), /Hot Sausage Cowboy Dip.*Smoked Queso.*TBD Dip 3/);
+  assert.equal(field(form, "dip_name").props.value, "");
+  assert.ok(button(form, "Confirm Dip"));
+  fill(form, "dip_name", "Garden Hummus");
+  fill(form, "notes", "Sesame");
+  await submit(form);
+  const payload = posts(form).at(-1);
+  assert.deepEqual({ ...payload, request_id: "operation" }, { action: "saveDip", dip_id: "dip-c", request_id: "operation", status: "confirmed", dip_name: "Garden Hummus", notes: "Sesame" });
+  assert.match(payload.request_id, /^[a-f0-9-]{36}$/);
+  assert.match(text(ownList(form)), /Hot Sausage Cowboy Dip.*Smoked Queso.*Garden Hummus/);
+  assert.doesNotMatch(text(ownList(form)), /TBD Dip/);
+  assert.equal(nodes(form.render(), (node) => ["phone", "name", "party_size"].includes(node.props.name)).length, 0);
+  assert.match(text(form.render()), /Your RSVP and party size stay the same/);
+  assert.equal(posts(form).some((payload) => payload.action === "create"), false);
+});
+
+test("adding another dip appends without submitting RSVP identity or overwriting a selected dip", async () => {
+  const first = ownDip("first-id", "Queso");
+  const second = ownDip("second-id", "Buffalo Chicken Dip");
+  const third = ownDip("third-id", "Salsa");
+  let saves = 0;
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([first]) : ++saves === 1 ? saved([first, second], second.id) : saved([first, second, third], third.id) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "Add Another Dip");
+  assert.equal(field(form, "dip_name").props.value, "");
+  fill(form, "dip_name", second.dip_name);
+  await submit(form);
+  await click(form, "Add Another Dip");
+  fill(form, "dip_name", third.dip_name);
+  await submit(form);
+  const payloads = posts(form).filter((payload) => payload.action === "saveDip");
+  assert.equal(payloads.length, 2);
+  assert.notEqual(payloads[0].request_id, payloads[1].request_id);
+  for (const payload of payloads) {
+    for (const privateOrExisting of ["dip_id", "name", "phone", "party_size", "registrationId"]) assert.equal(Object.hasOwn(payload, privateOrExisting), false);
+  }
+  assert.equal(nodes(ownList(form), (node) => node.type === "li").length, 3);
+  assert.match(text(ownList(form)), /Queso.*Buffalo Chicken Dip.*Salsa/);
+});
+
+test("editing a particular confirmed dip sends its persistent ID and leaves the others listed", async () => {
+  const first = ownDip("independent-a", "Queso", "confirmed", true, "Dairy");
+  const second = ownDip("independent-b", "Salsa", "confirmed", true, "Tomatoes");
+  const updated = { ...second, dip_name: "Smoked Salsa", notes: "Mild" };
+  const form = harness({ multiDip: true, initialMode: "lookup", dips: [first, second], post: (payload) => payload.action === "lookup" ? matched([first, second]) : saved([first, updated], updated.id) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "Edit Salsa");
+  assert.equal(field(form, "dip_name").props.value, "Salsa");
+  assert.equal(field(form, "notes").props.value, "Tomatoes");
+  fill(form, "dip_name", "Smoked Salsa");
+  fill(form, "notes", "Mild");
+  await submit(form);
+  assert.equal(posts(form).at(-1).dip_id, second.id);
+  assert.equal(posts(form).at(-1).dip_name, "Smoked Salsa");
+  assert.match(text(ownList(form)), /Queso.*Dairy.*Smoked Salsa.*Mild/);
+  assert.doesNotMatch(text(ownList(form)), /Tomatoes/);
+});
+
+test("multiple pending entries are independent and only the chosen one is confirmed", async () => {
+  const pendingA = ownDip("pending-a", null, "pending");
+  const pendingB = ownDip("pending-b", null, "pending");
+  const confirmed = ownDip("confirmed-c", "Hummus");
+  const updatedB = ownDip("pending-b", "Spinach Artichoke Dip");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([pendingA, pendingB, confirmed]) : saved([pendingA, updatedB, confirmed], updatedB.id) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.equal(nodes(ownList(form), (node) => node.type === "li").length, 3);
+  await click(form, "Confirm Dip 2");
+  fill(form, "dip_name", updatedB.dip_name);
+  await submit(form);
+  assert.equal(posts(form).at(-1).dip_id, "pending-b");
+  assert.match(text(ownList(form)), /TBD Dip 1.*Spinach Artichoke Dip.*Hummus/);
+  assert.equal((text(ownList(form)).match(/Pending — excluded/g) ?? []).length, 1);
+});
+
+test("a new RSVP may save a TBD dip without a name and keep the usual return instructions", async () => {
+  const form = harness({ multiDip: true });
+  await form.mount();
+  guest(form);
+  fill(form, "party_size", "4");
+  fill(form, "bringing_dip", true);
+  fill(form, "dip_pending", true);
+  assert.equal(nodes(form.render(), (node) => node.props.name === "dip_name").length, 0);
+  await submit(form);
+  assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 4, bringing_dip: true, dip_name: null, notes: "", dip_status: "pending" }]);
+  assert.match(text(form.render()), /return later and add or update your dip/);
+});
+
+test("a returning guest can append another independent TBD dip", async () => {
+  const first = ownDip("pending-first", null, "pending");
+  const second = ownDip("pending-second", null, "pending", true, "Contains nuts");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([first]) : saved([first, second], second.id) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "Add Another Dip");
+  fill(form, "dip_pending", true);
+  fill(form, "notes", "Contains nuts");
+  assert.ok(button(form, "Save TBD Dip"));
+  await submit(form);
+  const payload = posts(form).at(-1);
+  assert.equal(payload.status, "pending");
+  assert.equal(payload.dip_name, null);
+  assert.equal(payload.notes, "Contains nuts");
+  assert.equal(Object.hasOwn(payload, "dip_id"), false);
+  assert.match(text(ownList(form)), /TBD Dip 1.*TBD Dip 2/);
+  assert.match(text(form.render()), /Your TBD dip is saved/);
+});
+
+test("multi-dip failed submissions retain their operation ID and synchronous repeats send once", async () => {
+  let complete;
+  let attempts = 0;
+  const entry = ownDip("saved-after-retry", "Queso");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => {
+    if (payload.action === "lookup") return matched([]);
+    attempts++;
+    return attempts === 1 ? reply({ ok: false }, 503) : new Promise((resolve) => { complete = resolve; });
+  } });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  fill(form, "dip_name", entry.dip_name);
+  await submit(form);
+  assert.match(text(form.render()), /Please try again shortly/);
+  const retry = submit(form);
+  assert.equal(button(form, "Submitting…").props.disabled, true);
+  await submit(form);
+  assert.equal(attempts, 2);
+  const payloads = posts(form).filter((payload) => payload.action === "saveDip");
+  assert.deepEqual(payloads[0], payloads[1]);
+  complete(saved([entry], entry.id));
+  await retry;
+  assert.match(text(ownList(form)), /Queso/);
+});
+
+test("locked voted-on dips have no public edit action and point to admin review", async () => {
+  const locked = ownDip("voted-on-id", "Winning Queso", "confirmed", false, "Dairy");
+  const editable = ownDip("editable-id", "Salsa");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([locked, editable]) : reply({ ok: false, error: "This dip is locked to protect voting. Contact the host for admin review." }, 409) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.equal(nodes(form.render(), (node) => node.type === "button" && text(node) === "Edit Winning Queso").length, 0);
+  assert.equal(field(form, "dip_name").props.value, "Salsa");
+  assert.match(text(ownList(form)), /Winning Queso.*Locked to protect voting.*admin review/);
+  fill(form, "dip_name", "Changed Salsa");
+  await submit(form);
+  assert.match(text(form.render()), /Contact the host for admin review/);
+  assert.equal(posts(form).at(-1).dip_id, editable.id);
+  assert.equal(posts(form).some((payload) => payload.dip_id === locked.id), false);
+});
+
+test("malformed own-dip replies fail closed before displaying matched records", async () => {
+  for (const dips of [undefined, {}, [ownDip("same", "Private Dip"), ownDip("same", "Other Private Dip")], [ownDip("bad/status", "Private Dip")], [{ ...ownDip("id", "Private Dip"), editable: undefined }]]) {
+    const form = harness({ multiDip: true, initialMode: "lookup", post: () => matched(dips) });
+    await form.mount();
+    guest(form);
+    await submit(form);
+    assert.ok(button(form, "Find My RSVP"));
+    assert.doesNotMatch(text(form.render()), /Private Dip/);
+    assert.match(text(form.render()), /Please try again shortly/);
+    assert.equal(nodes(form.render(), (node) => node.props.name === "dip_name").length, 0);
+  }
+});
+
+test("multi-dip logout clears all matched entries and save requests retain session context binding", async () => {
+  const entry = ownDip("private-own-id", "Queso");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([entry]) : payload.action === "saveDip" ? saved([entry], entry.id) : reply({ ok: true }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await submit(form);
+  const save = form.calls.find((call) => call.payload?.action === "saveDip");
+  assert.equal(save.headers["X-Rsvp-Context"], CONTEXT_A);
+  assert.equal(Object.hasOwn(save.payload, "context"), false);
+  assert.doesNotMatch(text(form.render()), /private-own-id/);
+  await click(form, "Back to RSVP");
+  assert.equal(ownList(form), undefined);
+  fill(form, "bringing_dip", true);
+  assert.equal(field(form, "dip_name").props.value, "");
+  assert.equal(field(form, "dip_pending").props.checked, false);
+  assert.deepEqual(posts(form).at(-1), { action: "logout" });
+});
+
+test("a locked dip can request admin review while its own entry and other dips stay unchanged", async () => {
+  const locked = ownDip("protected-dip", "Voted Queso", "confirmed", false, "Dairy");
+  const other = ownDip("other-dip", "Garden Salsa");
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([locked, other]) : reply({ ok: false, error: "Your change was sent to the host for review. This dip and its votes have not changed." }, 409) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "Request a Change");
+  assert.equal(field(form, "dip_name").props.value, "Voted Queso");
+  assert.match(text(form.render()), /proposed change to the host for review.*votes will stay unchanged/);
+  fill(form, "dip_name", "Proposed Queso");
+  fill(form, "notes", "Updated allergen note");
+  assert.ok(button(form, "Request Review"));
+  await submit(form);
+  assert.equal(posts(form).at(-1).dip_id, locked.id);
+  assert.equal(posts(form).at(-1).dip_name, "Proposed Queso");
+  assert.match(text(form.render()), /Your change was sent to the host for review/);
+  assert.match(text(ownList(form)), /Voted Queso.*Dairy.*Garden Salsa/);
+  assert.doesNotMatch(text(ownList(form)), /Proposed Queso|Updated allergen note/);
+  await click(form, "Add Another Dip");
+  assert.equal(field(form, "dip_name").props.value, "");
+  assert.ok(button(form, "Add Dip"));
+  assert.equal(posts(form).some((payload) => payload.action === "create"), false);
+});
+
+test("a valid legacy Firestore ID longer than 200 characters remains editable without allocating a replacement", async () => {
+  const entry = ownDip("legacy-".repeat(100), "Legacy Hummus");
+  const updated = { ...entry, dip_name: "Legacy Roasted Hummus" };
+  const form = harness({ multiDip: true, initialMode: "lookup", post: (payload) => payload.action === "lookup" ? matched([entry]) : saved([updated], entry.id) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  assert.equal(field(form, "dip_name").props.value, entry.dip_name);
+  fill(form, "dip_name", updated.dip_name);
+  await submit(form);
+  assert.equal(posts(form).at(-1).dip_id, entry.id);
+  assert.match(text(ownList(form)), /Legacy Roasted Hummus/);
+  assert.doesNotMatch(text(form.render()), /legacy-legacy-/);
 });

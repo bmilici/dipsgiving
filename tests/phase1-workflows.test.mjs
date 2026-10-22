@@ -88,6 +88,8 @@ function componentHarness(file, options = {}) {
       },
     },
     "@/lib/firebase": { getClientDB: () => db, getClientAuth: () => auth },
+    "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: false },
+    "@/components/MultiDipVotePage": { __esModule: true, default: "multi-dip-vote-preview" },
     "@/lib/eventSettings": {
       useEventSettings: () => ({
         eventName: "Offline Dipsgiving",

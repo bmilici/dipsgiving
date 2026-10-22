@@ -12,6 +12,8 @@
     "start:rsvp-lookup": "DIPSGIVING_RSVP_LOOKUP_TESTING=true NEXT_PUBLIC_DESIGN_PREVIEW=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8188 next start --hostname 127.0.0.1 --port 3018",
     "emulators:rsvp": "npx --yes firebase-tools@15.34.1 emulators:start --only firestore --project demo-dipsgiving-rsvp-test --config firebase.rsvp-testing.json",
     "dev:phone-sync": "DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8189 DIPSGIVING_ADMIN_PASSCODE=local-demo-admin-passcode next dev --hostname 127.0.0.1 --port 3022",
+    "dev:multiple-dips": "DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST=true DIPSGIVING_MULTI_DIP_TESTING=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8189 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9199 DIPSGIVING_ADMIN_PASSCODE=local-demo-admin-passcode next dev --hostname 127.0.0.1 --port 3028",
+    "emulators:multiple-dips": "npx --yes firebase-tools@15.34.1 emulators:start --only firestore,auth --project demo-dipsgiving-rsvp-test --config firebase.multiple-dips-testing.json",
     "emulators:phone-sync": "npx --yes firebase-tools@15.34.1 emulators:start --only firestore,auth --project demo-dipsgiving-rsvp-test --config firebase.phone-sync-testing.json"
   },
   "dependencies": {

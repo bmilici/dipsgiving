@@ -15,6 +15,8 @@ import { siteRoutes } from "@/lib/siteNavigation";
 import { useEventSettings } from "@/lib/eventSettings";
 import { isTestingMode } from "@/lib/testingMode";
 import { watchPublicDips, type PublicDipFeed } from "@/lib/rsvp/public-dips";
+import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
+import MultiDipVotePage from "@/components/MultiDipVotePage";
 
 type DipReg = {
   id: string;
@@ -121,7 +123,9 @@ function Podium({
   );
 }
 
-export default function VotePage() {
+export default isMultiDipEnabled ? MultiDipVotePage : LegacyVotePage;
+
+function LegacyVotePage() {
   const authReady = useEnsureAnonAuth();
   const auth = getClientAuth();
   const db = getClientDB();

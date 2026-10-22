@@ -47,6 +47,8 @@ function loadAdmin(env = {}, db = adminDb(), realAdmin = false) {
       const local = {
         "@/lib/rsvp/invitation-sync": "src/lib/rsvp/invitation-sync.ts",
         "@/lib/rsvp/validation": "src/lib/rsvp/validation.ts",
+        "@/lib/rsvp/multi-dip-mode": "src/lib/rsvp/multi-dip-mode.ts",
+        "@/lib/rsvp/dip-records": "src/lib/rsvp/dip-records.ts",
         "./validation": "src/lib/rsvp/validation.ts",
         "./event": "src/lib/rsvp/event.ts",
       }[id];
@@ -289,6 +291,36 @@ test("authenticated retry fills only missing current RSVP phones, stays idempote
   const synced = [...fixture.db.records].find(([key, value]) => key.startsWith("invitationList/") && value.phone === "+12025550102")[1];
   assert.equal(synced.invite_next_year, false);
   assert.equal(synced.last_party_size, 3);
+});
+
+test("development admin dip totals join independent confirmed entries without duplicating RSVPs or party sizes", async () => {
+  const fixture = loadAdmin({
+    NEXT_PUBLIC_RSVP_MULTI_DIP: "true", DIPSGIVING_MULTI_DIP_TESTING: "true", DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true",
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: "demo-dipsgiving-rsvp-test", FIRESTORE_EMULATOR_HOST: "127.0.0.1:8189", FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9199",
+  }, adminDb({
+    "registrations/legacy": { name: "Legacy", event: "Current", phone: "2025550101", party_size: 2, dip_name: "Legacy Queso", votes: 7 },
+    "registrations/new": { name: "Two Dips", event: "Current", phone: "2025550102", party_size: 4, dip_schema_version: 2, bringing_dip: true, dip_name: null },
+    "registrationDips/a": { registration_id: "new", event: "Current", status: "confirmed", dip_name: "Salsa", votes: 10 },
+    "registrationDips/b": { registration_id: "new", event: "Current", status: "confirmed", dip_name: "Hummus", votes: 6 },
+    "registrationDips/pending": { registration_id: "new", event: "Current", status: "pending", dip_name: null, votes: 0 },
+    "_dipEditReviews/review": { status: "pending_review", dip_id: "a", registration_id: "new", proposed: { status: "confirmed", dip_name: "New Salsa", notes: "Dairy" } },
+  }));
+  const before = fixture.db.registrations();
+  const route = fixture.load("src/app/api/admin/registrations/route.ts");
+  assert.equal((await route.GET(request("registrations"))).status, 401);
+  const token = await signedIn(fixture);
+  const response = await route.GET(request("registrations", token));
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.registrations.length, 2);
+  assert.equal(result.registrations.reduce((sum, row) => sum + row.party_size, 0), 6);
+  assert.deepEqual(result.dips.map(row => row.id).sort(), ["a", "b", "legacy"]);
+  assert.equal(result.dips.find(row => row.id === "a").votes, 10);
+  assert.equal(result.dips.find(row => row.id === "b").votes, 6);
+  assert(!JSON.stringify(result.dips).includes("phone"));
+  assert(!JSON.stringify(result.dips).includes("registration_id"));
+  assert.equal(result.dipEditReviews[0].proposed.dip_name, "New Salsa");
+  assert.deepEqual(fixture.db.registrations(), before);
 });
 
 test("failed admin retry returns a generic error, logs no private values, and safely retries", async (t) => {

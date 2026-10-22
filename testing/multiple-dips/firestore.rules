@@ -1,0 +1,122 @@
+// Disposable emulator rules only. Never deploy this file to production.
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnVoteDoc(voteId) {
+      return signedIn() && voteId.matches(request.auth.uid + "_[0-9]{4}");
+    }
+
+    function validVoteDoc() {
+      return request.resource.data.keys().hasOnly([
+          "uid",
+          "year",
+          "dipIds",
+          "updated_at"
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.year is int
+        && request.resource.data.dipIds is list
+        && request.resource.data.dipIds.size() <= 3;
+    }
+
+    function validVoteCreate() {
+      return validVoteDoc()
+        && request.resource.data.dipIds.size() == 1;
+    }
+
+    function validVoteUpdate() {
+      return validVoteDoc()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.year == resource.data.year
+        && (
+          request.resource.data.dipIds.size() == resource.data.dipIds.size() + 1
+          || request.resource.data.dipIds.size() == resource.data.dipIds.size() - 1
+        );
+    }
+
+    function validVoteChange() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(["votes"])
+        && request.resource.data.votes is int
+        && (
+          (
+            resource.data.keys().hasAny(["votes"])
+            && resource.data.votes is int
+            && request.resource.data.votes == resource.data.votes + 1
+          )
+          || (
+            !resource.data.keys().hasAny(["votes"])
+            && request.resource.data.votes == 1
+          )
+          || (
+            resource.data.keys().hasAny(["votes"])
+            && resource.data.votes is int
+            && resource.data.votes > 0
+            && request.resource.data.votes == resource.data.votes - 1
+          )
+        );
+    }
+
+    match /registrations/{registrationId} {
+      // RSVP details and phones are private. Server routes use Admin SDK;
+      // browsers receive only the public dip fields through the public API.
+      allow read, create, delete: if false;
+      // The local experiment accepts voting only through the token-verified API.
+      allow update: if false;
+    }
+
+    match /userVotes/{voteId} {
+      allow get: if isOwnVoteDoc(voteId);
+      allow list: if false;
+      allow create, update: if false;
+      allow delete: if false;
+    }
+
+    match /registrationDips/{dipId} {
+      // Association, pending records and counters remain server-only.
+      allow read, write: if false;
+    }
+
+    match /dips/{dipId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll(["name", "dip", "year", "createdAt"]);
+      allow update, delete: if false;
+    }
+
+    match /winners/{winnerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /historicalDips/{dipId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /eventSettings/{settingsId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /chevelleProjects/{projectId} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(["state", "updatedAt"]);
+      allow delete: if false;
+    }
+
+    match /invitationList/{inviteeId} {
+      // Anonymous Firebase sign-in is used for voting, not host authorization.
+      // Invitation access is authorized by the private host API instead.
+      allow read, write: if false;
+    }
+
+    // Unmatched server-only session, limiter and lock collections are denied
+    // by default; no guest can read or create a lookup/admin capability.
+  }
+}
