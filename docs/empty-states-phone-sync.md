@@ -51,7 +51,7 @@ Failures log only the operation and a bounded SDK error code, never names, phone
 
 ## Validation
 
-**225 offline tests passed.** All four opt-in suites passed in a separate local emulator run (44 checks, zero failures). The complete HTTP walkthrough passed against ports 3022/8189. TypeScript and diff checks passed; focused ESLint has zero errors and two image optimization suggestions for SVG/existing image elements.
+**225 offline tests passed.** All four opt-in suites passed in a separate local emulator run (44 checks, zero failures). The complete HTTP walkthrough passed against ports 3022/8189. The full application build passed in a separate local checkout using dummy demo configuration. TypeScript and diff checks passed; focused ESLint has zero errors and two image optimization suggestions for SVG/existing image elements.
 
 The recorded automated checks cover all requested RSVP, formatting, returning-guest, manual-entry, empty-state, historical-data, loading, error, and privacy scenarios. Real emulator checks additionally exercise concurrent RSVP/manual writes, retries, vote preservation, and atomic failures. The local HTTP verifier checks the actual routes and verifies a unique emulator probe before sending any form request.
 
