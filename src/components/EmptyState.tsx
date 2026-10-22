@@ -1,11 +1,10 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
+import { testingAssetPath } from "@/lib/testingMode";
 
 type EmptyStateProps = {
   variant: "dips" | "champions";
   title: string;
   description: string;
-  icon: LucideIcon;
   action?: {
     href: string;
     label: string;
@@ -16,7 +15,6 @@ export default function EmptyState({
   variant,
   title,
   description,
-  icon: Icon,
   action,
 }: EmptyStateProps) {
   const headingId = `festival-empty-${variant}`;
@@ -26,9 +24,16 @@ export default function EmptyState({
       className={`festival-empty-state festival-empty-state--${variant} festival-card mx-auto max-w-2xl px-6 py-10 text-center sm:px-10 sm:py-12`}
       aria-labelledby={headingId}
     >
-      <div className="festival-empty-state-icon mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-gold/50 bg-gold/20 text-forest">
-        <Icon className="h-9 w-9" aria-hidden="true" strokeWidth={1.5} />
-      </div>
+      <img
+        src={testingAssetPath(variant === "dips" ? "/illustrations/dip-table.svg" : "/illustrations/dip-trophy.svg")}
+        alt=""
+        aria-hidden="true"
+        width={600}
+        height={510}
+        loading="lazy"
+        decoding="async"
+        className="mx-auto mb-5 h-auto w-full max-w-64 sm:max-w-72"
+      />
       <h2
         id={headingId}
         className="festival-empty-state-title font-display text-3xl leading-tight text-forest sm:text-4xl"

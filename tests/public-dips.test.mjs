@@ -73,6 +73,21 @@ test("unavailable or malformed public dip responses reject without leaking serve
   }
 });
 
+test("current-event feeds keep the selected scope across refreshes and add the testing prefix once", async () => {
+  for (const testing of [false, true]) {
+    const feed = harness({ testing });
+    const subscription = feed.watchPublicDips(() => {}, () => {}, "current");
+    await tick();
+    await subscription.refresh();
+    assert.equal(feed.calls.length, 2);
+    assert.deepEqual(feed.calls.map((call) => call.url), [
+      `${testing ? "/testing" : ""}/api/dips?event=current`,
+      `${testing ? "/testing" : ""}/api/dips?event=current`,
+    ]);
+    subscription.close();
+  }
+});
+
 test("public feeds refresh visible tabs, skip hidden tabs, and recover after failures", async () => {
   let fail = false;
   const updates = [];

@@ -88,6 +88,11 @@ test("Firestore emulator: real duplicate races, existing ID updates and voting r
     for (const doc of sessionRows.docs) await doc.ref.delete();
     const voterRows = await db.collection("userVotes").where("uid", "==", `synthetic_${suffix}`).get();
     for (const doc of voterRows.docs) await doc.ref.delete();
+    const invitationRows = await db.collection("invitationList").get();
+    for (const doc of invitationRows.docs) {
+      const name = doc.data().name;
+      if (typeof name === "string" && name.includes(suffix)) await doc.ref.delete();
+    }
     await db.terminate();
     await deleteApp(app);
   }

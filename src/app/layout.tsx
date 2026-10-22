@@ -44,10 +44,11 @@ const inter = Inter({
 });
 
 const SITE = "https://dipsgiving.com";
+const isLocalDemoReview = process.env.NEXT_PUBLIC_RSVP_LOCAL_DEMO === "true";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  ...(isTestingMode ? { robots: { index: false, follow: false } } : {}),
+  ...(isTestingMode || isLocalDemoReview ? { robots: { index: false, follow: false } } : {}),
   title: "Dipsgiving — The Ultimate Dip Showdown",
   description: `Join the 5th Annual Dipsgiving on December 5, ${EVENT_YEAR} at 4 PM in Fort Myers, Florida. Bring a dip, taste the competition, and cheer on your favorites.`,
   icons: {
@@ -94,6 +95,11 @@ export default function RootLayout({
         className={`${dmSans.variable} ${breeSerif.variable} ${geistMono.variable} ${cinzel.variable} ${libreFranklin.variable} ${inter.variable} antialiased bg-background text-foreground`}
       >
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-5 focus:py-3 focus:text-espresso">Skip to content</a>
+        {isLocalDemoReview && (
+          <aside className="border-b border-forest/15 bg-gold px-4 py-2.5 text-center text-xs leading-relaxed text-espresso sm:text-sm" aria-label="Local development notice">
+            Development preview — demo data only.
+          </aside>
+        )}
         {isTestingMode && (
           <aside className="border-b border-forest/15 bg-gold px-4 py-2.5 text-center text-xs leading-relaxed text-espresso sm:text-sm" aria-label="Design preview notice">
             <strong>Design preview</strong> — {isRsvpLookupTestingEnabled

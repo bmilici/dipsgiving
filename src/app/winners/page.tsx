@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { Trophy } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { getClientDB } from "@/lib/firebase";
 import { testingAssetPath } from "@/lib/testingMode";
@@ -42,22 +41,28 @@ export default function HistoricDipChampions() {
         if (!db) return setError("Database not available.");
 
         const qSnap = await getDocs(collection(db, "winners"));
-        const historicalSnap = await getDocs(collection(db, "historicalDips"));
-
         const result: YearWinner[] = [];
         const archived: HistoricalDip[] = [];
 
         qSnap.forEach((doc) => {
-          const data = doc.data() as any;
+          const data = doc.data() as Record<string, unknown>;
 
           result.push({
             id: doc.id,
-            image: data.image ?? null,
-            podium: Array.isArray(data.podium) ? data.podium : [],
+            image: typeof data.image === "string" ? data.image : undefined,
+            podium: Array.isArray(data.podium) ? data.podium as PodiumEntry[] : [],
           });
         });
 
+        // Keep confirmed champions visible even if the archive read fails.
+        result.sort((a, b) => Number(b.id) - Number(a.id));
+        setYears(result);
+
+        const historicalSnap = await getDocs(collection(db, "historicalDips"));
+        let historicalRecordCount = 0;
+
         historicalSnap.forEach((doc) => {
+          historicalRecordCount++;
           const data = doc.data() as Record<string, unknown>;
           const dipName = typeof data.dip_name === "string" ? data.dip_name : "";
           const archiveYear =
@@ -79,16 +84,16 @@ export default function HistoricDipChampions() {
           });
         });
 
-        // Sort by year descending
-        result.sort((a, b) => Number(b.id) - Number(a.id));
         archived.sort(
           (a, b) =>
             b.archive_year - a.archive_year ||
             a.dip_name.localeCompare(b.dip_name)
         );
 
-        setYears(result);
         setHistoricalDips(archived);
+        if (historicalRecordCount > 0 && result.length === 0 && archived.length === 0) {
+          setError("Historical records are available, but could not be displayed. Please try again later.");
+        }
       } catch (err) {
         console.error(err);
         setError("Failed to load winners.");
@@ -142,7 +147,6 @@ export default function HistoricDipChampions() {
             variant="champions"
             title="The Legends Are Still Being Written."
             description="Every legendary dip has to start somewhere. Who will claim the crown?"
-            icon={Trophy}
           />
         )}
 

@@ -1,6 +1,7 @@
 import { getRsvpDb } from "@/lib/rsvp/db";
 import { isTestingMode } from "@/lib/testingMode";
 import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
+import { getCurrentEventName } from "@/lib/rsvp/event";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,12 +9,19 @@ export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff" };
 const text = (value: unknown, max: number) => typeof value === "string" ? value.slice(0, max) : null;
 
-export async function GET() {
+export async function GET(request: Request) {
   // Design-only previews have no database connection or write access.
   if (isTestingMode && !isRsvpLookupTestingEnabled) return Response.json({ dips: [] }, { headers });
   try {
-    // Include older dip entries without created_at, as the voting page did.
-    const snapshot = await getRsvpDb().collection("registrations").get();
+    const db = getRsvpDb();
+    const registrations = db.collection("registrations");
+    const currentOnly = request && new URL(request.url).searchParams.get("event") === "current";
+    // The Dip List follows the current event; the default feed retains every
+    // voting ID, including undated legacy dips, for the existing voting page.
+    const source = currentOnly
+      ? registrations.where("event", "==", getCurrentEventName((await db.doc("eventSettings/current").get()).data()))
+      : registrations;
+    const snapshot = await source.get();
     const dips = snapshot.docs.flatMap((doc) => {
       const data = doc.data();
       const dip_name = text(data.dip_name, 120)?.trim();

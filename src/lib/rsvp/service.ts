@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { FieldValue, type Firestore, type DocumentData, type QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { getCurrentEventName as eventName } from "./event";
+import { hasInvitationPhone, logInvitationSyncFailure, readInvitationList, stageRsvpInvitation, touchInvitationList } from "./invitation-sync";
 import {
   normalizeDipName,
   normalizeGuestName,
@@ -12,7 +14,6 @@ import {
 
 export const SESSION_TTL_SECONDS = 900;
 export const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host if you registered without a phone number.";
-const DEFAULT_EVENT = "5th Annual Dipsgiving";
 const WINDOW_MS = 15 * 60 * 1000;
 
 export class RsvpError extends Error {
@@ -25,7 +26,6 @@ export class RsvpError extends Error {
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const identity = (name: string, phone: string) => hash(`${normalizeGuestName(name)}\0${phone}`);
 const isRsvp = (data: DocumentData) => data.type == null || data.type === "full_rsvp";
-const eventName = (data: DocumentData | undefined) => typeof data?.eventName === "string" && data.eventName.trim() ? data.eventName.trim() : DEFAULT_EVENT;
 const displayText = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 const lookupError = () => new RsvpError("lookup_failed", 404, LOOKUP_FAILURE);
 const sessionError = () => new RsvpError("session_expired", 401, LOOKUP_FAILURE);
@@ -87,19 +87,29 @@ export class RsvpService {
     const fields = validated(() => validateNewRsvp(input));
     const guestIdentity = identity(fields.name, fields.phone);
     const registration = this.db.collection("registrations").doc();
-    await this.db.runTransaction(async (tx) => {
-      const settings = await tx.get(this.db.doc("eventSettings/current"));
-      const event = eventName(settings.data());
-      const lock = this.db.collection("_rsvpLookupLocks").doc(hash(event));
-      await tx.get(lock);
-      const registrations = await tx.get(this.db.collection("registrations").where("event", "==", event));
-      if (registrations.docs.some((doc) => matchingIdentity(doc.data()) === guestIdentity)) {
-        throw new RsvpError("rsvp_exists", 409, "An RSVP may already exist for these details. Use Add a Dip (Already Registered?) to look it up.");
-      }
-      ensureUniqueDip(registrations.docs, fields.dip_name);
-      tx.create(registration, { ...fields, type: "full_rsvp", event, created_at: FieldValue.serverTimestamp() });
-      tx.set(lock, { touched_at: FieldValue.serverTimestamp() });
-    });
+    try {
+      await this.db.runTransaction(async (tx) => {
+        const settings = await tx.get(this.db.doc("eventSettings/current"));
+        const event = eventName(settings.data());
+        const lock = this.db.collection("_rsvpLookupLocks").doc(hash(event));
+        await tx.get(lock);
+        const registrations = await tx.get(this.db.collection("registrations").where("event", "==", event));
+        if (registrations.docs.some((doc) => matchingIdentity(doc.data()) === guestIdentity)) {
+          throw new RsvpError("rsvp_exists", 409, "An RSVP may already exist for these details. Use Add a Dip (Already Registered?) to look it up.");
+        }
+        ensureUniqueDip(registrations.docs, fields.dip_name);
+        const invitations = await readInvitationList(this.db, tx);
+        // RSVP and contact creation either commit together or both abort.
+        tx.create(registration, { ...fields, type: "full_rsvp", event, created_at: FieldValue.serverTimestamp() });
+        if (!hasInvitationPhone(invitations.docs, fields.phone)) stageRsvpInvitation(tx, this.db, fields);
+        touchInvitationList(tx, invitations.lock);
+        tx.set(lock, { touched_at: FieldValue.serverTimestamp() });
+      });
+    } catch (error) {
+      if (error instanceof RsvpError) throw error;
+      logInvitationSyncFailure("create", error);
+      throw new RsvpError("rsvp_save_failed", 503, "We couldn’t confirm your RSVP. Please try again, or use Add a Dip (Already Registered?) to check it.");
+    }
     return { message: "You’re RSVP’d! You can return later and use Add a Dip (Already Registered?) with your name and phone number to add or update your dip." };
   }
 

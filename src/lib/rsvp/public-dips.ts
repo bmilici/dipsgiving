@@ -11,10 +11,12 @@ export type PublicDip = {
 };
 
 export type PublicDipFeed = { close: () => void; refresh: () => Promise<void> };
+export type PublicDipScope = "all" | "current";
 
 /** Read only the public dip projection; RSVP phone numbers never reach the browser. */
-export async function fetchPublicDips(signal?: AbortSignal): Promise<PublicDip[]> {
-  const response = await fetch(testingAssetPath("/api/dips"), {
+export async function fetchPublicDips(signal?: AbortSignal, scope: PublicDipScope = "all"): Promise<PublicDip[]> {
+  const path = scope === "current" ? "/api/dips?event=current" : "/api/dips";
+  const response = await fetch(testingAssetPath(path), {
     method: "GET", credentials: "same-origin", cache: "no-store", signal,
   });
   if (!response.ok) throw new Error("Dip list unavailable");
@@ -43,6 +45,7 @@ export async function fetchPublicDips(signal?: AbortSignal): Promise<PublicDip[]
 export function watchPublicDips(
   onNext: (dips: PublicDip[]) => void,
   onError: (error: unknown) => void,
+  scope: PublicDipScope = "all",
 ): PublicDipFeed {
   let closed = false;
   let pending = false;
@@ -51,7 +54,7 @@ export function watchPublicDips(
     if (closed || pending || document.visibilityState === "hidden") return;
     pending = true;
     try {
-      const dips = await fetchPublicDips(controller.signal);
+      const dips = await fetchPublicDips(controller.signal, scope);
       if (!closed) onNext(dips);
     } catch (error) {
       if (!closed) onError(error);

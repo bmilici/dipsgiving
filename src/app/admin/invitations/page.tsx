@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminRequest } from "@/lib/rsvp/admin-client";
 import { useEventSettings } from "@/lib/eventSettings";
@@ -72,13 +72,17 @@ function InvitationListContent() {
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [savingAll, setSavingAll] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const syncPending = useRef(false);
+  const dirtyIdsRef = useRef(dirtyIds);
+  dirtyIdsRef.current = dirtyIds;
 
   async function refreshInvitees() {
     const result = await adminRequest("invitations");
     const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
     setInvitees(rows);
     setDrafts((current) => Object.fromEntries(rows.map((invitee) => [invitee.id,
-      dirtyIds.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
+      dirtyIdsRef.current.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
         name: invitee.name, phone: invitee.phone, notes: invitee.notes, invite_next_year: invitee.invite_next_year,
       }
     ])));
@@ -257,6 +261,26 @@ function InvitationListContent() {
     );
   }
 
+  async function retryPhoneSync() {
+    if (syncPending.current || dirtyCount || busyId || savingAll) return;
+    syncPending.current = true;
+    setSyncing(true);
+    setStatus(null);
+    try {
+      const result = await adminRequest("invitations", { action: "retrySync" });
+      await refreshInvitees();
+      const added = typeof result.added === "number" ? result.added : 0;
+      setStatus(`${added} phone number${added === 1 ? "" : "s"} added. Existing entries were preserved.${
+        result.remaining ? " More numbers are waiting. Select Retry Phone Sync again to continue." : ""
+      }`);
+    } catch (failure) {
+      setStatus(failure instanceof Error ? failure.message : "Phone sync could not finish. Please try again.");
+    } finally {
+      syncPending.current = false;
+      setSyncing(false);
+    }
+  }
+
   async function saveAllInvitees() {
 
     const dirtyDrafts = [...dirtyIds].map((id) => [id, drafts[id]] as const);
@@ -283,7 +307,7 @@ function InvitationListContent() {
       );
     } catch (err) {
       console.error(err);
-      setStatus("Could not save changes.");
+      setStatus(err instanceof Error ? err.message : "Could not save changes.");
     } finally {
       setSavingAll(false);
     }
@@ -340,7 +364,7 @@ function InvitationListContent() {
       setStatus("Invitation added.");
     } catch (err) {
       console.error(err);
-      setStatus("Could not add invitation.");
+      setStatus(err instanceof Error ? err.message : "Could not add invitation.");
     } finally {
       setBusyId(null);
     }
@@ -369,6 +393,27 @@ function InvitationListContent() {
 
         <div className="flex flex-col gap-3 rounded-xl border border-orange-200 bg-white/80 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
+            <h2 className="font-semibold text-orange-900">RSVP Phone Numbers</h2>
+            <p className="text-sm text-orange-700/80">
+              New RSVP numbers are added automatically. Retry sync adds any missing numbers for the current event.
+            </p>
+            <p className="mt-1 text-sm text-orange-700/80">
+              New RSVP contacts are unselected for future invitations.{dirtyCount ? " Save your edits before retrying sync." : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void retryPhoneSync()}
+            disabled={syncing || savingAll || busyId !== null || dirtyCount > 0}
+            aria-busy={syncing}
+            className="min-h-11 shrink-0 rounded-lg border border-orange-700 px-4 py-2 text-sm font-medium text-orange-900 hover:bg-orange-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {syncing ? "Syncing Phone Numbers…" : "Retry Phone Sync"}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border border-orange-200 bg-white/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
             <div className="font-semibold text-orange-900">
               {dirtyCount
                 ? `${dirtyCount} unsaved change${dirtyCount === 1 ? "" : "s"}`
@@ -389,7 +434,7 @@ function InvitationListContent() {
         </div>
 
         {status && (
-          <div className="rounded-xl border border-orange-200 bg-white/80 px-4 py-3 text-orange-900">
+          <div className="rounded-xl border border-orange-200 bg-white/80 px-4 py-3 text-orange-900" role="status" aria-live="polite">
             {status}
           </div>
         )}

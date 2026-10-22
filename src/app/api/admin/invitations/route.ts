@@ -1,6 +1,8 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getRsvpDb } from "@/lib/rsvp/db";
 import { AdminError, adminBody, adminFailure, adminReply, requireAdmin } from "@/lib/rsvp/admin-session";
+import { hasInvitationPhone, readInvitationList, syncCurrentRsvpPhones, touchInvitationList } from "@/lib/rsvp/invitation-sync";
+import { normalizeUsPhone } from "@/lib/rsvp/validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,22 +37,47 @@ export async function POST(request: Request) {
     const db = getRsvpDb();
     await requireAdmin(db, request);
     const data = await adminBody(request);
+    if (data.action === "retrySync" && Object.keys(data).length === 1) {
+      const result = await syncCurrentRsvpPhones(db);
+      return adminReply({ ok: true, ...result });
+    }
     if (data.action === "create") {
       const draft = fields(data);
-      const ref = await db.collection("invitationList").add({ ...draft, created_at: FieldValue.serverTimestamp(), updated_at: FieldValue.serverTimestamp() });
+      const ref = db.collection("invitationList").doc();
+      await db.runTransaction(async (tx) => {
+        const invitations = await readInvitationList(db, tx);
+        if (hasInvitationPhone(invitations.docs, draft.phone)) throw new AdminError(409, "That phone number is already saved in this list.");
+        tx.create(ref, { ...draft, created_at: FieldValue.serverTimestamp(), updated_at: FieldValue.serverTimestamp() });
+        touchInvitationList(tx, invitations.lock);
+      });
       return adminReply({ ok: true, id: ref.id }, 201);
     }
     if (data.action === "update" && validId(data.id)) {
       const draft = fields(data, ["id"]);
       const ref = db.collection("invitationList").doc(data.id);
       await db.runTransaction(async (tx) => {
-        if (!(await tx.get(ref)).exists) throw new AdminError(404, "Invitation not found.");
+        const invitations = await readInvitationList(db, tx);
+        // Acquire the shared list lock first, just like every other writer.
+        const current = invitations.docs.find((entry) => entry.id === ref.id);
+        if (!current) throw new AdminError(404, "Invitation not found.");
+        // Existing duplicate legacy entries can still have their notes edited.
+        // A changed phone cannot introduce another normalized duplicate.
+        if (normalizeUsPhone(current.data()?.phone) !== normalizeUsPhone(draft.phone) &&
+            hasInvitationPhone(invitations.docs, draft.phone, ref.id)) {
+          throw new AdminError(409, "That phone number is already saved in this list.");
+        }
         tx.update(ref, { ...draft, updated_at: FieldValue.serverTimestamp() });
+        touchInvitationList(tx, invitations.lock);
       });
       return adminReply({ ok: true });
     }
     if (data.action === "delete" && validId(data.id) && Object.keys(data).length === 2) {
-      await db.collection("invitationList").doc(data.id).delete();
+      const ref = db.collection("invitationList").doc(data.id);
+      await db.runTransaction(async (tx) => {
+        const invitations = await readInvitationList(db, tx);
+        tx.delete(ref);
+        touchInvitationList(tx, invitations.lock);
+      });
       return adminReply({ ok: true });
     }
     throw new AdminError(400);

@@ -41,6 +41,7 @@ const jsx = { jsx: element, jsxs: element, Fragment: "fragment" };
 const EmptyState = loadComponent("src/components/EmptyState.tsx", {
   "react/jsx-runtime": jsx,
   "next/link": "a",
+  "@/lib/testingMode": { testingAssetPath: (path) => path },
 });
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -93,8 +94,8 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     "@/lib/siteNavigation": navigationModule,
     "@/lib/rsvp/testing": { isRsvpLookupTestingEnabled: rsvpLookupEnabled },
     "@/lib/rsvp/public-dips": {
-      watchPublicDips(onNext, onError) {
-        subscription = { source: "public-api", onNext, onError };
+      watchPublicDips(onNext, onError, scope) {
+        subscription = { source: "public-api", onNext, onError, scope };
         return { close() { unsubscribed = true; }, async refresh() {} };
       },
     },
@@ -122,6 +123,7 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     startEffects() { return effects.map((effect) => effect()); },
     emitDips(rows) {
       assert.equal(subscription?.source, "public-api");
+      assert.equal(subscription.scope, "current", "the Dip List must request only the current event");
       subscription.onNext(rows.flatMap(({ id, data }) => {
         const dipName = typeof data.dip_name === "string" ? data.dip_name.trim() : "";
         return dipName ? [{ id, ...data, dip_name: dipName }] : [];
@@ -181,10 +183,15 @@ test("dip list waits for a read before displaying its actionable empty state", (
   assert.ok(card);
   assert.match(content(card), /The Competition Is Heating Up!/);
   assert.match(content(card), /But nobody has entered the dip arena yet\. Be the first to bring the flavor!/);
-  assert.equal(nodes(card, (node) => node.type === "soup-icon").length, 1);
+  const [illustration] = nodes(card, (node) => node.type === "img");
+  assert.equal(illustration.props.src, "/illustrations/dip-table.svg");
+  assert.equal(illustration.props.alt, "");
+  assert.equal(illustration.props["aria-hidden"], "true");
+  assert.equal(illustration.props.className.includes("w-full"), true);
+  assert.ok(illustration.props.width > 0 && illustration.props.height > 0);
   const [action] = nodes(card, (node) => node.type === "a");
   assert.equal(action.props.href, "/register/dip");
-  assert.equal(content(action), "Register Dip");
+  assert.equal(content(action), "Register Your Dip");
   unsubscribe();
   assert.equal(page.unsubscribed, true);
 });
@@ -241,7 +248,10 @@ test("champions remain in loading state until both collections finish, then show
   assert.ok(card);
   assert.match(content(card), /The Legends Are Still Being Written\./);
   assert.match(content(card), /Every legendary dip has to start somewhere\. Who will claim the crown\?/);
-  assert.equal(nodes(card, (node) => node.type === "trophy-icon").length, 1);
+  const [illustration] = nodes(card, (node) => node.type === "img");
+  assert.equal(illustration.props.src, "/illustrations/dip-trophy.svg");
+  assert.equal(illustration.props.alt, "");
+  assert.equal(illustration.props["aria-hidden"], "true");
   assert.equal(nodes(card, (node) => node.type === "a").length, 0);
 });
 
@@ -295,6 +305,55 @@ test("a champions read error never claims the historical record is empty", async
   assert.equal(statusMessages(tree).length, 0);
   assert.match(content(tree), /Failed to load winners/);
   assert.equal(page.errors.length, 1);
+});
+
+test("confirmed champions remain visible if the historical archive read fails", async () => {
+  const page = championsPage();
+  page.render();
+  page.startEffects();
+  await page.resolveRead("winners", [{
+    id: "2025",
+    data: { podium: [{ place: 1, dip_name: "Real Champion", by: "Casey" }] },
+  }]);
+  await page.failRead("historicalDips");
+  const tree = page.render();
+  assert.match(content(tree), /Real Champion/);
+  assert.match(content(tree), /Failed to load winners/);
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+});
+
+test("unrenderable historical records show an error rather than claiming that no records exist", async () => {
+  const page = championsPage();
+  page.render();
+  page.startEffects();
+  await page.resolveRead("winners", []);
+  await page.resolveRead("historicalDips", [
+    { id: "missing-year", data: { dip_name: "Preserved legacy dip" } },
+    { id: "missing-dip", data: { archive_year: 2024, notes: "Legacy record" } },
+  ]);
+  const tree = page.render();
+  assert.match(content(tree), /Historical records are available, but could not be displayed/);
+  assert.equal(emptyCards(tree).length, 0);
+  assert.equal(statusMessages(tree).length, 0);
+  assert.equal(nodes(tree, (node) => node.type === "li").length, 0);
+  assert.equal(page.errors.length, 0);
+});
+
+test("empty-state illustrations follow the testing base path and use the existing festival palette", () => {
+  const PreviewEmptyState = loadComponent("src/components/EmptyState.tsx", {
+    "react/jsx-runtime": jsx,
+    "next/link": "a",
+    "@/lib/testingMode": { testingAssetPath: (path) => `/testing${path}` },
+  });
+  for (const [variant, asset] of [["dips", "dip-table.svg"], ["champions", "dip-trophy.svg"]]) {
+    const tree = PreviewEmptyState({ variant, title: "Empty", description: "No records" });
+    const [image] = nodes(tree, (node) => node.type === "img");
+    assert.equal(image.props.src, `/testing/illustrations/${asset}`);
+    const svg = readFileSync(new URL(`../public/illustrations/${asset}`, import.meta.url), "utf8");
+    for (const color of ["#F7EBD6", "#324F3C", "#B84A2B", "#E7AA42"]) assert.ok(svg.includes(color));
+    assert.doesNotMatch(svg, /<script\b|<foreignObject\b|\b(?:href|onload)=/i);
+  }
 });
 
 test("unavailable database configuration ends loading without inventing empty records", () => {

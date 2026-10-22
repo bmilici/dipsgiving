@@ -44,6 +44,13 @@ function loadAdmin(env = {}, db = adminDb(), realAdmin = false) {
     const importModule = (id) => {
       if (id === "@/lib/rsvp/admin-session") return load("src/lib/rsvp/admin-session.ts");
       if (id === "@/lib/rsvp/db") return { getRsvpDb: () => db };
+      const local = {
+        "@/lib/rsvp/invitation-sync": "src/lib/rsvp/invitation-sync.ts",
+        "@/lib/rsvp/validation": "src/lib/rsvp/validation.ts",
+        "./validation": "src/lib/rsvp/validation.ts",
+        "./event": "src/lib/rsvp/event.ts",
+      }[id];
+      if (local) return load(local);
       if (id === "firebase-admin/firestore" && !realAdmin) return { FieldValue: { serverTimestamp: () => "TEST_SERVER_TIMESTAMP" } };
       return require(id);
     };
@@ -202,6 +209,103 @@ test("invitation API rejects invalid fields, document traversal, extra fields, a
     { action: "delete", id: "old", extra: true },
   ]) assert.equal((await route.POST(request("invitations", token, data))).status, 400);
   assert.equal((await route.POST(request("invitations", token, { action: "update", id: "missing", ...draft }))).status, 404);
+});
+
+test("manual invitation creates deduplicate normalized phones without rewriting existing display values", async () => {
+  const existing = { name: "Manual name", phone: "(202) 555-0101", notes: "Keep this note", invite_next_year: false, source_year: 2025 };
+  const fixture = loadAdmin({}, adminDb({ "invitationList/manual": existing }));
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  const token = await signedIn(fixture);
+  for (const phone of ["+12025550101", "202.555.0101", "1 (202) 555-0101"]) {
+    const response = await route.POST(request("invitations", token, { action: "create", name: "Another name", phone, notes: "", invite_next_year: true }));
+    assert.equal(response.status, 409);
+    assert.deepEqual(fixture.db.records.get("invitationList/manual"), existing);
+  }
+  assert.equal([...fixture.db.records.keys()].filter((key) => key.startsWith("invitationList/")).length, 1);
+});
+
+test("manual edits preserve legacy duplicate rows but cannot introduce a different phone collision", async () => {
+  const fixture = loadAdmin({}, adminDb({
+    "invitationList/first": { name: "First", phone: "2025550101", notes: "first", invite_next_year: false },
+    "invitationList/legacy-duplicate": { name: "Legacy duplicate", phone: "+12025550101", notes: "keep", invite_next_year: true },
+    "invitationList/other": { name: "Other", phone: "2025550102", notes: "other", invite_next_year: false },
+  }));
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  const token = await signedIn(fixture);
+  const duplicateBefore = structuredClone(fixture.db.records.get("invitationList/legacy-duplicate"));
+  assert.equal((await route.POST(request("invitations", token, { action: "update", id: "first", name: "First", phone: "(202) 555-0101", notes: "Host edited note", invite_next_year: false }))).status, 200);
+  assert.deepEqual(fixture.db.records.get("invitationList/legacy-duplicate"), duplicateBefore);
+  const otherBefore = structuredClone(fixture.db.records.get("invitationList/other"));
+  assert.equal((await route.POST(request("invitations", token, { action: "update", id: "other", name: "Other", phone: "+1 202 555 0101", notes: "changed", invite_next_year: true }))).status, 409);
+  assert.deepEqual(fixture.db.records.get("invitationList/other"), otherBefore);
+});
+
+test("simultaneous manual submissions store one normalized number", async () => {
+  const fixture = loadAdmin();
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  const token = await signedIn(fixture);
+  const results = await Promise.all(["2025550101", "+1 (202) 555-0101"].map((phone) => route.POST(request("invitations", token, {
+    action: "create", name: "Concurrent host entry", phone, notes: "", invite_next_year: false,
+  }))));
+  assert.deepEqual(results.map((response) => response.status).sort(), [201, 409]);
+  assert.equal([...fixture.db.records.keys()].filter((key) => key.startsWith("invitationList/")).length, 1);
+});
+
+test("phone retry requires an admin session and same origin before any contact change", async () => {
+  const fixture = loadAdmin({}, adminDb({ "registrations/guest": { name: "Guest", phone: "2025550101", event: "5th Annual Dipsgiving" } }));
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  assert.equal((await route.POST(request("invitations", "", { action: "retrySync" }))).status, 401);
+  const token = await signedIn(fixture);
+  assert.equal((await route.POST(request("invitations", token, { action: "retrySync" }, "https://evil.example"))).status, 403);
+  assert.equal((await route.POST(request("invitations", token, { action: "retrySync", event: "other" }))).status, 400);
+  assert.equal([...fixture.db.records.keys()].filter((key) => key.startsWith("invitationList/")).length, 0);
+});
+
+test("authenticated retry fills only missing current RSVP phones, stays idempotent, and preserves all guest data", async () => {
+  const manual = { name: "Host-saved name", phone: "(202) 555-0101", notes: "Manual note", invite_next_year: false };
+  const fixture = loadAdmin({}, adminDb({
+    "eventSettings/current": { eventName: "Current event" },
+    "invitationList/manual": manual,
+    "registrations/listed": { name: "RSVP name", phone: "+12025550101", event: "Current event", party_size: 2 },
+    "registrations/missing": { name: "Missing guest", phone: "202.555.0102", event: "Current event", party_size: 3, votes: 7, dip_name: "Dip" },
+    "registrations/same-phone": { name: "Same family phone", phone: "+12025550102", event: "Current event", party_size: 1 },
+    "registrations/no-phone": { name: "Legacy guest", event: "Current event", party_size: 2 },
+    "registrations/dip-only": { name: "Dip only", phone: "2025550103", type: "dip_only", event: "Current event" },
+    "registrations/old-event": { name: "Older guest", phone: "2025550104", event: "Older event" },
+    "userVotes/voter_2026": { dipIds: ["missing"] },
+  }));
+  const before = fixture.db.registrations();
+  const votes = structuredClone(fixture.db.records.get("userVotes/voter_2026"));
+  const token = await signedIn(fixture);
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  const response = await route.POST(request("invitations", token, { action: "retrySync" }));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store, private");
+  assert.deepEqual(await response.json(), { ok: true, added: 1, remaining: false });
+  assert.deepEqual(await (await route.POST(request("invitations", token, { action: "retrySync" }))).json(), { ok: true, added: 0, remaining: false });
+  assert.deepEqual(fixture.db.records.get("invitationList/manual"), manual);
+  assert.deepEqual(fixture.db.registrations(), before);
+  assert.deepEqual(fixture.db.records.get("userVotes/voter_2026"), votes);
+  const synced = [...fixture.db.records].find(([key, value]) => key.startsWith("invitationList/") && value.phone === "+12025550102")[1];
+  assert.equal(synced.invite_next_year, false);
+  assert.equal(synced.last_party_size, 3);
+});
+
+test("failed admin retry returns a generic error, logs no private values, and safely retries", async (t) => {
+  const fixture = loadAdmin({}, adminDb({ "registrations/guest": { name: "Private Guest", phone: "2025550101", event: "5th Annual Dipsgiving" } }));
+  const token = await signedIn(fixture);
+  const route = fixture.load("src/app/api/admin/invitations/route.ts");
+  const original = fixture.db.runTransaction.bind(fixture.db);
+  const captured = t.mock.method(console, "error", () => {});
+  fixture.db.runTransaction = async () => { throw Object.assign(new Error("Private Guest 2025550101 token-secret"), { code: 14 }); };
+  const response = await route.POST(request("invitations", token, { action: "retrySync" }));
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { ok: false, error: "Admin access is temporarily unavailable." });
+  assert.doesNotMatch(JSON.stringify(captured.mock.calls.map((call) => call.arguments)), /Private Guest|2025550101|token-secret/);
+  assert.equal([...fixture.db.records.keys()].filter((key) => key.startsWith("invitationList/")).length, 0);
+  fixture.db.runTransaction = original;
+  assert.equal((await route.POST(request("invitations", token, { action: "retrySync" }))).status, 200);
+  assert.equal([...fixture.db.records.keys()].filter((key) => key.startsWith("invitationList/")).length, 1);
 });
 
 test("real emulator admin sessions and invitation CRUD", { skip: process.env.DEMO_RSVP_ADMIN_INTEGRATION !== "1" }, async () => {

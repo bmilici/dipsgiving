@@ -162,6 +162,11 @@ try {
   for (const row of rows.docs) if (String(row.data().name || "").startsWith("Synthetic ") && String(row.data().name).endsWith(suffix)) owned.add(row.id);
   const sessions = await db.collection("_rsvpLookupSessions").get();
   for (const row of sessions.docs) if (owned.has(row.data().registration_id)) await row.ref.delete();
+  const invitations = await db.collection("invitationList").get();
+  for (const row of invitations.docs) {
+    const guestName = String(row.data().name || "");
+    if (guestName.startsWith("Synthetic ") && guestName.endsWith(suffix)) await row.ref.delete();
+  }
   for (const id of owned) await db.collection("registrations").doc(id).delete();
   await db.doc(`userVotes/synthetic_${suffix}_2026`).delete();
   await localLookupLimit.delete();

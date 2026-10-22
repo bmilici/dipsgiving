@@ -16,7 +16,12 @@ function load(file, cache = new Map(), realAdmin = false) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   const localRequire = (id) => {
-    if (id === "./validation") return load("src/lib/rsvp/validation.ts", cache, realAdmin);
+    const local = {
+      "./validation": "src/lib/rsvp/validation.ts",
+      "./event": "src/lib/rsvp/event.ts",
+      "./invitation-sync": "src/lib/rsvp/invitation-sync.ts",
+    }[id];
+    if (local) return load(local, cache, realAdmin);
     if (id === "firebase-admin/firestore" && !realAdmin) return { FieldValue: { serverTimestamp: () => "TEST_SERVER_TIMESTAMP" } };
     return require(id);
   };
@@ -28,6 +33,8 @@ function load(file, cache = new Map(), realAdmin = false) {
 export const validation = load("src/lib/rsvp/validation.ts");
 export const serviceModule = load("src/lib/rsvp/service.ts");
 export const loadEmulatorService = () => load("src/lib/rsvp/service.ts", new Map(), true);
+export const invitationSync = load("src/lib/rsvp/invitation-sync.ts");
+export const loadEmulatorInvitationSync = () => load("src/lib/rsvp/invitation-sync.ts", new Map(), true);
 
 class Snapshot {
   constructor(ref, value) { this.id = ref.id; this.ref = ref; this.value = value; this.exists = value !== undefined; }
@@ -79,6 +86,7 @@ export class FakeFirestore {
       create: (ref, data) => { writing = true; writes.push({ kind: "create", path: ref.path, data: structuredClone(data) }); },
       set: (ref, data) => { writing = true; writes.push({ kind: "set", path: ref.path, data: structuredClone(data) }); },
       update: (ref, data) => { writing = true; writes.push({ kind: "update", path: ref.path, data: structuredClone(data) }); },
+      delete: (ref) => { writing = true; writes.push({ kind: "delete", path: ref.path }); },
     };
     try {
       const result = await fn(tx);
@@ -86,7 +94,10 @@ export class FakeFirestore {
         if (write.kind === "create" && this.records.has(write.path)) throw new Error("already exists");
         if (write.kind === "update" && !this.records.has(write.path)) throw new Error("missing record");
       }
-      for (const write of writes) this.records.set(write.path, write.kind === "update" ? { ...this.records.get(write.path), ...write.data } : write.data);
+      for (const write of writes) {
+        if (write.kind === "delete") this.records.delete(write.path);
+        else this.records.set(write.path, write.kind === "update" ? { ...this.records.get(write.path), ...write.data } : write.data);
+      }
       this.writes.push(...writes);
       return result;
     } finally {

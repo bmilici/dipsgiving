@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Soup } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { siteRoutes } from "@/lib/siteNavigation";
 import { watchPublicDips, type PublicDip } from "@/lib/rsvp/public-dips";
@@ -22,6 +21,7 @@ export default function DipListPage() {
         setError("Failed to load dips. Please try again later.");
         setIsLoading(false);
       },
+      "current",
     );
     return () => feed.close();
   }, []);
@@ -56,8 +56,7 @@ export default function DipListPage() {
             variant="dips"
             title="The Competition Is Heating Up!"
             description="But nobody has entered the dip arena yet. Be the first to bring the flavor!"
-            icon={Soup}
-            action={siteRoutes.registerDip}
+            action={{ href: siteRoutes.registerDip.href, label: "Register Your Dip" }}
           />
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
