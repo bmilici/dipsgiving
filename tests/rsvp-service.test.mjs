@@ -17,6 +17,16 @@ for (const phone of [null, "", "202555010", "0000000000", "1234567890", "+44 20 
   test(`rejects invalid/non-US/extension input: ${String(phone)}`, () => assert.equal(validation.normalizeUsPhone(phone), null));
 }
 
+test("lookup validation requires only a normalized phone and ignores an optional legacy name", () => {
+  assert.deepEqual(validation.validateLookup({ phone: "(202) 555-0101" }), { phone: "+12025550101" });
+  for (const name of ["Wrong Guest", "", "   ", null, undefined, { ignored: true }]) {
+    assert.deepEqual(validation.validateLookup({ phone: "1 202 555 0101", name }), { phone: "+12025550101" });
+  }
+  for (const input of [{ name: "Alex" }, { phone: "invalid" }, { phone: "2025550101", registration_id: "private" }]) {
+    assert.throws(() => validation.validateLookup(input), validation.RsvpValidationError);
+  }
+});
+
 test("new guest can RSVP without a dip; required phone is canonical and confirmation explains returning", async () => {
   const { db, service } = setup();
   const result = await service.create(newInput(), "new-no-dip");
@@ -25,6 +35,8 @@ test("new guest can RSVP without a dip; required phone is canonical and confirma
   assert.deepEqual(rows[0], { ...RSVP, created_at: "TEST_SERVER_TIMESTAMP" });
   assert.match(result.message, /return later/);
   assert.match(result.message, /Add a Dip \(Already Registered\?\)/);
+  assert.match(result.message, /with your phone number/);
+  assert.doesNotMatch(result.message, /name and phone/);
 });
 
 test("new guest can RSVP with a dip and notes", async () => {
@@ -48,9 +60,9 @@ test("new RSVP validation requires phone/name, valid party size, and a dip only 
   assert.deepEqual(db.registrations(), {});
 });
 
-test("returning guest matches case/spacing/name and phone formatting without revealing registration ID or phone", async () => {
+test("returning guest matches phone formatting without a name and retains the stored identity binding", async () => {
   const { service, db } = setup({ "registrations/original": RSVP });
-  const result = await service.lookup(lookupInput({ name: "  ALEX   guest  ", phone: "1 (202) 555-0101" }), "lookup");
+  const result = await service.lookup({ phone: "1 (202) 555-0101" }, "lookup");
   assert.deepEqual(Object.keys(result).sort(), ["dip_name", "notes", "token"]);
   assert.match(result.token, /^[\w-]{43}$/);
   assert.equal(result.dip_name, "");
@@ -59,6 +71,10 @@ test("returning guest matches case/spacing/name and phone formatting without rev
   assert.equal(sessionPath.split("/")[1], createHash("sha256").update(result.token).digest("hex"));
   assert(!sessionPath.includes(result.token));
   assert(!JSON.stringify(db.records.get(sessionPath)).includes(RSVP.phone));
+  assert.equal(db.records.get(sessionPath).identity, createHash("sha256").update(`alex guest\0${RSVP.phone}`).digest("hex"));
+  const legacy = await service.lookup({ name: "A completely different legacy name", phone: "202.555.0101" }, "legacy-client");
+  assert.match(legacy.token, /^[\w-]{43}$/);
+  assert.deepEqual(db.registrations(), { "registrations/original": RSVP });
 });
 
 test("returning guest adds and updates a dip on original RSVP; votes, ID, party size, timestamps and legacy fields survive", async () => {
@@ -80,15 +96,16 @@ test("new RSVP with same normalized identity does not create a second record", a
   assert.deepEqual(db.registrations(), { "registrations/original": RSVP });
 });
 
-test("incorrect name/phone, malformed input, missing/invalid phone legacy entries and ambiguous entries fail with the same generic error", async () => {
+test("incorrect phone, malformed input, invalid legacy identities and all shared-phone full RSVPs fail generically", async () => {
   const cases = [
-    [{ "registrations/a": RSVP }, lookupInput({ name: "Different Guest" })],
     [{ "registrations/a": RSVP }, lookupInput({ phone: "2025550102" })],
     [{ "registrations/a": RSVP }, lookupInput({ phone: "bad" })],
     [{ "registrations/a": RSVP }, { ...lookupInput(), registration_id: "a" }],
     [{ "registrations/a": { ...RSVP, phone: null } }, lookupInput()],
     [{ "registrations/a": { ...RSVP, phone: "bad" } }, lookupInput()],
-    [{ "registrations/a": RSVP, "registrations/b": { ...RSVP, phone: "(202) 555-0101" } }, lookupInput()],
+    [{ "registrations/a": { ...RSVP, name: null } }, { phone: RSVP.phone }],
+    [{ "registrations/a": RSVP, "registrations/b": { ...RSVP, name: "Different Guest", phone: "(202) 555-0101" } }, { phone: RSVP.phone }],
+    [{ "registrations/a": RSVP, "registrations/b": { ...RSVP, name: null, phone: "(202) 555-0101" } }, { phone: RSVP.phone, name: RSVP.name }],
     [{ "registrations/a": { ...RSVP, type: "dip_only" } }, lookupInput()],
     [{ "registrations/a": { ...RSVP, event: "Past Event" } }, lookupInput()],
   ];
@@ -98,6 +115,30 @@ test("incorrect name/phone, malformed input, missing/invalid phone legacy entrie
     assert.deepEqual(db.registrations(), records);
     assert.equal([...db.records.keys()].filter((key) => key.startsWith("_rsvpLookupSessions/")).length, 0);
   }
+});
+
+test("phone lookup excludes dip-only and past-event rows without modifying the unique current full RSVP", async () => {
+  const rows = {
+    "registrations/current": RSVP,
+    "registrations/dip-only": { ...RSVP, name: "Standalone", type: "dip_only" },
+    "registrations/past": { ...RSVP, name: "Old Party", event: "Past Event" },
+  };
+  const { db, service } = setup(rows);
+  await service.lookup({ phone: "(202) 555-0101" }, "scoped");
+  const session = [...db.records].find(([key]) => key.startsWith("_rsvpLookupSessions/"))[1];
+  assert.equal(session.registration_id, "current");
+  assert.deepEqual(db.registrations(), rows);
+});
+
+test("different names can still create separate RSVPs sharing a phone, which then fails returning lookup safely", async () => {
+  const { db, service } = setup();
+  await service.create(newInput(), "first-name");
+  await service.create(newInput({ name: "Another Guest" }), "second-name");
+  assert.equal(Object.keys(db.registrations()).length, 2, "new RSVP duplicate rules remain name-and-phone scoped");
+  const before = db.registrations();
+  await assert.rejects(service.lookup({ phone: RSVP.phone }, "shared-phone"), failedLookup);
+  assert.deepEqual(db.registrations(), before);
+  assert(![...db.records.keys()].some((key) => key.startsWith("_rsvpLookupSessions/")));
 });
 
 test("legacy RSVP missing type matches without backfilling phone or fields", async () => {
@@ -134,10 +175,14 @@ test("lookup rate limit counts unsuccessful attempts, persists across service ob
   assert(!JSON.stringify(rateRows).includes("198.51.100.9"));
 });
 
-test("identity rate limit also bounds attempts spread across client keys", async () => {
-  const { service } = setup();
-  for (let i = 0; i < 20; i++) await assert.rejects(service.lookup(lookupInput(), `client-${i}`), failedLookup);
-  await assert.rejects(service.lookup(lookupInput(), "new-client"), (error) => error.status === 429);
+test("phone rate limit bounds formatting and ignored-name variations spread across client keys", async () => {
+  const { db, service } = setup();
+  const formats = ["2025550101", "(202) 555-0101", "+12025550101"];
+  for (let i = 0; i < 20; i++) await assert.rejects(service.lookup({ phone: formats[i % formats.length], ...(i % 2 ? { name: `Ignored Name ${i}` } : {}) }, `client-${i}`), failedLookup);
+  await assert.rejects(service.lookup({ phone: "202.555.0101", name: "Another ignored name" }, "new-client"), (error) => error.status === 429);
+  const phoneIdentity = createHash("sha256").update(RSVP.phone).digest("hex");
+  const key = createHash("sha256").update(`lookup:identity:${phoneIdentity}`).digest("hex");
+  assert.equal(db.records.get(`_rsvpLookupRateLimits/${key}`).count, 21);
 });
 
 test("rate limit window expires", async () => {
@@ -148,7 +193,7 @@ test("rate limit window expires", async () => {
 });
 
 test("tampered, missing, expired, removed, identity-changed, and event-changed sessions cannot edit records", async () => {
-  for (const mode of ["tampered", "missing", "expired", "removed", "identity", "event", "type"]) {
+  for (const mode of ["tampered", "missing", "expired", "removed", "identity", "name", "event", "type"]) {
     const { db, service } = setup({ "registrations/self": RSVP });
     const { token } = await service.lookup(lookupInput(), mode);
     let attemptedToken = token;
@@ -157,12 +202,24 @@ test("tampered, missing, expired, removed, identity-changed, and event-changed s
     if (mode === "expired") [...db.records].find(([key]) => key.startsWith("_rsvpLookupSessions/"))[1].expires_at = Date.now() - 1;
     if (mode === "removed") db.records.delete("registrations/self");
     if (mode === "identity") db.records.get("registrations/self").phone = "+12025550102";
+    if (mode === "name") db.records.get("registrations/self").name = "Changed by host";
     if (mode === "event") db.records.set("eventSettings/current", { eventName: "Next Event" });
     if (mode === "type") db.records.get("registrations/self").type = "dip_only";
     const before = db.registrations();
     await assert.rejects(service.saveDip(attemptedToken, { dip_name: "Forged" }, mode), invalidSession);
     assert.deepEqual(db.registrations(), before);
   }
+});
+
+test("a session issued before phone-only lookup still edits only its original stored identity without migration", async () => {
+  const token = "a".repeat(43);
+  const sessionPath = `_rsvpLookupSessions/${createHash("sha256").update(token).digest("hex")}`;
+  const session = { registration_id: "original", event: RSVP.event, identity: createHash("sha256").update(`alex guest\0${RSVP.phone}`).digest("hex"), expires_at: Date.now() + 60_000 };
+  const { db, service } = setup({ "registrations/original": RSVP, [sessionPath]: session });
+  await service.saveDip(token, { dip_name: "Legacy Session Queso" }, "old-session");
+  assert.equal(db.records.get("registrations/original").dip_name, "Legacy Session Queso");
+  assert.equal(db.records.get("registrations/original").party_size, RSVP.party_size);
+  assert.deepEqual(db.records.get(sessionPath), session);
 });
 
 test("untrusted record IDs, phone, event, votes, and arbitrary fields cannot be set through create or dip updates", async () => {
@@ -204,7 +261,7 @@ test("current event settings determine lookup/create; public dip list contains o
     "eventSettings/current": { eventName: "Custom Dipsgiving" },
     "registrations/current": { ...RSVP, event: "Custom Dipsgiving", dip_name: "Zesty Dip" },
     "registrations/old": { ...RSVP, dip_name: "Old Dip" },
-    "registrations/empty": { ...RSVP, name: "Other", event: "Custom Dipsgiving" },
+    "registrations/empty": { ...RSVP, name: "Other", phone: "+12025550102", event: "Custom Dipsgiving" },
   });
   assert.deepEqual(await service.listDips(), [{ dip_name: "Zesty Dip", name: "Alex Guest" }]);
   const { token } = await service.lookup(lookupInput(), "custom");

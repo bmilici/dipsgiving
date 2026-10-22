@@ -50,8 +50,8 @@ const sessionError = () => new RsvpError("session_expired", 401, LOOKUP_FAILURE)
 
 type ConfirmationKind = "rsvp_pending" | "rsvp_none" | "dip_confirmed" | "dip_added" | "dip_pending" | "dip_updated";
 const confirmations: Record<ConfirmationKind, { title: string; message: string }> = {
-  rsvp_pending: { title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your name and phone number." },
-  rsvp_none: { title: "You're on the list!", message: "Your RSVP is confirmed. You can return later to Register Dip with your name and phone number if you decide to bring a dip." },
+  rsvp_pending: { title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your phone number." },
+  rsvp_none: { title: "You're on the list!", message: "Your RSVP is confirmed. You can return later to Register Dip with your phone number if you decide to bring a dip." },
   dip_confirmed: { title: "Your dip is officially in the competition!", message: "Your dip has been added to the lineup. Let the showdown begin!" },
   dip_added: { title: "Another contender enters the showdown!", message: "Your additional dip has been registered successfully." },
   dip_pending: { title: "Your dip is marked as TBD!", message: "When you've decided, use Choose My Dip to add this entry to the competition." },
@@ -116,8 +116,9 @@ export class MultiDipRsvpService extends RsvpService {
   override async lookup(input: unknown, clientKey: string) {
     let fields: ReturnType<typeof validateLookup> | undefined;
     try { fields = validateLookup(input); } catch (error) { if (!(error instanceof RsvpValidationError)) throw error; }
-    await this.rateLimit("lookup", clientKey, 6, fields ? identity(fields.name, fields.phone) : undefined);
+    await this.rateLimit("lookup", clientKey, 6, fields ? hash(fields.phone) : undefined);
     if (!fields) throw new RsvpError("lookup_failed", 404, LOOKUP_FAILURE);
+    const lookupPhone = fields.phone;
     const { randomBytes } = await import("node:crypto");
     const token = randomBytes(32).toString("base64url");
     return this.db.runTransaction(async tx => {
@@ -125,13 +126,18 @@ export class MultiDipRsvpService extends RsvpService {
       const event = getCurrentEventName(settings);
       const lock = competitionEventLock(this.db, event); await tx.get(lock);
       const registrations = await tx.get(this.db.collection("registrations").where("event", "==", event));
-      const matches = registrations.docs.filter(doc => matchingIdentity(doc.data()) === identity(fields!.name, fields!.phone));
+      const matches = registrations.docs.filter(doc => {
+        const data = doc.data();
+        return (data.type == null || data.type === "full_rsvp") && normalizeUsPhone(data.phone) === lookupPhone;
+      });
       if (matches.length !== 1) throw new RsvpError("lookup_failed", 404, LOOKUP_FAILURE);
+      const guestIdentity = matchingIdentity(matches[0].data());
+      if (!guestIdentity) throw new RsvpError("lookup_failed", 404, LOOKUP_FAILURE);
       const records = await readCompetitionRecords(this.db, tx, event);
       const ballots = await tx.get(this.db.collection("userVotes"));
       const dips = ownDips(records, matches[0].id, settings?.votingOpen === true, ballotIds(ballots.docs));
       tx.create(this.db.collection("_rsvpLookupSessions").doc(hash(token)), {
-        registration_id: matches[0].id, event, identity: identity(fields!.name, fields!.phone),
+        registration_id: matches[0].id, event, identity: guestIdentity,
         expires_at: Date.now() + SESSION_TTL_SECONDS * 1000, delete_after: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
       });
       return { token, dips, registration_summary: registrationSummary(matches[0].data(), dips), dip_name: dips[0]?.dip_name ?? "", notes: dips[0]?.notes ?? "" };

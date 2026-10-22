@@ -19,7 +19,7 @@ const API = "https://www.dipsgiving.com/testing/api/rsvp";
 const TOKEN = "a".repeat(43);
 const CONTEXT = crypto.createHash("sha256").update(TOKEN).digest("hex");
 const GENERIC = "We couldn’t process that request. Please try again later.";
-const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host if you registered without a phone number.";
+const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your phone number, or contact the host if you registered without a phone number.";
 const productionCredentials = {
   type: "service_account", project_id: "dipsgiving",
   client_email: "synthetic@dipsgiving.iam.gserviceaccount.com",

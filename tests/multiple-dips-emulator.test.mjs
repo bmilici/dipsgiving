@@ -16,8 +16,8 @@ const require = createRequire(import.meta.url);
 function loadService(relative, cache = new Map()) {
   const filename = path.resolve(root, relative);
   if (cache.has(filename)) return cache.get(filename);
-  const module = { exports: {} };
-  cache.set(filename, module.exports);
+  const loadedModule = { exports: {} };
+  cache.set(filename, loadedModule.exports);
   const code = ts.transpileModule(readFileSync(filename, "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
@@ -31,9 +31,9 @@ function loadService(relative, cache = new Map()) {
     }
     return require(id);
   };
-  vm.runInThisContext(`(function(require,module,exports){${code}\n})`, { filename })(localRequire, module, module.exports);
-  cache.set(filename, module.exports);
-  return module.exports;
+  vm.runInThisContext(`(function(require,module,exports){${code}\n})`, { filename })(localRequire, loadedModule, loadedModule.exports);
+  cache.set(filename, loadedModule.exports);
+  return loadedModule.exports;
 }
 
 test("multiple dips: isolated Firestore registration, pending entries, identity compatibility and independent voting", {
@@ -112,7 +112,7 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
       const contacts = await contactRows();
       assert.equal(contacts.docs.filter((row) => String(row.data().name).startsWith(prefix)).length, 1);
       assert.deepEqual((await manualRef.get()).data(), manual);
-      const found = await service.lookup({ name: `  ${input.name.toUpperCase()}  `, phone: "202.555.0101" }, client("lookup"));
+      const found = await service.lookup({ phone: "202.555.0101" }, client("lookup"));
       token = found.token;
       assert.deepEqual(found.registration_summary, { name: input.name, party_size: 2, confirmed_dips: 1, pending_dips: 0, unverified_dips: 0 });
       assert.equal(Object.hasOwn(found.registration_summary, "phone"), false);
@@ -445,9 +445,26 @@ test("multiple dips: isolated Firestore registration, pending entries, identity 
         name: `${prefix} No Phone Guest`, party_size: 5, event, dip_name: null, custom: "Keep",
       });
       const before = (await withoutPhone.get()).data();
-      await assert.rejects(service.lookup({ name: before.name, phone: "2025550106" }, client("without-phone")), { status: 404 });
-      await assert.rejects(service.lookup({ name: `${prefix} Incorrect Name`, phone: "2025550101" }, client("wrong-name")), { status: 404 });
+      await assert.rejects(service.lookup({ phone: "2025550198" }, client("without-phone")), { status: 404 });
+      await assert.rejects(service.lookup({ phone: "2025550199" }, client("wrong-phone")), { status: 404 });
       assert.deepEqual((await withoutPhone.get()).data(), before);
+    });
+
+    await t.test("shared phone numbers fail safely even if a duplicate has no usable name", async () => {
+      const duplicate = await seed(`registrations/shared-phone-${suffix}`, {
+        name: `${prefix} Shared Phone Guest`, phone: "(202) 555-0101", party_size: 1, event, type: "full_rsvp",
+      });
+      const ownerBefore = (await original.ref.get()).data();
+      const sessionsBefore = (await db.collection("_rsvpLookupSessions").where("event", "==", event).get()).size;
+      for (const name of [`${prefix} Shared Phone Guest`, null]) {
+        await duplicate.update({ name });
+        const duplicateBefore = (await duplicate.get()).data();
+        await assert.rejects(service.lookup({ phone: "+12025550101" }, client(`shared-phone-${name === null ? "no-name" : "named"}`)), { status: 404 });
+        assert.deepEqual((await duplicate.get()).data(), duplicateBefore);
+        assert.deepEqual((await original.ref.get()).data(), ownerBefore);
+        assert.equal((await db.collection("_rsvpLookupSessions").where("event", "==", event).get()).size, sessionsBefore);
+      }
+      await duplicate.delete();
     });
 
     await t.test("closed voting fails without creating a ballot or touching any counter", async () => {

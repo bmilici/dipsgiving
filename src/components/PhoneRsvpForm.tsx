@@ -23,7 +23,7 @@ const DIP_CHOICES: { value: DipChoice; label: string; help?: string }[] = [
 ];
 
 const ENDPOINT = testingAssetPath("/api/rsvp");
-const LOOKUP_ERROR = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host for help.";
+const LOOKUP_ERROR = "We couldn’t find a matching RSVP. Check your phone number, or contact the host for help.";
 const RETRY_ERROR = "We couldn’t complete that request. Please try again shortly.";
 const RATE_ERROR = "Too many attempts. Please wait a few minutes and try again.";
 const dipKey = normalizeDipName;
@@ -80,6 +80,8 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   const requestId = useRef("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lookupNotFound, setLookupNotFound] = useState(false);
+  const phoneInput = useRef<HTMLInputElement | null>(null);
   const pending = useRef(false);
   const [dips, setDips] = useState<PublicDip[]>([]);
   const [dipsLoading, setDipsLoading] = useState(true);
@@ -136,6 +138,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     requestId.current = "";
     setStatus(null);
     setConfirmation(null);
+    setLookupNotFound(false);
   }
 
   function clearDip() {
@@ -151,6 +154,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     setRequestingReview(false);
     setSummary(null);
     setConfirmation(null);
+    setLookupNotFound(false);
     requestId.current = "";
   }
 
@@ -197,19 +201,22 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
     if (pending.current) return;
     setStatus(null);
     setConfirmation(null);
+    setLookupNotFound(false);
     if (selectedDipLocked && !requestingReview) {
       setStatus("This dip is locked to protect voting. Contact the host for admin review of any changes.");
       return;
     }
 
     const normalizedPhone = normalizeUsPhone(phone);
-    if (mode !== "edit") {
+    if (mode === "rsvp") {
       if (!normalizeGuestName(name) || name.trim().length > 100) {
-        setStatus(mode === "lookup" ? LOOKUP_ERROR : "Please enter your name (up to 100 characters).");
+        setStatus("Please enter your name (up to 100 characters).");
         return;
       }
+    }
+    if (mode !== "edit") {
       if (!normalizedPhone || phone.length > 40) {
-        setStatus(mode === "lookup" ? LOOKUP_ERROR : "Please enter a valid phone number, including the area code.");
+        setStatus("Please enter a valid phone number, including the area code.");
         return;
       }
     }
@@ -238,7 +245,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         ? { action: "saveDip", ...(editingDipId ? { dip_id: editingDipId } : {}), request_id: requestId.current, status: dipPending ? "pending" : "confirmed", dip_name: dipPending ? null : dipName.trim(), notes: notes.trim() || null }
         : { action: "saveDip", dip_name: dipName.trim(), notes: notes.trim() }
       : mode === "lookup"
-      ? { action: "lookup", name: name.trim().replace(/\s+/g, " "), phone: normalizedPhone }
+      ? { action: "lookup", phone: normalizedPhone }
       : isMultiDipEnabled ? {
           action: "create", name: name.trim().replace(/\s+/g, " "), phone: normalizedPhone,
           party_size: party, bringing_dip: dipChoice !== "none", dip_status: dipChoice,
@@ -263,7 +270,8 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         } else if (response.status === 429) {
           setStatus(RATE_ERROR);
         } else if (submittedMode === "lookup") {
-          setStatus(LOOKUP_ERROR);
+          setLookupNotFound(response.status === 404);
+          setStatus(response.status === 404 ? LOOKUP_ERROR : RETRY_ERROR);
         } else {
           setStatus(response.status === 400 || response.status === 409 ? (typeof data.error === "string" ? data.error : RETRY_ERROR) : RETRY_ERROR);
         }
@@ -302,7 +310,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         clearDip();
         const confirmed = isMultiDipEnabled ? confirmationMessage(data.confirmation) : null;
         if (confirmed) setConfirmation(confirmed);
-        else setStatus("You’re on the list! You can return later and add or update your dip using the same name and phone number.");
+        else setStatus("You’re on the list! You can return later and add or update your dip using the same phone number.");
         returnHome(confirmed?.kind ?? (isMultiDipEnabled && dipChoice === "pending" ? "rsvp_pending"
           : (isMultiDipEnabled ? dipChoice === "confirmed" : bringingDip) ? "dip_confirmed" : "rsvp_none"));
         await loadDips();
@@ -363,7 +371,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         {isTestingMode && <p className="rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm leading-relaxed text-foreground">
           Test RSVP flow. These entries are separate from the event guest list.
         </p>}
-        {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the name and phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
+        {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
         {mode === "edit" && <p className="text-sm leading-relaxed text-muted-foreground">{isMultiDipEnabled ? "Each confirmed dip is a separate entry on the Dip List and voting ballot. Adding or editing a dip keeps your existing RSVP, party size, and phone number." : "Add or update your dip below. This keeps your existing RSVP and party size."}</p>}
         <fieldset disabled={busy} className="min-w-0 space-y-6">
           {isMultiDipEnabled && mode === "edit" && summary && <section className="space-y-3 rounded-xl border border-border bg-background p-4" aria-labelledby="phone-rsvp-summary">
@@ -396,13 +404,17 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
             <button type="button" disabled={busy} onClick={() => editDip(null)} className="min-h-11 rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">+ Add Another Dip</button>
           </section>}
           {mode !== "edit" && <>
+            {mode === "rsvp" &&
             <div className="space-y-1.5">
               <label htmlFor="phone-rsvp-name" className="text-sm font-semibold text-foreground">Your Name</label>
               <input id="phone-rsvp-name" name="name" autoComplete="name" required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} className="festival-input w-full" />
-            </div>
+            </div>}
             <div className="space-y-1.5">
               <label htmlFor="phone-rsvp-phone" className="text-sm font-semibold text-foreground">Phone Number</label>
-              <input id="phone-rsvp-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} aria-describedby="phone-rsvp-phone-help" className="festival-input w-full" />
+              <input ref={phoneInput} id="phone-rsvp-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={40} value={phone} onChange={(event) => {
+                setPhone(event.target.value);
+                if (mode === "lookup") { setLookupNotFound(false); setStatus(null); }
+              }} aria-describedby="phone-rsvp-phone-help" className="festival-input w-full" />
               <p id="phone-rsvp-phone-help" className="text-sm text-muted-foreground">Include your area code. Use this number to find your RSVP later.</p>
             </div>
           </>}
@@ -466,6 +478,16 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
           </nav>
         </section>}
         <p role="status" aria-live="polite" aria-atomic="true" className={status ? "rounded-xl bg-background p-4 text-center text-sm leading-relaxed text-foreground" : "sr-only"}>{status ?? ""}</p>
+        {mode === "lookup" && lookupNotFound && <div className="flex flex-col items-center justify-center gap-3 sm:flex-row" role="group" aria-label="RSVP lookup options">
+          <button type="button" disabled={busy} onClick={() => {
+            if (pending.current) return;
+            setLookupNotFound(false);
+            setStatus(null);
+            phoneInput.current?.focus();
+            phoneInput.current?.select();
+          }} className="min-h-11 rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">Try Another Phone Number</button>
+          <Link href={siteRoutes.rsvp.href} className="inline-flex min-h-11 items-center rounded-md px-2 text-sm font-semibold text-orange-700 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">{siteRoutes.rsvp.label}</Link>
+        </div>}
       </form>
       <div className="mt-12">
         <h3 className="mb-5 font-display text-2xl text-foreground sm:text-3xl">Registered Dips <span className="text-orange-700">({dips.length})</span></h3>

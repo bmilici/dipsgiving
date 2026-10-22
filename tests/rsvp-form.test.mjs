@@ -55,7 +55,7 @@ function harness(options = {}) {
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/lib/rsvp/validation": validation,
     "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: options.multiDip ?? false },
-    "@/lib/siteNavigation": { siteRoutes: { home: { href: options.homeHref ?? "/", label: "Home" }, dips: { href: "/dips", label: "Dip List" }, registerDip: { href: "/register/dip", label: "Register Dip" } } },
+    "@/lib/siteNavigation": { siteRoutes: { home: { href: options.homeHref ?? "/", label: "Home" }, rsvp: { href: options.rsvpHref ?? "/register", label: "RSVP" }, dips: { href: "/dips", label: "Dip List" }, registerDip: { href: "/register/dip", label: "Register Dip" } } },
     "@/lib/testingMode": {
       isTestingMode: options.testingMode ?? true,
       testingAssetPath: (path) => (options.testingMode ?? true) ? `/testing${path}` : path,
@@ -127,7 +127,7 @@ function submit(form) {
   return result;
 }
 function guest(form, phone = "(212) 555-0198") {
-  fill(form, "name", "  Taylor   Guest  ");
+  if (nodes(form.render(), node => node.props.name === "name").length) fill(form, "name", "  Taylor   Guest  ");
   fill(form, "phone", phone);
 }
 const posts = (form) => form.calls.filter((call) => call.method === "POST").map((call) => call.payload);
@@ -158,7 +158,7 @@ test("a new guest RSVPs without a dip and learns how to return later", async () 
   fill(form, "party_size", "3");
   await submit(form);
   assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 3, bringing_dip: false, dip_name: "", notes: "" }]);
-  assert.match(text(form.render()), /return later and add or update your dip using the same name and phone number/);
+  assert.match(text(form.render()), /return later and add or update your dip using the same phone number/);
   assert.equal(field(form, "phone").props.value, "");
   assert.ok(button(form, "Add a Dip (Already Registered?)"));
 });
@@ -176,13 +176,13 @@ test("a new RSVP with a dip preserves optional checkbox and required dip validat
   assert.deepEqual(posts(form), [{ action: "create", name: "Taylor Guest", phone: "+12125550198", party_size: 1, bringing_dip: true, dip_name: "Queso", notes: "Contains dairy" }]);
 });
 
-test("the preserved Add a Dip control opens name-and-phone lookup only", async () => {
+test("the preserved Add a Dip control opens phone-only lookup", async () => {
   const form = harness();
   await form.mount();
   await click(form, "Add a Dip (Already Registered?)");
   assert.deepEqual(posts(form), [{ action: "logout" }]);
   assert.ok(field(form, "phone"));
-  assert.ok(field(form, "name"));
+  assert.equal(nodes(form.render(), node => node.props.name === "name").length, 0);
   assert.equal(nodes(form.render(), (node) => ["party_size", "dip_name", "bringing_dip"].includes(node.props.name)).length, 0);
   assert.ok(button(form, "Find My RSVP"));
   assert.match(text(form.render()), /Older RSVPs without a phone number.*host/);
@@ -199,7 +199,7 @@ test("returning guests match by normalized phone then add a dip without creating
   fill(form, "notes", " Spicy ");
   await submit(form);
   assert.deepEqual(posts(form), [
-    { action: "lookup", name: "Taylor Guest", phone: "+12125550198" },
+    { action: "lookup", phone: "+12125550198" },
     { action: "saveDip", dip_name: "Buffalo Dip", notes: "Spicy" },
   ]);
   assert.match(text(form.render()), /Your RSVP and party size stay the same/);
@@ -223,8 +223,8 @@ test("a matched existing dip is prefilled and can be saved or renamed", async ()
   assert.equal(posts(form).some((payload) => payload.action === "create"), false);
 });
 
-test("wrong names, phones, and legacy records receive the same generic lookup error", async () => {
-  for (const reason of ["wrong-name", "wrong-phone", "legacy-without-phone"]) {
+test("unmatched phones, ambiguous matches, and legacy records receive the same generic lookup error", async () => {
+  for (const reason of ["wrong-phone", "ambiguous-match", "legacy-without-phone"]) {
     const form = harness({ initialMode: "lookup", post: () => reply({ ok: false, error: `Internal ${reason}: private guest` }, 404) });
     await form.mount();
     guest(form);
@@ -669,7 +669,7 @@ test("a valid legacy Firestore ID longer than 200 characters remains editable wi
 });
 
 const CONFIRMATIONS = {
-  rsvp_pending: { kind: "rsvp_pending", title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your name and phone number." },
+  rsvp_pending: { kind: "rsvp_pending", title: "You're on the list!", message: "Your RSVP is confirmed. Your dip is marked as TBD for now. Once you've decided, return to Register Dip and enter your phone number." },
   rsvp_none: { kind: "rsvp_none", title: "You're on the list!", message: "Your RSVP is confirmed. You can register a dip later if you change your mind." },
   dip_confirmed: { kind: "dip_confirmed", title: "Your dip is officially in the competition!", message: "Your dip has been added to the lineup. Let the showdown begin!" },
   dip_added: { kind: "dip_added", title: "Another contender enters the showdown!", message: "Your additional dip has been registered successfully." },
@@ -1026,5 +1026,99 @@ test("home redirects prefer a validated server confirmation and never pass arbit
     choose(invalidKind, "none");
     await submit(invalidKind);
     assert.deepEqual(invalidKind.replacements, ["/?registered=rsvp_none"]);
+  }
+});
+
+test("returning lookup requires only a normalized phone while new RSVPs still require the guest name", async () => {
+  for (const multiDip of [false, true]) {
+    const form = harness({ multiDip, initialMode: "lookup", post: () => reply({ ok: false }, 404) });
+    await form.mount();
+    assert.equal(nodes(form.render(), node => node.props.name === "name").length, 0);
+    assert.equal(field(form, "phone").props.required, true);
+    assert.match(text(form.render()), /Find your RSVP using the phone number you registered with/);
+    fill(form, "phone", "+1 (212) 555-0198");
+    await submit(form);
+    assert.deepEqual(posts(form), [{ action: "lookup", phone: "+12125550198" }]);
+    assert.deepEqual(form.replacements, []);
+  }
+  const rsvp = harness({ multiDip: true });
+  await rsvp.mount();
+  assert.equal(field(rsvp, "name").props.required, true);
+  fill(rsvp, "phone", "2125550198");
+  choose(rsvp, "none");
+  await submit(rsvp);
+  assert.match(text(rsvp.render()), /Please enter your name/);
+  assert.deepEqual(posts(rsvp), []);
+});
+
+test("no-match lookup offers the shared RSVP route and lets guests correct their phone without creating an RSVP", async () => {
+  let attempts = 0;
+  const form = harness({ multiDip: true, testingMode: false, initialMode: "lookup", rsvpHref: "/shared-rsvp", post: () => ++attempts === 1 ? reply({ ok: false, error: "Internal private matching information" }, 404) : matched([]) });
+  await form.mount();
+  fill(form, "phone", "(212) 555-0198");
+  await submit(form);
+  assert.match(text(form.render()), /couldn’t find a matching RSVP.*Check your phone number/);
+  assert.doesNotMatch(text(form.render()), /Internal private matching information/);
+  assert.equal(field(form, "phone").props.value, "(212) 555-0198");
+  const options = () => nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options")[0];
+  assert.ok(options());
+  const link = nodes(options(), node => node.type === "a")[0];
+  assert.equal(link.props.href, "/shared-rsvp");
+  assert.equal(text(link), "RSVP");
+  let focused = 0;
+  let selected = 0;
+  field(form, "phone").props.ref.current = { focus() { focused++; }, select() { selected++; } };
+  await click(form, "Try Another Phone Number");
+  assert.equal(focused, 1);
+  assert.equal(selected, 1);
+  assert.equal(field(form, "phone").props.value, "(212) 555-0198");
+  assert.equal(options(), undefined);
+  assert.equal(attempts, 1);
+  assert.doesNotMatch(text(form.render()), /couldn’t find a matching RSVP/);
+  fill(form, "phone", "(212) 555-0199");
+  await submit(form);
+  assert.deepEqual(posts(form), [{ action: "lookup", phone: "+12125550198" }, { action: "lookup", phone: "+12125550199" }]);
+  assert.ok(ownList(form));
+  assert.equal(options(), undefined);
+  assert.deepEqual(form.replacements, []);
+});
+
+test("typing a corrected phone removes old no-match options and invalid phones are validated before lookup", async () => {
+  const form = harness({ multiDip: true, initialMode: "lookup", post: () => reply({ ok: false }, 404) });
+  await form.mount();
+  fill(form, "phone", "1234");
+  await submit(form);
+  assert.match(text(form.render()), /valid phone number/);
+  assert.equal(nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options").length, 0);
+  assert.deepEqual(posts(form), []);
+  fill(form, "phone", "2125550198");
+  await submit(form);
+  assert.equal(nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options").length, 1);
+  fill(form, "phone", "2125550199");
+  assert.equal(nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options").length, 0);
+  assert.doesNotMatch(text(form.render()), /couldn’t find a matching RSVP/);
+  assert.equal(posts(form).length, 1);
+});
+
+test("throttled, unavailable, and offline lookups do not claim there is no RSVP or offer misleading signup options", async () => {
+  for (const result of [429, 503, 403, "offline"]) {
+    let attempts = 0;
+    const form = harness({ multiDip: true, initialMode: "lookup", post: () => {
+      if (++attempts === 1) return reply({ ok: false }, 404);
+      if (result === "offline") throw new Error("Private network details");
+      return reply({ ok: false, error: "Private service details" }, result);
+    } });
+    await form.mount();
+    fill(form, "phone", "2125550198");
+    await submit(form);
+    assert.equal(nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options").length, 1);
+    await submit(form);
+    const visible = text(form.render());
+    assert.match(visible, result === 429 ? /Too many attempts/ : /Please try again shortly/);
+    assert.doesNotMatch(visible, /couldn’t find a matching RSVP|Private service details|Private network details/);
+    assert.equal(nodes(form.render(), node => node.props["aria-label"] === "RSVP lookup options").length, 0);
+    assert.equal(field(form, "phone").props.value, "2125550198");
+    assert.equal(posts(form).some(payload => payload.action === "create"), false);
+    assert.deepEqual(form.replacements, []);
   }
 });

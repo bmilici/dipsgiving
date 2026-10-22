@@ -9,11 +9,11 @@ const routes = {
   dips: { href: "/dips", label: "Dip List" },
 };
 const notices = {
-  rsvp_pending: { title: "You're on the list!", message: /RSVP is confirmed.*TBD.*Return to Register Dip.*same name and phone number/ },
-  rsvp_none: { title: "You're on the list!", message: /RSVP is confirmed.*change your mind.*Register Dip.*same name and phone number.*add a dip/ },
+  rsvp_pending: { title: "You're on the list!", message: /RSVP is confirmed.*TBD.*Return to Register Dip.*same phone number/ },
+  rsvp_none: { title: "You're on the list!", message: /RSVP is confirmed.*change your mind.*Register Dip.*same phone number.*add a dip/ },
   dip_confirmed: { title: "Your dip is officially in the competition!", message: /dip is saved.*added to the lineup/ },
   dip_added: { title: "Another contender enters the showdown!", message: /additional dip is saved.*RSVP and party size have not changed/ },
-  dip_pending: { title: "Your dip is marked as TBD!", message: /pending dip is saved.*Register Dip.*same name and phone number.*confirm it/ },
+  dip_pending: { title: "Your dip is marked as TBD!", message: /pending dip is saved.*Register Dip.*same phone number.*confirm it/ },
   dip_updated: { title: "Your dip is updated!", message: /changes are saved.*other dips, RSVP, and party size have not changed/ },
 };
 

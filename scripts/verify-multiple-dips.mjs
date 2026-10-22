@@ -99,6 +99,15 @@ try {
   verifiedDemo = true;
   console.log("PASS: fixed local server sees a unique emulator probe before any HTTP POST");
 
+  for (const path of ["/register", "/register/dip"]) {
+    const response = await fetch(new URL(path, base));
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /<input(?=[^>]*name="phone")(?=[^>]*\srequired(?:=|[\s>]))[^>]*>/, "Phone is required in both forms");
+    assert.equal(/<input[^>]*name="name"/.test(html), path === "/register", "Only a new RSVP requests a name");
+  }
+  console.log("PASS: new RSVP retains a name; returning dip registration requests only a phone number");
+
   const rules = await readFile(new URL("../testing/multiple-dips/firestore.rules", import.meta.url), "utf8");
   const installed = await fetch(`http://127.0.0.1:8189/emulator/v1/projects/${project}:securityRules`, {
     method: "PUT", headers: { "Content-Type": "application/json" },
@@ -122,10 +131,10 @@ try {
   const occupied = new Set([...(await db.collection("registrations").get()).docs,
     ...(await db.collection("invitationList").get()).docs].map(row => phoneKey(row.data().phone)).filter(Boolean));
   const phones = Array.from({ length: 100 }, (_, i) => `+120255501${String(i).padStart(2, "0")}`).filter(phone => !occupied.has(phone));
-  assert(phones.length >= 3, "Three unused synthetic US phone numbers are required");
-  const [phoneA, phoneB, phoneC] = phones;
-  for (const [label, phone] of [["primary", phoneA], ["pending", phoneB]]) {
-    const identity = hash(`${name(label).toLocaleLowerCase("en-US")}\0${phone}`);
+  assert(phones.length >= 4, "Four unused synthetic US phone numbers are required");
+  const [phoneA, phoneB, phoneC, unmatchedPhone] = phones;
+  for (const phone of [phoneA, phoneB, unmatchedPhone]) {
+    const identity = hash(phone);
     identityLimits.add(hash(`lookup:identity:${identity}`));
   }
   assert.equal((await rsvp({ action: "create", name: name("primary"), phone: formattedPhone(phoneA), party_size: 3, bringing_dip: false })).response.status, 400, "A dip choice is required");
@@ -138,13 +147,19 @@ try {
   assert.equal(createdPending.data.confirmation.kind, "rsvp_pending");
   assert.match(createdPending.data.confirmation.message, /Your dip is marked as TBD/);
   expectCounts((await get("/api/admin/registrations", { cookie: adminCookie })).data.dipStatusCounts, { pending: 1, without_dips: 1 });
-  const primary = await findRegistration("primary"), pendingOwner = await findRegistration("pending");
+  const primary = await findRegistration("primary");
+  await findRegistration("pending");
   const primaryBefore = (await primary.ref.get()).data();
-  const lookup = await rsvp({ action: "lookup", name: name("primary").toUpperCase(), phone: phoneA });
+  const missing = await rsvp({ action: "lookup", phone: formattedPhone(unmatchedPhone) });
+  assert.equal(missing.response.status, 404);
+  assert.equal(missing.data.ok, false);
+  assert(!missing.data.registration_summary && !missing.data.dips && !missing.data.context, "Unmatched phone reveals no guest information");
+  const lookup = await rsvp({ action: "lookup", phone: phoneA });
   assert.equal(lookup.response.status, 200);
   assert.deepEqual(lookup.data.dips, []);
   assert.deepEqual(lookup.data.registration_summary, { name: name("primary"), party_size: 3, confirmed_dips: 0, pending_dips: 0, unverified_dips: 0 });
   assert(!JSON.stringify(lookup.data).includes(phoneA), "Lookup summary does not disclose the phone number");
+  console.log("PASS: unmatched phone fails generically; correcting the phone finds the RSVP without a name or duplicate registration");
   const editor = { cookie: lookup.cookie, context: lookup.data.context };
   const addPending = await save(editor, { status: "pending", dip_name: "TBD", notes: "Dairy" });
   assert.equal(addPending.response.status, 200);
@@ -192,7 +207,7 @@ try {
   const beforeA = (await db.doc(`registrationDips/${a}`).get()).data();
   assert.equal((await save(editor, { dip_id: b, status: "confirmed", dip_name: dipName("Updated Queso"), notes: "New notes" })).response.status, 200);
   assert.deepEqual((await db.doc(`registrationDips/${a}`).get()).data(), beforeA);
-  const secondLookup = await rsvp({ action: "lookup", name: name("pending"), phone: formattedPhone(phoneB) });
+  const secondLookup = await rsvp({ action: "lookup", phone: formattedPhone(phoneB) });
   assert.equal(secondLookup.response.status, 200);
   const d = secondLookup.data.dips[0].id; dips.add(d);
   assert.equal((await save({ cookie: secondLookup.cookie, context: secondLookup.data.context }, { dip_id: d, status: "confirmed", dip_name: dipName("Buffalo Dip"), notes: null })).response.status, 200);

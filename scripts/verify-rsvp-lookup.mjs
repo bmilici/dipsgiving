@@ -75,7 +75,7 @@ try {
 
   let matched;
   for (const phone of ["2025550123", "202-555-0123", "1 (202) 555-0123", "+1 202 555 0123", "202.555.0123"]) {
-    matched = await post({ action: "lookup", name: `  ${name("Without Dip").toUpperCase()}  `, phone });
+    matched = await post({ action: "lookup", phone });
     assert.equal(matched.response.status, 200);
     assert.deepEqual(Object.keys(matched.data).sort(), ["context", "dip_name", "notes", "ok"]);
     const cookie = matched.response.headers.get("set-cookie");
@@ -97,7 +97,7 @@ try {
   assert.deepEqual((await voter.get()).data(), voterBefore);
   console.log("PASS: formatted phone lookups, add/update on original ID, no duplicate RSVP, unchanged votes/party/timestamp/references");
 
-  const otherTab = await post({ action: "lookup", name: name("With Dip"), phone: "2025550133" });
+  const otherTab = await post({ action: "lookup", phone: "2025550133" });
   assert.equal(otherTab.response.status, 200);
   const wrongTab = await post({ action: "saveDip", dip_name: dip("Wrong Tab") }, {
     cookie: otherTab.cookie, context: matched.data.context,
@@ -123,9 +123,9 @@ try {
   const legacyBefore = (await legacy.get()).data();
   const failures = [];
   for (const details of [
-    { name: name("Wrong"), phone: "2025550123" },
-    { name: name("Without Dip"), phone: "2025550199" },
-    { name: name("No Phone"), phone: "2025550155" },
+    { phone: "1234" },
+    { phone: "2025550199" },
+    { phone: "2025550155" },
   ]) {
     const result = await post({ action: "lookup", ...details });
     assert.equal(result.response.status, 404);
@@ -135,9 +135,9 @@ try {
   assert.deepEqual(failures[0], failures[1]);
   assert.deepEqual(failures[1], failures[2]);
   assert.deepEqual((await legacy.get()).data(), legacyBefore);
-  console.log("PASS: generic wrong-name/phone/missing-phone results; legacy record untouched; session and ID tampering denied");
+  console.log("PASS: generic invalid/unmatched/missing-phone results; legacy record untouched; session and ID tampering denied");
 
-  const lookup = { action: "lookup", name: name("Rate Limit"), phone: "2025550188" };
+  const lookup = { action: "lookup", phone: "2025550188" };
   await localLookupLimit.delete();
   for (let attempt = 0; attempt < 6; attempt++) assert.equal((await post(lookup, { preserveRateLimit: true })).response.status, 404);
   const limited = await post(lookup, { preserveRateLimit: true });

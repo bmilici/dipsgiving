@@ -6,11 +6,11 @@ import { siteRoutes } from "@/lib/siteNavigation";
 import { isTestingMode } from "@/lib/testingMode";
 
 const messages = {
-  rsvp_pending: { title: "You're on the list!", message: "Your RSVP is confirmed and your dip is marked as TBD. Return to Register Dip with the same name and phone number when you've decided what to bring." },
-  rsvp_none: { title: "You're on the list!", message: "Your RSVP is confirmed. If you change your mind, return to Register Dip with the same name and phone number to add a dip." },
+  rsvp_pending: { title: "You're on the list!", message: "Your RSVP is confirmed and your dip is marked as TBD. Return to Register Dip with the same phone number when you've decided what to bring." },
+  rsvp_none: { title: "You're on the list!", message: "Your RSVP is confirmed. If you change your mind, return to Register Dip with the same phone number to add a dip." },
   dip_confirmed: { title: "Your dip is officially in the competition!", message: "Your dip is saved and has been added to the lineup." },
   dip_added: { title: "Another contender enters the showdown!", message: "Your additional dip is saved. Your RSVP and party size have not changed." },
-  dip_pending: { title: "Your dip is marked as TBD!", message: "Your pending dip is saved. Return to Register Dip with the same name and phone number to confirm it when you're ready." },
+  dip_pending: { title: "Your dip is marked as TBD!", message: "Your pending dip is saved. Return to Register Dip with the same phone number to confirm it when you're ready." },
   dip_updated: { title: "Your dip is updated!", message: "Your changes are saved. Your other dips, RSVP, and party size have not changed." },
 } as const;
 

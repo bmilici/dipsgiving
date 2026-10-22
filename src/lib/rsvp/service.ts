@@ -13,7 +13,7 @@ import {
 } from "./validation";
 
 export const SESSION_TTL_SECONDS = 900;
-export const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host if you registered without a phone number.";
+export const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your phone number, or contact the host if you registered without a phone number.";
 const WINDOW_MS = 15 * 60 * 1000;
 
 export class RsvpError extends Error {
@@ -110,23 +110,27 @@ export class RsvpService {
       logInvitationSyncFailure("create", error);
       throw new RsvpError("rsvp_save_failed", 503, "We couldn’t confirm your RSVP. Please try again, or use Add a Dip (Already Registered?) to check it.");
     }
-    return { message: "You’re RSVP’d! You can return later and use Add a Dip (Already Registered?) with your name and phone number to add or update your dip." };
+    return { message: "You’re RSVP’d! You can return later and use Add a Dip (Already Registered?) with your phone number to add or update your dip." };
   }
 
   async lookup(input: unknown, clientKey: string): Promise<{ token: string; dip_name: string; notes: string }> {
     let fields: ReturnType<typeof validateLookup> | undefined;
     try { fields = validateLookup(input); } catch (error) { if (!(error instanceof RsvpValidationError)) throw error; }
-    await this.rateLimit("lookup", clientKey, 6, fields ? identity(fields.name, fields.phone) : undefined);
+    await this.rateLimit("lookup", clientKey, 6, fields ? hash(fields.phone) : undefined);
     if (!fields) throw lookupError();
-    const guestIdentity = identity(fields.name, fields.phone);
+    const lookupPhone = fields.phone;
     const token = randomBytes(32).toString("base64url");
     return this.db.runTransaction(async (tx) => {
       const settings = await tx.get(this.db.doc("eventSettings/current"));
       const event = eventName(settings.data());
       const registrations = await tx.get(this.db.collection("registrations").where("event", "==", event));
-      const matches = registrations.docs.filter((doc) => matchingIdentity(doc.data()) === guestIdentity);
+      const matches = registrations.docs.filter((doc) => isRsvp(doc.data()) && normalizeUsPhone(doc.data().phone) === lookupPhone);
       if (matches.length !== 1) throw lookupError();
       const match = matches[0];
+      // Keep existing name-and-phone session identity bindings. The name comes
+      // from the matched record, never from optional legacy request input.
+      const guestIdentity = matchingIdentity(match.data());
+      if (!guestIdentity) throw lookupError();
       tx.create(this.db.collection("_rsvpLookupSessions").doc(hash(token)), {
         registration_id: match.id,
         event,

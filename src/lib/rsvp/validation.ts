@@ -73,12 +73,13 @@ export function validateNewRsvp(value: unknown): NewRsvpInput {
   return { name, phone, party_size: input.party_size, bringing_dip: input.bringing_dip, ...dip };
 }
 
-export function validateLookup(value: unknown): { name: string; phone: string } {
+export function validateLookup(value: unknown): { phone: string } {
   const input = record(value, ["name", "phone"]);
-  const name = guestName(input.name);
+  // Earlier clients send a name; lookup deliberately ignores that field.
+  // New RSVP creation still requires and validates the registrant's name.
   const phone = normalizeUsPhone(input.phone);
   if (!phone) throw new RsvpValidationError("Please enter a valid phone number.");
-  return { name, phone };
+  return { phone };
 }
 
 export function validateDip(value: unknown): { dip_name: string; notes: string | null } {

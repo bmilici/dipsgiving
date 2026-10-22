@@ -41,7 +41,7 @@ test("Firestore emulator: real duplicate races, existing ID updates and voting r
     const voter = db.collection("userVotes").doc(`synthetic_${suffix}_2026`);
     await voter.set({ uid: `synthetic_${suffix}`, year: 2026, dipIds: [original.id], updated_at: FieldValue.serverTimestamp() });
     const voteBefore = (await voter.get()).data();
-    const found = await service.lookup({ name: `  SYNTHETIC ALEX ${suffix}  `, phone: "202.555.0101" }, client("lookup"));
+    const found = await service.lookup({ phone: "202.555.0101" }, client("lookup"));
     await service.saveDip(found.token, { dip_name: "Synthetic Queso", notes: "Dairy" }, client("update"));
     await service.saveDip(found.token, { dip_name: "Synthetic Updated Queso", notes: "Changed mind" }, client("update"));
     registrations = await db.collection("registrations").where("event", "==", event).get();
@@ -56,7 +56,7 @@ test("Firestore emulator: real duplicate races, existing ID updates and voting r
     assert.deepEqual((await voter.get()).data(), voteBefore);
 
     await service.create({ ...input, name: `Synthetic Jordan ${suffix}`, phone: "2025550102", bringing_dip: true, dip_name: "Synthetic Salsa" }, client("second"));
-    const second = await service.lookup({ name: `Synthetic Jordan ${suffix}`, phone: "1 (202) 555-0102" }, client("second-lookup"));
+    const second = await service.lookup({ phone: "1 (202) 555-0102" }, client("second-lookup"));
     const duplicateDips = await Promise.allSettled([
       service.saveDip(found.token, { dip_name: "Synthetic Shared Dip" }, client("claim-a")),
       service.saveDip(second.token, { dip_name: " synthetic  shared DIP " }, client("claim-b")),
@@ -72,10 +72,10 @@ test("Firestore emulator: real duplicate races, existing ID updates and voting r
     const legacyBefore = (await legacy.get()).data();
     await assert.rejects(service.lookup({ name: `Synthetic Legacy ${suffix}`, phone: "2025550103" }, client("legacy")), (error) => error.status === 404 && error.message === LOOKUP_FAILURE);
     assert.deepEqual((await legacy.get()).data(), legacyBefore);
-    await assert.rejects(service.lookup({ name: "Incorrect Name", phone: "2025550101" }, client("wrong")), (error) => error.status === 404 && error.message === LOOKUP_FAILURE);
+    await assert.rejects(service.lookup({ phone: "2025550199" }, client("wrong")), (error) => error.status === 404 && error.message === LOOKUP_FAILURE);
 
-    for (let index = 0; index < 6; index++) await assert.rejects(service.lookup({ name: "Wrong", phone: "2025550101" }, client("limited")), (error) => error.status === 404);
-    await assert.rejects(new RsvpService(db).lookup({ name: "Wrong", phone: "2025550101" }, client("limited")), (error) => error.status === 429);
+    for (let index = 0; index < 6; index++) await assert.rejects(service.lookup({ phone: "2025550199" }, client("limited")), (error) => error.status === 404);
+    await assert.rejects(new RsvpService(db).lookup({ phone: "2025550199" }, client("limited")), (error) => error.status === 429);
     const publicDips = await service.listDips();
     assert.equal(publicDips.length, 2);
     assert(publicDips.every((dip) => Object.keys(dip).sort().join() === "dip_name,name"));
