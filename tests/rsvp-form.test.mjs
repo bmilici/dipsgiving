@@ -837,3 +837,44 @@ test("an existing party size above the new-RSVP limit remains visible and cannot
   assert.equal(nodes(form.render(), node => node.props.name === "party_size").length, 0);
   assert.ok(button(form, "Add Dip"));
 });
+
+test("approved production multi-dip RSVP and return lookup use root routes and public copy", async () => {
+  const initial = ownDip("production-fixture-first", "Cowboy Dip");
+  const added = ownDip("production-fixture-added", "Smoked Queso");
+  const form = harness({ multiDip: true, testingMode: false, post: payload => {
+    if (payload.action === "create") return reply({ ok: true, confirmation: CONFIRMATIONS.rsvp_pending });
+    if (payload.action === "lookup") return matched([initial]);
+    if (payload.action === "saveDip") return saved([initial, added], added.id, { confirmation: CONFIRMATIONS.dip_added });
+    return reply({ ok: true });
+  } });
+  await form.mount();
+  const radios = nodes(form.render(), node => node.props.type === "radio");
+  assert.equal(radios.length, 3);
+  assert.ok(radios.every(radio => radio.props.required && radio.props.checked === false));
+  choose(form, "pending");
+  assert.match(text(form.render()), /No pressure! Save your spot now/);
+  choose(form, "none");
+  assert.match(text(form.render()), /Just here for the food and good times\? We love that!/);
+  assert.match(text(form.render()), /If you change your mind, you can always come back and register a dip later!/);
+  choose(form, "pending");
+  guest(form);
+  await submit(form);
+  assert.equal(posts(form)[0].dip_status, "pending");
+  assertConfirmation(form, CONFIRMATIONS.rsvp_pending);
+  await click(form, "Add a Dip (Already Registered?)");
+  guest(form);
+  await submit(form);
+  assert.match(text(ownList(form)), /Cowboy Dip/);
+  await click(form, "+ Add Another Dip");
+  fill(form, "dip_name", added.dip_name);
+  await submit(form);
+  assertConfirmation(form, CONFIRMATIONS.dip_added);
+  assert.match(text(ownList(form)), /Cowboy Dip.*Smoked Queso/);
+  assert.equal(posts(form).filter(payload => payload.action === "create").length, 1);
+  for (const call of form.calls) {
+    assert.equal(call.url, "/api/rsvp");
+    assert.equal(call.credentials, "same-origin");
+    assert.equal(call.cache, "no-store");
+  }
+  assert.doesNotMatch(text(form.render()), /Test RSVP flow|separate from the event guest list|design preview|development preview|demo data|emulator|localhost|127\.0\.0\.1/i);
+});

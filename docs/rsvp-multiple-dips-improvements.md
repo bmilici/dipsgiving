@@ -1,5 +1,10 @@
 # RSVP, multiple dips, and voting improvements
 
+The user subsequently approved production release. See
+`multiple-dips-production-release.md` for the production activation, rules,
+compatibility, and release verification; the development-stage results below
+remain historical.
+
 This report describes the second development stage, extending the multiple-dip
 implementation documented in `docs/multiple-dips.md`. That older report records
 the behavior and verification of the earlier stage. This report supersedes its

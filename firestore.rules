@@ -64,15 +64,20 @@ service cloud.firestore {
       // RSVP details and phones are private. Server routes use Admin SDK;
       // browsers receive only the public dip fields through the public API.
       allow read, create, delete: if false;
-      allow update: if signedIn() && validVoteChange();
+      // The token-verified server API commits each ballot and dip counter together.
+      allow update: if false;
     }
 
     match /userVotes/{voteId} {
       allow get: if isOwnVoteDoc(voteId);
       allow list: if false;
-      allow create: if isOwnVoteDoc(voteId) && validVoteCreate();
-      allow update: if isOwnVoteDoc(voteId) && validVoteUpdate();
+      allow create, update: if false;
       allow delete: if false;
+    }
+
+    match /registrationDips/{dipId} {
+      // RSVP associations, pending entries and voting counters are server-only.
+      allow read, write: if false;
     }
 
     match /dips/{dipId} {

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
-    if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Development database unavailable");
+    if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Competition database unavailable");
     const db = getRsvpDb();
     await requireAdmin(db, request);
     const source = db.collection("registrations");

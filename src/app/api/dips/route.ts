@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   // Design-only previews have no database connection or write access.
   if (isTestingMode && !isRsvpLookupTestingEnabled) return Response.json({ dips: [] }, { headers });
   try {
-    if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Development database unavailable");
+    if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Competition database unavailable");
     const db = getRsvpDb();
     if (multiDipServerEnabled()) {
       const { readCompetitionRecords, publicCompetitionDips } = await import("@/lib/rsvp/dip-records");

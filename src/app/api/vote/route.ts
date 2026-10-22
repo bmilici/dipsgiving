@@ -15,14 +15,28 @@ function reply(value: unknown, status = 200) {
 }
 
 async function authorize(request: Request): Promise<string> {
-  // Token verification can never fall back to a real Firebase project or
-  // hosted credentials, even if an emulator variable is omitted by mistake.
-  if (process.env.FIREBASE_AUTH_EMULATOR_HOST !== "127.0.0.1:9199") throw new VoteError(503, "Voting is temporarily unavailable.");
   const authorization = request.headers.get("authorization") || "";
   if (!/^Bearer [^\s]{1,8192}$/.test(authorization)) throw new VoteError(401, "Please refresh and try again.");
-  const name = "dipsgiving-multiple-dips-demo-auth";
-  const app = getApps().find((entry) => entry.name === name) || initializeApp({ projectId: RSVP_TEST_PROJECT }, name);
-  if (app.options.projectId !== RSVP_TEST_PROJECT) throw new VoteError(503, "Voting is temporarily unavailable.");
+  let app;
+  if (process.env.VERCEL_ENV === "production") {
+    // getRsvpDb already validated the private service account and initialized
+    // this app. Real ID tokens must pass Firebase's signature/project checks;
+    // an inherited Auth emulator flag must never accept unsigned demo tokens.
+    if (process.env.FIRESTORE_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST ||
+        process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "dipsgiving") {
+      throw new VoteError(503, "Voting is temporarily unavailable.");
+    }
+    app = getApps().find((entry) => entry.name === "dipsgiving-rsvp-production");
+    if (!app || app.options.projectId !== "dipsgiving") throw new VoteError(503, "Voting is temporarily unavailable.");
+  } else {
+    if (process.env.VERCEL || process.env.VERCEL_ENV || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== RSVP_TEST_PROJECT ||
+        process.env.FIREBASE_AUTH_EMULATOR_HOST !== "127.0.0.1:9199") {
+      throw new VoteError(503, "Voting is temporarily unavailable.");
+    }
+    const name = "dipsgiving-multiple-dips-demo-auth";
+    app = getApps().find((entry) => entry.name === name) || initializeApp({ projectId: RSVP_TEST_PROJECT }, name);
+    if (app.options.projectId !== RSVP_TEST_PROJECT) throw new VoteError(503, "Voting is temporarily unavailable.");
+  }
   try {
     const token = await getAuth(app).verifyIdToken(authorization.slice(7));
     return token.uid;

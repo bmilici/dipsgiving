@@ -7,7 +7,7 @@ const enabled = process.env.DEMO_RSVP_RULES_INTEGRATION === "1";
 
 // This suite only ever changes rules/data in a dedicated demo namespace on the
 // explicitly configured loopback emulator. It cannot select a live project.
-test("production rules: private RSVPs and invitations, unchanged anonymous voting and public collections", {
+test("production rules: private RSVPs and dips, server-only voting, preserved legacy data and public collections", {
   skip: !enabled,
   timeout: 60_000,
 }, async (t) => {
@@ -71,7 +71,8 @@ test("production rules: private RSVPs and invitations, unchanged anonymous votin
   const invitationPath = `invitationList/invite-${suffix}`;
   const ownVotePath = `userVotes/${uid}_${year}`;
   const otherVotePath = `userVotes/other-${suffix}_${year}`;
-  const privateCollections = ["_rsvpLookupSessions", "_rsvpLookupRateLimits", "_rsvpLookupLocks", "_rsvpAdminSessions", "_adminSessions"];
+  const privateCollections = ["_rsvpLookupSessions", "_rsvpLookupRateLimits", "_rsvpLookupLocks", "_rsvpAdminSessions", "_adminSessions", "_rsvpDipOperations", "_dipEditReviews"];
+  const newDipPaths = ["a", "b", "pending"].map(id => `registrationDips/${id}-${suffix}`);
 
   try {
     for (const [index, id] of ids.entries()) {
@@ -83,6 +84,11 @@ test("production rules: private RSVPs and invitations, unchanged anonymous votin
     }
     await seed(invitationPath, { name: "Synthetic Invitee", phone: "+12025550102", notes: "Private", invite_next_year: true });
     await seed(otherVotePath, { uid: `other-${suffix}`, year, dipIds: [ids[0]] });
+    await seed(ownVotePath, { uid, year, dipIds: ids.slice(0, 2), updated_at: "unchanged-legacy-time" });
+    for (const [index, path] of newDipPaths.entries()) await seed(path, {
+      registration_id: ids[0], event: "Synthetic event", status: index === 2 ? "pending" : "confirmed",
+      dip_name: index === 2 ? null : `Individual Dip ${index}`, votes: [10, 6, 0][index], year,
+    });
     for (const name of privateCollections) await seed(`${name}/private-${suffix}`, { token: "synthetic-private", registration_id: ids[0] });
     const publicCollections = ["dips", "winners", "historicalDips", "eventSettings", "chevelleProjects"];
     for (const name of publicCollections) await seed(`${name}/public-${suffix}`, { name: "Synthetic public fixture" });
@@ -118,8 +124,8 @@ test("production rules: private RSVPs and invitations, unchanged anonymous votin
     const vote = async (dipId) => {
       const voteRef = doc(anonymousDb, ownVotePath);
       const dipRef = doc(anonymousDb, "registrations", dipId);
-      // Mirrors the production transaction: read only the voter's own history.
-      // An update of a missing dip fails atomically without reading private data.
+      // Mirrors a cached pre-release client. Its old direct writes must fail
+      // atomically, preserving the stored ballot and legacy vote totals.
       await runTransaction(anonymousDb, async (tx) => {
         const snapshot = await tx.get(voteRef);
         const before = snapshot.exists() ? snapshot.data().dipIds : [];
@@ -130,37 +136,48 @@ test("production rules: private RSVPs and invitations, unchanged anonymous votin
       });
     };
 
-    await t.test("anonymous voting preserves IDs, existing totals and private fields; fourth vote is rejected", async () => {
-      ownedPaths.add(ownVotePath);
-      const before = (await admin(privatePath)).fields;
-      await vote(ids[0]);
-      await vote(ids[1]);
-      await vote(ids[2]);
-      const own = await getDoc(doc(anonymousDb, ownVotePath));
-      assert.deepEqual(own.data().dipIds, ids.slice(0, 3));
-      for (let index = 0; index < ids.length; index++) {
-        assert.equal((await admin(`registrations/${ids[index]}`)).fields.votes.integerValue, String(totals[index] + (index < 3 ? 1 : 0)));
-      }
-      await forbidden(vote(ids[3]));
-      assert.deepEqual((await getDoc(doc(anonymousDb, ownVotePath))).data().dipIds, ids.slice(0, 3));
-      assert.equal((await admin(`registrations/${ids[3]}`)).fields.votes.integerValue, String(totals[3]));
-      await vote(ids[0]);
-      const after = (await admin(privatePath)).fields;
-      assert.deepEqual(after, before, "removing the vote restores its total without modifying RSVP/private fields");
-      assert.deepEqual((await getDoc(doc(anonymousDb, ownVotePath))).data().dipIds, ids.slice(1, 3));
-      const missingId = `missing-${suffix}`;
-      await assert.rejects(vote(missingId));
-      assert.deepEqual((await getDoc(doc(anonymousDb, ownVotePath))).data().dipIds, ids.slice(1, 3), "missing-dip failure must not alter vote history");
+    await t.test("cached browser voting and direct ballot writes fail without changing legacy votes or IDs", async () => {
+      const before = await Promise.all(ids.map(id => admin(`registrations/${id}`)));
+      const ballotBefore = (await admin(ownVotePath)).fields;
+      await forbidden(vote(ids[0]));
+      await forbidden(vote(ids[2]));
+      assert.deepEqual((await getDoc(doc(anonymousDb, ownVotePath))).data().dipIds, ids.slice(0, 2));
+      await forbidden(updateDoc(doc(anonymousDb, ownVotePath), { dipIds: [ids[0], ids[1], ids[2]] }));
+      const newBallotPath = `userVotes/${uid}_${year + 1}`;
+      ownedPaths.add(newBallotPath);
+      await forbidden(setDoc(doc(anonymousDb, newBallotPath), { uid, year: year + 1, dipIds: [ids[0]], updated_at: serverTimestamp() }));
+      for (let index = 0; index < ids.length; index++) assert.deepEqual((await admin(`registrations/${ids[index]}`)).fields, before[index].fields);
+      assert.deepEqual((await admin(ownVotePath)).fields, ballotBefore);
       await forbidden(getDoc(doc(anonymousDb, otherVotePath)));
       await forbidden(getDocs(collection(anonymousDb, "userVotes")));
     });
 
-    await t.test("vote permission cannot edit RSVP identity or other fields", async () => {
+    await t.test("no anonymous write can alter RSVP identity or bypass a dip's server voting counter", async () => {
       await forbidden(updateDoc(doc(publicDb, privatePath), { votes: increment(1) }));
+      await forbidden(updateDoc(doc(anonymousDb, privatePath), { votes: increment(1) }));
       await forbidden(updateDoc(doc(anonymousDb, privatePath), { votes: increment(2) }));
       for (const change of [{ name: "Changed" }, { phone: "+12025550104" }, { dip_name: "Changed dip" }, { party_size: 99 }]) {
         await forbidden(updateDoc(doc(anonymousDb, privatePath), change));
       }
+    });
+
+    await t.test("individual and pending dip records stay private and reject direct browser counter/status changes", async () => {
+      for (const db of [publicDb, anonymousDb]) {
+        await forbidden(getDocs(collection(db, "registrationDips")));
+        for (const path of newDipPaths) {
+          const before = (await admin(path)).fields;
+          await forbidden(getDoc(doc(db, path)));
+          await forbidden(updateDoc(doc(db, path), { votes: increment(1) }));
+          await forbidden(updateDoc(doc(db, path), { status: "confirmed", dip_name: "Changed" }));
+          await forbidden(deleteDoc(doc(db, path)));
+          assert.deepEqual((await admin(path)).fields, before);
+        }
+        const attempted = `registrationDips/blocked-${randomUUID()}`;
+        ownedPaths.add(attempted);
+        await forbidden(setDoc(doc(db, attempted), { registration_id: ids[0], status: "confirmed", dip_name: "Forged", votes: 99 }));
+      }
+      assert.equal((await admin(newDipPaths[0])).fields.votes.integerValue, "10");
+      assert.equal((await admin(newDipPaths[1])).fields.votes.integerValue, "6");
     });
 
     await t.test("existing public collection reads and unrelated write rules remain available", async () => {

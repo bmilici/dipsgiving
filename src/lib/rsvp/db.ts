@@ -27,7 +27,7 @@ export function getRsvpDb() {
   if (process.env.VERCEL_ENV !== "production" ||
       process.env.DIPSGIVING_RSVP_LOOKUP_PRODUCTION !== "true") throw new RsvpUnavailable(404);
   // An accidentally inherited emulator flag must never redirect production data.
-  if (process.env.FIRESTORE_EMULATOR_HOST) throw new RsvpUnavailable(503);
+  if (process.env.FIRESTORE_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST) throw new RsvpUnavailable(503);
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const value = process.env.DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS;
   if (projectId !== "dipsgiving" || !value) throw new RsvpUnavailable(503);

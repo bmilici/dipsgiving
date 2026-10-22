@@ -4,8 +4,9 @@ import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
 
-function api({ enabled = true, authHost = "127.0.0.1:9199", authFails = false, serviceFails = false } = {}) {
-  const calls = { db: 0, initialized: [], verified: [], context: [], votes: [] };
+function api({ enabled = true, production = false, authHost = production ? undefined : "127.0.0.1:9199", firestoreHost,
+  project = production ? "dipsgiving" : "demo-dipsgiving-rsvp-test", productionApp = true, appProject = "dipsgiving", authFails = false, serviceFails = false, hostingEnv = production ? "production" : undefined } = {}) {
+  const calls = { db: 0, initialized: [], verified: [], context: [], votes: [], authProjects: [] };
   class VoteError extends Error { constructor(status, message) { super(message); this.status = status; } }
   const result = { year: 2026, voting_open: true, dip_ids: ["dip_a", "dip_b"] };
   const modules = {
@@ -13,11 +14,12 @@ function api({ enabled = true, authHost = "127.0.0.1:9199", authFails = false, s
     "@/lib/rsvp/testing-db": { RSVP_TEST_PROJECT: "demo-dipsgiving-rsvp-test" },
     "@/lib/rsvp/db": { getRsvpDb() { calls.db++; return { isolated: true }; } },
     "firebase-admin/app": {
-      getApps: () => [],
+      getApps: () => production && productionApp ? [{ name: "dipsgiving-rsvp-production", options: { projectId: appProject } }] : [],
       initializeApp(options, name) { calls.initialized.push({ options, name }); return { options }; },
     },
     "firebase-admin/auth": { getAuth(app) {
-      assert.equal(app.options.projectId, "demo-dipsgiving-rsvp-test");
+      assert.equal(app.options.projectId, production ? "dipsgiving" : "demo-dipsgiving-rsvp-test");
+      calls.authProjects.push(app.options.projectId);
       return { async verifyIdToken(token) {
         calls.verified.push(token);
         if (authFails) throw new Error("Secret token verification details");
@@ -39,7 +41,8 @@ function api({ enabled = true, authHost = "127.0.0.1:9199", authFails = false, s
   }).outputText;
   vm.runInNewContext(source, {
     exports, Response, Headers, URL, Buffer,
-    process: { env: { FIREBASE_AUTH_EMULATOR_HOST: authHost } },
+    process: { env: { FIREBASE_AUTH_EMULATOR_HOST: authHost, FIRESTORE_EMULATOR_HOST: firestoreHost,
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: project, VERCEL_ENV: hostingEnv, ...(production ? { VERCEL: "1" } : {}) } },
     require(name) { assert(Object.hasOwn(modules, name), `Unmocked dependency blocked: ${name}`); return modules[name]; },
   });
   return { ...exports, calls, result };
@@ -144,5 +147,74 @@ test("unexpected backend failures are generic and never expose database details"
     const data = await response.json();
     assert.match(data.error, /temporarily unavailable/);
     assert(!JSON.stringify(data).includes("Secret"));
+  }
+});
+
+test("production voting verifies tokens with the existing production app and never initializes a demo app", async () => {
+  const route = api({ production: true });
+  const response = await route.GET(new Request("https://www.dipsgiving.com/api/vote", { headers: { Authorization: "Bearer production-token" } }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(route.calls.authProjects, ["dipsgiving"]);
+  assert.deepEqual(route.calls.verified, ["production-token"]);
+  assert.equal(route.calls.initialized.length, 0);
+  assert.deepEqual(route.calls.context, ["authenticated-anonymous-guest"]);
+  const selected = await route.POST(new Request("https://www.dipsgiving.com/api/vote", {
+    method: "POST", headers: { Origin: "https://www.dipsgiving.com", Authorization: "Bearer production-token", "Content-Type": "application/json" },
+    body: JSON.stringify({ dip_id: "legacy-persistent-id", selected: true }),
+  }));
+  assert.equal(selected.status, 200);
+  assert.deepEqual(JSON.parse(JSON.stringify(route.calls.votes)), [{ uid: "authenticated-anonymous-guest", input: { dip_id: "legacy-persistent-id", selected: true } }]);
+});
+
+test("production rejects inherited emulator flags, wrong projects and missing production app without fallback", async () => {
+  for (const options of [
+    { authHost: "127.0.0.1:9199" }, { firestoreHost: "127.0.0.1:8189" },
+    { project: "demo-dipsgiving-rsvp-test" }, { productionApp: false }, { appProject: "wrong-project" },
+  ]) {
+    const route = api({ production: true, ...options });
+    const response = await route.GET(request("GET"));
+    assert.equal(response.status, 503);
+    assert.equal(route.calls.verified.length, 0);
+    assert.equal(route.calls.initialized.length, 0);
+    assert.equal(route.calls.context.length, 0);
+  }
+});
+
+test("production token verification failures stay generic and do not read or modify a ballot", async () => {
+  const route = api({ production: true, authFails: true });
+  const response = await route.POST(request("POST"));
+  assert.equal(response.status, 401);
+  assert(!JSON.stringify(await response.json()).includes("Secret"));
+  assert.equal(route.calls.votes.length, 0);
+  assert.equal(route.calls.context.length, 0);
+  assert.equal(route.calls.initialized.length, 0);
+});
+
+test("hosted previews cannot use the local unsigned-token verification path", async () => {
+  const route = api({ hostingEnv: "preview" });
+  const response = await route.GET(request("GET"));
+  assert.equal(response.status, 503);
+  assert.equal(route.calls.verified.length, 0);
+  assert.equal(route.calls.initialized.length, 0);
+});
+
+test("the actual production Firebase verifier rejects unsigned emulator tokens and wrong-project tokens offline", async () => {
+  const { initializeApp, deleteApp } = await import("firebase-admin/app");
+  const { getAuth } = await import("firebase-admin/auth");
+  const previous = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  const app = initializeApp({ projectId: "dipsgiving" }, `production-token-safety-${Date.now()}`);
+  const encoded = data => Buffer.from(JSON.stringify(data)).toString("base64url");
+  const payload = { aud: "dipsgiving", iss: "https://securetoken.google.com/dipsgiving", sub: "synthetic-offline", iat: 1, exp: 9999999999 };
+  try {
+    const unsigned = `${encoded({ alg: "none", kid: "synthetic" })}.${encoded(payload)}.`;
+    const wrongProject = `${encoded({ alg: "RS256", kid: "synthetic" })}.${encoded({ ...payload, aud: "demo-dipsgiving-rsvp-test" })}.invalid-signature`;
+    for (const token of [unsigned, wrongProject]) {
+      await assert.rejects(getAuth(app).verifyIdToken(token), error => error.code === "auth/argument-error");
+    }
+  } finally {
+    await deleteApp(app);
+    if (previous === undefined) delete process.env.FIREBASE_AUTH_EMULATOR_HOST;
+    else process.env.FIREBASE_AUTH_EMULATOR_HOST = previous;
   }
 });

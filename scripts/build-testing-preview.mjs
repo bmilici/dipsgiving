@@ -147,6 +147,7 @@ export async function buildEnvironment(directory) {
     DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: 'false',
     NEXT_PUBLIC_RSVP_MULTI_DIP: 'false',
     DIPSGIVING_MULTI_DIP_TESTING: 'false',
+    DIPSGIVING_MULTI_DIP_PRODUCTION: 'false',
   };
   delete result.FIRESTORE_EMULATOR_HOST;
   delete result.FIREBASE_AUTH_EMULATOR_HOST;

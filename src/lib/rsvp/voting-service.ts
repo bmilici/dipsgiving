@@ -40,7 +40,7 @@ function selection(value: unknown): { dip_id: string; selected: boolean } {
   return { dip_id: input.dip_id, selected: input.selected };
 }
 
-/** Only the development API constructs this with an isolated emulator DB. */
+/** The caller supplies the guarded production or isolated emulator DB. */
 export class VotingService {
   constructor(private readonly db: Firestore) {}
 

@@ -17,15 +17,23 @@ const developmentPreview = !localDemoReview &&
 const rsvpLookupTesting = developmentPreview &&
   process.env.DIPSGIVING_RSVP_LOOKUP_TESTING === "true";
 
+// The approved release uses the existing private production connection. Preview
+// builds and inherited emulator settings must never activate live competition.
+const productionMultiDip = process.env.VERCEL_ENV === "production" &&
+  process.env.DIPSGIVING_RSVP_LOOKUP_PRODUCTION === "true" &&
+  process.env.DIPSGIVING_MULTI_DIP_PRODUCTION === "true" &&
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === "dipsgiving" &&
+  !process.env.FIRESTORE_EMULATOR_HOST && !process.env.FIREBASE_AUTH_EMULATOR_HOST;
+
 const nextConfig: NextConfig = {
   ...(developmentPreview ? { basePath: "/testing" } : {}),
   env: {
     NEXT_PUBLIC_DESIGN_PREVIEW: developmentPreview ? "true" : "false",
     NEXT_PUBLIC_RSVP_LOOKUP_TESTING: rsvpLookupTesting ? "true" : "false",
     NEXT_PUBLIC_RSVP_LOCAL_DEMO: localDemoReview ? "true" : "false",
-    NEXT_PUBLIC_RSVP_MULTI_DIP: localDemoReview &&
+    NEXT_PUBLIC_RSVP_MULTI_DIP: productionMultiDip || (localDemoReview &&
       process.env.DIPSGIVING_MULTI_DIP_TESTING === "true" &&
-      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === "demo-dipsgiving-rsvp-test" ? "true" : "false",
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === "demo-dipsgiving-rsvp-test") ? "true" : "false",
   },
   eslint: {
     // ⚠️ Temporarily ignore ESLint errors in production builds
@@ -70,6 +78,14 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/api/dips",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
+      {
+        source: "/api/vote",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
+      {
+        source: "/api/champions",
         headers: [{ key: "Cache-Control", value: "no-store, private" }],
       },
       {

@@ -69,7 +69,7 @@ function registrationSummary(data: DocumentData, dips: ReturnType<typeof ownDips
   };
 }
 
-/** Development-only per-dip implementation; all connections come from guarded routes. */
+/** Per-dip implementation; all database connections come from guarded routes. */
 export class MultiDipRsvpService extends RsvpService {
   constructor(db: Firestore) { super(db); }
 
