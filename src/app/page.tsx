@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, CalendarDays, Clock3, MapPin, MessageCircle, Soup, Trophy, Vote } from "lucide-react";
 import EventCountdown from "@/components/EventCountdown";
 import Sponsors from "@/components/Sponsors";
+import RegistrationSuccessNotice from "@/components/RegistrationSuccessNotice";
 import { useEventSettings } from "@/lib/eventSettings";
 import { testingAssetPath } from "@/lib/testingMode";
 import { siteRoutes } from "@/lib/siteNavigation";
@@ -26,6 +28,7 @@ export default function Page() {
 
   return (
     <main>
+      <Suspense fallback={null}><RegistrationSuccessNotice /></Suspense>
       <section className="festival-paper relative border-b border-border" aria-labelledby="hero-heading">
         <div className="festival-container festival-hero-layout">
           <div className="festival-entrance festival-hero-copy">

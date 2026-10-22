@@ -267,17 +267,23 @@ test("footer uses the shared labels, exact active route, and normal unprefixed L
 
 test("homepage actions and feature cards use the same canonical destinations and labels", () => {
   const Page = loadComponent("src/app/page.tsx", {
+    react: { Suspense: "suspense" },
     "react/jsx-runtime": jsx,
     "next/image": "img",
     "next/link": "a",
     "lucide-react": Object.fromEntries(["ArrowRight", "ArrowUpRight", "CalendarDays", "Clock3", "MapPin", "MessageCircle", "Soup", "Trophy", "Vote"].map((name) => [name, `${name}-icon`])),
     "@/components/EventCountdown": "countdown",
     "@/components/Sponsors": "sponsors",
+    "@/components/RegistrationSuccessNotice": "registration-success-notice",
     "@/lib/eventSettings": { useEventSettings: () => ({ eventNumberLabel: "5th Annual", eventName: "Dipsgiving", dateLabel: "December 5, 2026", timeLabel: "4:00 PM" }) },
     "@/lib/testingMode": { testingAssetPath: (path) => path },
     "@/lib/siteNavigation": loadComponent("src/lib/siteNavigation.ts", {}),
   }).default;
   const tree = Page();
+  const successBoundary = nodes(tree, (node) => node.type === "suspense")[0];
+  assert.ok(successBoundary, "Query-based confirmation must stay inside a static-render-safe Suspense boundary");
+  assert.equal(successBoundary.props.fallback, null);
+  assert.equal(nodes(successBoundary, (node) => node.type === "registration-success-notice").length, 1);
   const internal = links(tree).filter((link) => link.props.href.startsWith("/"));
   assert.deepEqual(internal.map((link) => link.props.href), ["/register", "/register/dip", "/dips", "/vote", "/winners", "/register"]);
   const actions = nodes(tree, (node) => node.props.className === "festival-hero-actions")[0];

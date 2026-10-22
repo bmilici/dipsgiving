@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { normalizeDipName, normalizeGuestName, normalizeUsPhone } from "@/lib/rsvp/validation";
 import { isTestingMode, testingAssetPath } from "@/lib/testingMode";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
@@ -59,6 +60,7 @@ function confirmationMessage(value: unknown): Confirmation | null {
 }
 
 export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: "rsvp" | "lookup" }) {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -82,6 +84,12 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   const [dips, setDips] = useState<PublicDip[]>([]);
   const [dipsLoading, setDipsLoading] = useState(true);
   const [dipsFailed, setDipsFailed] = useState(false);
+
+  function returnHome(kind: Confirmation["kind"]) {
+    // Next applies the environment's basePath once. The URL carries only a
+    // fixed confirmation kind, never a guest's name, phone, or registration ID.
+    router.replace(`${siteRoutes.home.href}?registered=${kind}`);
+  }
 
   const loadDips = useCallback(async (isCurrent: () => boolean = () => true) => {
     try {
@@ -295,6 +303,8 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
         const confirmed = isMultiDipEnabled ? confirmationMessage(data.confirmation) : null;
         if (confirmed) setConfirmation(confirmed);
         else setStatus("You’re on the list! You can return later and add or update your dip using the same name and phone number.");
+        returnHome(confirmed?.kind ?? (isMultiDipEnabled && dipChoice === "pending" ? "rsvp_pending"
+          : (isMultiDipEnabled ? dipChoice === "confirmed" : bringingDip) ? "dip_confirmed" : "rsvp_none"));
         await loadDips();
       } else {
         if (isMultiDipEnabled) {
@@ -317,11 +327,15 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
           const confirmed = confirmationMessage(data.confirmation);
           if (confirmed) setConfirmation(confirmed);
           else setStatus(savedDip.status === "pending" ? "Your TBD dip is saved. Return here to confirm it or add another dip. Your RSVP and party size stay the same." : "Your dip is saved! Your RSVP and party size stay the same. You can edit this dip or add another below.");
+          returnHome(confirmed?.kind ?? (savedDip.status === "pending" ? "dip_pending"
+            : editingDipId ? selectedDip?.status === "pending" ? "dip_confirmed" : "dip_updated"
+            : myDips.some(dip => dip.status === "confirmed") ? "dip_added" : "dip_confirmed"));
           await loadDips();
           return;
         }
         setOriginalDip(dipName.trim());
         setStatus("Your dip is saved! Your RSVP and party size stay the same. You can update your dip here if plans change.");
+        returnHome(originalDip ? "dip_updated" : "dip_confirmed");
         await loadDips();
       }
     } catch {

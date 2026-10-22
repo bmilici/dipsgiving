@@ -17,6 +17,7 @@ function harness(options = {}) {
   const slots = [];
   const effects = [];
   const calls = [];
+  const replacements = [];
   let cursor = 0;
   const react = {
     useState(initial) {
@@ -47,10 +48,14 @@ function harness(options = {}) {
   const modules = {
     react,
     "next/link": "a",
+    "next/navigation": { useRouter: () => ({
+      replace(href) { replacements.push(href); },
+      push() { throw new Error("Registration success must replace its form history entry"); },
+    }) },
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/lib/rsvp/validation": validation,
     "@/lib/rsvp/multi-dip-mode": { isMultiDipEnabled: options.multiDip ?? false },
-    "@/lib/siteNavigation": { siteRoutes: { dips: { href: "/dips", label: "Dip List" }, registerDip: { href: "/register/dip", label: "Register Dip" } } },
+    "@/lib/siteNavigation": { siteRoutes: { home: { href: options.homeHref ?? "/", label: "Home" }, dips: { href: "/dips", label: "Dip List" }, registerDip: { href: "/register/dip", label: "Register Dip" } } },
     "@/lib/testingMode": {
       isTestingMode: options.testingMode ?? true,
       testingAssetPath: (path) => (options.testingMode ?? true) ? `/testing${path}` : path,
@@ -77,7 +82,7 @@ function harness(options = {}) {
     },
   }, { filename: file, timeout: 2_000 });
   return {
-    calls,
+    calls, replacements,
     render() { cursor = 0; return exported.default({ initialMode: options.initialMode ?? "rsvp" }); },
     async mount() { this.render(); while (effects.length) effects.shift()(); await tick(); return this.render(); },
     unmount() { for (const slot of slots) slot?.cleanup?.(); },
@@ -877,4 +882,149 @@ test("approved production multi-dip RSVP and return lookup use root routes and p
     assert.equal(call.cache, "no-store");
   }
   assert.doesNotMatch(text(form.render()), /Test RSVP flow|separate from the event guest list|design preview|development preview|demo data|emulator|localhost|127\.0\.0\.1/i);
+});
+
+test("successful confirmed, pending and no-dip RSVPs replace the form with the shared homepage destination", async () => {
+  for (const testingMode of [false, true]) {
+    for (const choice of ["confirmed", "pending", "none"]) {
+      const kind = choice === "confirmed" ? "dip_confirmed" : `rsvp_${choice}`;
+      const form = harness({ multiDip: true, testingMode, homeHref: "/shared-home", post: () => reply({ ok: true, confirmation: CONFIRMATIONS[kind] }) });
+      await form.mount();
+      guest(form);
+      choose(form, choice);
+      if (choice === "confirmed") fill(form, "dip_name", "Confirmed Test Dip");
+      await submit(form);
+      assert.deepEqual(form.replacements, [`/shared-home?registered=${kind}`]);
+      assert.equal(posts(form).length, 1);
+      assert.equal(posts(form)[0].dip_status, choice);
+      assert.equal(form.replacements[0].includes("/testing"), false, "The router applies any testing base path once");
+    }
+  }
+});
+
+test("legacy successful RSVP responses still return home with a safe fallback confirmation kind", async () => {
+  for (const bringing of [false, true]) {
+    const form = harness({ testingMode: false, post: () => reply({ ok: true }) });
+    await form.mount();
+    guest(form);
+    if (bringing) {
+      fill(form, "bringing_dip", true);
+      fill(form, "dip_name", "Legacy Confirmed Dip");
+    }
+    await submit(form);
+    assert.deepEqual(form.replacements, [`/?registered=${bringing ? "dip_confirmed" : "rsvp_none"}`]);
+  }
+});
+
+test("lookup stays in the editor and successful independent dip additions or updates return home", async () => {
+  const existing = ownDip("existing-return", "Existing Queso");
+  const pending = ownDip("pending-return", null, "pending");
+  const cases = [
+    { before: [], target: null, pending: false, kind: "dip_confirmed" },
+    { before: [existing], target: null, pending: false, kind: "dip_added" },
+    { before: [pending], target: pending.id, pending: false, kind: "dip_confirmed" },
+    { before: [existing], target: existing.id, pending: false, kind: "dip_updated" },
+    { before: [], target: null, pending: true, kind: "dip_pending" },
+    { before: [pending], target: pending.id, pending: true, kind: "dip_pending" },
+  ];
+  for (const scenario of cases) {
+    const targetId = scenario.target ?? "new-return";
+    const result = ownDip(targetId, scenario.pending ? null : "Saved Independent Dip", scenario.pending ? "pending" : "confirmed");
+    const after = [...scenario.before.filter(dip => dip.id !== targetId), result];
+    const form = harness({ multiDip: true, testingMode: false, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched(scenario.before) : saved(after, targetId) });
+    await form.mount();
+    guest(form);
+    await submit(form);
+    assert.deepEqual(form.replacements, [], "A successful RSVP match must stay on the management form");
+    if (!scenario.target) await click(form, "+ Add Another Dip");
+    if (scenario.pending) fill(form, "dip_pending", true);
+    else fill(form, "dip_name", result.dip_name);
+    await submit(form);
+    assert.deepEqual(form.replacements, [`/?registered=${scenario.kind}`]);
+    assert.equal(posts(form).filter(payload => payload.action === "create").length, 0);
+    assert.equal(posts(form).at(-1).dip_id, scenario.target ?? undefined);
+  }
+});
+
+test("registration validation, API failures, throttling and unavailable networks never redirect", async () => {
+  const invalid = harness({ multiDip: true, testingMode: false });
+  await invalid.mount();
+  await submit(invalid);
+  guest(invalid);
+  await submit(invalid);
+  choose(invalid, "confirmed");
+  await submit(invalid);
+  assert.deepEqual(invalid.replacements, []);
+  assert.deepEqual(posts(invalid), []);
+  for (const status of [400, 401, 409, 429, 503]) {
+    const form = harness({ multiDip: true, testingMode: false, post: () => reply({ ok: false, error: "Try again." }, status) });
+    await form.mount();
+    guest(form);
+    choose(form, "none");
+    await submit(form);
+    assert.deepEqual(form.replacements, []);
+  }
+  const offline = harness({ multiDip: true, testingMode: false, post: () => { throw new Error("Network unavailable"); } });
+  await offline.mount();
+  guest(offline);
+  choose(offline, "pending");
+  await submit(offline);
+  assert.deepEqual(offline.replacements, []);
+});
+
+test("failed lookup, vote review and malformed dip-save replies retain the form instead of redirecting", async () => {
+  const failedLookup = harness({ multiDip: true, testingMode: false, initialMode: "lookup", post: () => reply({ ok: false }, 404) });
+  await failedLookup.mount();
+  guest(failedLookup);
+  await submit(failedLookup);
+  assert.deepEqual(failedLookup.replacements, []);
+
+  const locked = ownDip("protected-return", "Voted Queso", "confirmed", false);
+  const review = harness({ multiDip: true, testingMode: false, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([locked]) : reply({ ok: false, error: "Your change was sent to the host for review." }, 409) });
+  await review.mount();
+  guest(review);
+  await submit(review);
+  await click(review, "Request a Change");
+  fill(review, "dip_name", "Proposed Protected Dip");
+  await submit(review);
+  assert.deepEqual(review.replacements, []);
+  assert.match(text(review.render()), /sent to the host for review/);
+
+  for (const malformed of [
+    { ok: true, dips: null, dip_id: "new", registration_summary: summaryFor([]) },
+    { ok: true, dips: [ownDip("new", "Saved Dip")], dip_id: "missing", registration_summary: summaryFor([]) },
+    { ok: true, dips: [ownDip("new", "Saved Dip")], dip_id: "new", registration_summary: undefined },
+  ]) {
+    const form = harness({ multiDip: true, testingMode: false, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([]) : reply(malformed) });
+    await form.mount();
+    guest(form);
+    await submit(form);
+    fill(form, "dip_name", "Saved Dip");
+    await submit(form);
+    assert.deepEqual(form.replacements, []);
+    assert.match(text(form.render()), /couldn’t confirm the result/);
+  }
+});
+
+test("home redirects prefer a validated server confirmation and never pass arbitrary response values into the URL", async () => {
+  const before = ownDip("changed-status", "Previously Confirmed Dip");
+  const reviewed = { ...before, status: "unverified", editable: false };
+  const added = ownDip("authoritative-confirmed", "Newly Confirmed Dip");
+  const form = harness({ multiDip: true, testingMode: false, initialMode: "lookup", post: payload => payload.action === "lookup" ? matched([before]) : saved([reviewed, added], added.id, { confirmation: CONFIRMATIONS.dip_confirmed }) });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "+ Add Another Dip");
+  fill(form, "dip_name", added.dip_name);
+  await submit(form);
+  assert.deepEqual(form.replacements, ["/?registered=dip_confirmed"], "The server can resolve a changed lineup more recently than the editor");
+
+  for (const kind of ["//outside.invalid", "rsvp_none&phone=private-value", "unknown-kind"]) {
+    const invalidKind = harness({ multiDip: true, testingMode: false, post: () => reply({ ok: true, confirmation: { ...CONFIRMATIONS.rsvp_none, kind } }) });
+    await invalidKind.mount();
+    guest(invalidKind);
+    choose(invalidKind, "none");
+    await submit(invalidKind);
+    assert.deepEqual(invalidKind.replacements, ["/?registered=rsvp_none"]);
+  }
 });
