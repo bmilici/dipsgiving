@@ -399,10 +399,17 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
             </div>
             {isMultiDipEnabled ? <fieldset className="min-w-0 space-y-3">
               <legend className="mb-3 text-sm font-semibold text-foreground">Are you bringing a dip?</legend>
-              {DIP_CHOICES.map(choice => <label key={choice.value} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
-                <input name="dip_status" type="radio" required value={choice.value} checked={dipChoice === choice.value} onChange={() => setDipChoice(choice.value)} className="h-5 w-5 shrink-0 accent-primary" />
-                <span className="text-sm font-semibold text-foreground">{choice.label}</span>
-              </label>)}
+              {DIP_CHOICES.map(choice => {
+                const showHelp = dipChoice === choice.value && choice.value !== "confirmed";
+                const helpId = `phone-rsvp-${choice.value}-help`;
+                return <div key={choice.value} className="space-y-2">
+                  <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
+                    <input name="dip_status" type="radio" required value={choice.value} checked={dipChoice === choice.value} onChange={() => setDipChoice(choice.value)} aria-describedby={showHelp ? helpId : undefined} className="h-5 w-5 shrink-0 accent-primary" />
+                    <span className="text-sm font-semibold text-foreground">{choice.label}</span>
+                  </label>
+                  {showHelp && <p id={helpId} className="px-4 text-sm leading-relaxed text-muted-foreground">RSVP now and add a dip later using “Add a Dip (Already Registered?)” with the same name and phone number.</p>}
+                </div>;
+              })}
             </fieldset> : <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
               <input name="bringing_dip" type="checkbox" checked={bringingDip} onChange={(event) => setBringingDip(event.target.checked)} className="h-5 w-5 shrink-0 accent-primary" />
               <span className="text-sm font-semibold text-foreground">I’m bringing a dip</span>
