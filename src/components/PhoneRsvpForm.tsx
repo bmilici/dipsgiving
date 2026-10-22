@@ -18,7 +18,7 @@ type ApiReply = { ok?: boolean; error?: string; dip_name?: string; notes?: strin
 const DIP_CHOICES: { value: DipChoice; label: string; help?: string }[] = [
   { value: "confirmed", label: "Yes! I know what I'm bringing." },
   { value: "pending", label: "Yes, but I'll decide later.", help: "No pressure! Save your spot now and come back to register your dip once you've decided what to bring." },
-  { value: "none", label: "No dip for me!", help: "Just here for the food and good times? We love that! No dip required—just bring your appetite." },
+  { value: "none", label: "No dip for me!", help: "Just here for the food and good times? We love that! No dip required—just bring your appetite. If you change your mind, you can always come back and register a dip later!" },
 ];
 
 const ENDPOINT = testingAssetPath("/api/rsvp");
