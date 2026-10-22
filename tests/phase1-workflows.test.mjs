@@ -30,7 +30,7 @@ function componentHarness(file, options = {}) {
     useEffect(effect) { effects.push(effect); },
     useMemo(calculate) { return calculate(); },
   };
-  const element = (type, props, key) => ({ type, props: props ?? {}, key });
+  const element = (type, props, key) => typeof type === "function" ? type(props ?? {}) : ({ type, props: props ?? {}, key });
   const reference = (_db, ...parts) => ({ path: parts.join("/") });
   const firestore = {
     collection: reference,
@@ -99,7 +99,7 @@ function componentHarness(file, options = {}) {
         votingOpen: options.votingOpen ?? false,
       }),
     },
-    "@/lib/testingMode": { isTestingMode: options.testingMode ?? false },
+    "@/lib/testingMode": { isTestingMode: options.testingMode ?? false, testingAssetPath: path => options.testingMode ? `/testing${path}` : path },
     "@/lib/siteNavigation": navigationModule,
     "@/lib/rsvp/public-dips": {
       watchPublicDips(onNext) {
@@ -116,6 +116,12 @@ function componentHarness(file, options = {}) {
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
   };
+  const disaster = {};
+  const disasterCode = ts.transpileModule(readFileSync(new URL("../src/components/VotingDisaster2025.tsx", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+  }).outputText;
+  vm.runInNewContext(disasterCode, { exports: disaster, require(name) { assert.ok(Object.hasOwn(modules, name), `Unmocked card import blocked: ${name}`); return modules[name]; } });
+  modules["@/components/VotingDisaster2025"] = { __esModule: true, default: disaster.default };
   const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, {
     fileName: file,
@@ -412,10 +418,13 @@ test("dip empty state waits for reads to settle and links to dip registration", 
   assert.equal(nodes(error.render(), (node) => node.type === "empty-state").length, 0);
 });
 
-test("champion empty state appears only when both current and historical records are absent", () => {
+test("the static 2025 story remains visible without official records and preserves real archived entries", () => {
   const empty = componentHarness("src/app/winners/page.tsx", { state: [[], [], null, false] });
-  const card = nodes(empty.render(), (node) => node.type === "empty-state")[0];
-  assert.equal(card.props.title, "The Legends Are Still Being Written.");
+  const emptyTree = empty.render();
+  assert.equal(nodes(emptyTree, node => node.type === "empty-state").length, 0);
+  assert.match(content(emptyTree), /The Great Voting Disaster of 2025/);
+  assert.match(content(emptyTree), /NO OFFICIAL CHAMPION/);
+  assert.doesNotMatch(content(emptyTree), /1st Place|2nd Place|3rd Place/);
 
   const historical = componentHarness("src/app/winners/page.tsx", {
     state: [[], [{ id: "historic", archive_year: 2024, dip_name: "Real Champion", by: "Actual Guest" }], null, false],
@@ -423,6 +432,7 @@ test("champion empty state appears only when both current and historical records
   const tree = historical.render();
   assert.equal(nodes(tree, (node) => node.type === "empty-state").length, 0);
   assert.match(content(tree), /Real Champion/);
+  assert(content(tree).indexOf("The Great Voting Disaster of 2025") < content(tree).indexOf("Real Champion"));
 });
 
 test("voting back link consistently targets Home in normal and testing modes", () => {

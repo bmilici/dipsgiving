@@ -32,16 +32,18 @@ function harness({ testing = false } = {}) {
       useState(initial) { const ownState = currentState, index = cursor++; if (!(index in ownState)) ownState[index] = initial; return [ownState[index], next => { ownState[index] = typeof next === "function" ? next(ownState[index]) : next; }]; },
       useEffect(effect) { effects.push(effect); },
     },
-    "react/jsx-runtime": { jsx: element, jsxs: element },
+    "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/components/EmptyState": props => element("empty-state", props),
     "@/lib/testingMode": { testingAssetPath: path => testing && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/testing/") ? `/testing${path}` : path },
   };
-  const photo = {};
-  const photoCode = ts.transpileModule(readFileSync(new URL("../src/components/ChampionPhoto.tsx", import.meta.url), "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-  }).outputText;
-  vm.runInNewContext(photoCode, { exports: photo, require(name) { assert(Object.hasOwn(modules, name), `Unexpected photo dependency blocked: ${name}`); return modules[name]; } });
-  modules["@/components/ChampionPhoto"] = { __esModule: true, default: photo.default };
+  for (const component of ["ChampionPhoto", "VotingDisaster2025"]) {
+    const child = {};
+    const childCode = ts.transpileModule(readFileSync(new URL(`../src/components/${component}.tsx`, import.meta.url), "utf8"), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+    }).outputText;
+    vm.runInNewContext(childCode, { exports: child, require(name) { assert(Object.hasOwn(modules, name), `Unexpected child dependency blocked: ${name}`); return modules[name]; } });
+    modules[`@/components/${component}`] = { __esModule: true, default: child.default };
+  }
   const exports = {};
   const code = ts.transpileModule(readFileSync(new URL("../src/components/MultiDipChampionsPage.tsx", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
@@ -76,6 +78,8 @@ function content(tree) {
   if (tree == null || typeof tree === "boolean") return "";
   return typeof tree === "object" ? content(tree.props?.children) : String(tree);
 }
+const photos = tree => nodes(tree, node => node.type === "img" && /\/(?:testing\/)?winners\//.test(node.props.src));
+const disasterCards = tree => nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title");
 
 test("champions loading waits for the public read and never flashes a false empty state", async () => {
   const page = harness();
@@ -96,7 +100,7 @@ test("the winning dip, associated chef, year, ranking, award category and photos
   assert.match(content(tree), /Champion/);
   assert.match(content(tree), /People’s Choice/);
   assert.doesNotMatch(content(tree), /Cowboy Dip/);
-  const images = nodes(tree, node => node.type === "img");
+  const images = photos(tree);
   assert.deepEqual(images.map(image => image.props.src), ["/winners/event.jpg", "/winners/queso.jpg"]);
   assert.match(images[1].props.alt, /Smoked Queso.*2026.*Kim and Brian/);
   assert(images.every(image => image.props.loading === "lazy" && image.props.width && image.props.height));
@@ -134,13 +138,27 @@ test("unresolved references produce generic review feedback and preserve valid h
   assert.doesNotMatch(content(tree), /dip_b|registration_id|phone/);
 });
 
-test("a true empty championship archive uses the existing empty-state design", async () => {
+test("an empty official archive still displays the exact static 2025 story without inventing a champion", async () => {
   const page = harness(); page.render(); page.effects[0]();
   await page.respond({ years: [], historicalDips: [], has_unresolved: false });
-  const empty = nodes(page.render(), node => node.type === "empty-state");
-  assert.equal(empty.length, 1);
-  assert.equal(empty[0].props.variant, "champions");
-  assert.equal(empty[0].props.title, "The Legends Are Still Being Written.");
+  const tree = page.render();
+  const cards = disasterCards(tree);
+  assert.equal(cards.length, 1);
+  const card = cards[0];
+  for (const expected of [
+    "2025", "The Great Voting Disaster of 2025", "NO OFFICIAL CHAMPION",
+    "The dips were delicious. The competition was fierce. Unfortunately, the person running the website was apparently not qualified to run an election.",
+    "Official Result: Everyone Lost. Especially IT.",
+  ]) assert.ok(content(card).includes(expected), expected);
+  assert.equal(nodes(card, node => node.type === "h2" && node.props.id === "voting-disaster-2025-title").length, 1);
+  const [illustration] = nodes(card, node => node.type === "img");
+  assert.equal(illustration.props.src, "/illustrations/voting-disaster-2025.svg");
+  assert.match(illustration.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
+  assert.ok(illustration.props.width > 0 && illustration.props.height > 0);
+  assert.equal(photos(tree).length, 0);
+  assert.equal(nodes(tree, node => node.type === "empty-state").length, 0);
+  assert.doesNotMatch(content(tree), /1st Place|2nd Place|3rd Place|Created by/);
+  assert.deepEqual(page.requests.map(request => request.url), ["/api/champions"]);
 });
 
 test("failed or malformed reads show a safe error instead of claiming there are no champions", async () => {
@@ -158,13 +176,15 @@ test("API and photo URLs keep the testing base path and uncached read-only reque
   assert.equal(page.requests[0].url, "/testing/api/champions");
   assert.equal(page.requests[0].config.cache, "no-store");
   assert.equal(page.requests[0].config.method, undefined);
-  assert(nodes(page.render(), node => node.type === "img").every(image => image.props.src.startsWith("/testing/winners/")));
+  const tree = page.render();
+  assert(photos(tree).every(image => image.props.src.startsWith("/testing/winners/")));
+  assert.equal(nodes(disasterCards(tree), node => node.type === "img")[0].props.src, "/testing/illustrations/voting-disaster-2025.svg");
 });
 
 test("a single-winner root photo is rendered once when it also belongs to the winning entry", async () => {
   const page = harness(); page.render(); page.effects[0]();
   await page.respond({ years: [{ id: "2026", year: 2026, image: "/winners/one.jpg", podium: [{ id: "one", dip_name: "Winning Dip", by: "Chef", image: "/winners/one.jpg" }] }], historicalDips: [], has_unresolved: false });
-  assert.equal(nodes(page.render(), node => node.type === "img").length, 1);
+  assert.equal(photos(page.render()).length, 1);
 });
 
 test("a read completed after unmount cannot replace the page state", async () => {
@@ -182,15 +202,49 @@ test("all three 2024 winners and their award text remain while the absent year p
     { id: "2024-third", dip_name: "Smoked Queso", by: "Jordan", place: 3, image: "/winners/2024-3rd.jpg" },
   ] }], historicalDips: [], has_unresolved: false });
   let tree = page.render();
-  let images = nodes(tree, node => node.type === "img");
+  let images = photos(tree);
   assert.deepEqual(images.map(image => image.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-2nd.jpeg", "/winners/2024-3rd.jpeg"]);
   images[1].props.onError();
   tree = page.render();
-  images = nodes(tree, node => node.type === "img");
+  images = photos(tree);
   assert.deepEqual(images.map(image => image.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-3rd.jpeg"]);
   for (const expected of ["Dipsgiving 2024", "Cowboy Dip", "Kim and Brian", "1st Place", "Buffalo Chicken Dip", "Natasha", "2nd Place", "Smoked Queso", "Jordan", "3rd Place"]) assert.ok(content(tree).includes(expected), expected);
   assert.equal(nodes(tree, node => ["2024-first", "2024-second", "2024-third"].includes(node.key)).length, 3);
   const failedCard = nodes(tree, node => node.key === "2024-second")[0];
   assert.equal(nodes(failedCard, node => node.type === "img").length, 0);
   assert.equal(nodes(failedCard, node => node.props?.className?.includes("h-40") || node.props?.className?.includes("mb-5")).length, 0);
+});
+
+test("winner and archive years share one descending timeline around the 2025 story without mutating the feed", async () => {
+  const mixed = {
+    years: [2024, 2027, 2026].map(year => ({ id: String(year), year, podium: [{ id: `winner-${year}`, dip_name: `Winning recipe ${year}`, by: `Chef ${year}`, place: 1 }] })),
+    historicalDips: [2024, 2025, 2027, 2026].map(year => ({ id: `archive-${year}`, archive_year: year, dip_name: `Archived recipe ${year}`, by: `Archived chef ${year}`, notes: `Original notes ${year}`, votes: year })),
+    has_unresolved: false,
+  };
+  const before = JSON.stringify(mixed);
+  function freeze(value) {
+    if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); }
+    return value;
+  }
+  freeze(mixed);
+  const page = harness(); page.render(); page.effects[0](); await page.respond(mixed);
+  const tree = page.render();
+  const text = content(tree);
+  const ordered = ["Winning recipe 2027", "Archived recipe 2027", "Winning recipe 2026", "Archived recipe 2026", "The Great Voting Disaster of 2025", "Archived recipe 2025", "Winning recipe 2024", "Archived recipe 2024"];
+  const indices = ordered.map(marker => text.indexOf(marker));
+  assert(indices.every(index => index >= 0));
+  assert(indices.every((index, i) => i === 0 || index > indices[i - 1]), "Every year's winner and archived entries precede the next earlier year");
+  assert.equal(disasterCards(tree).length, 1);
+  assert.equal(nodes(tree, node => node.type === "h2" && content(node) === "Dipsgiving 2025").length, 0);
+  assert.equal(JSON.stringify(mixed), before, "Rendering never sorts or rewrites supplied historical records in place");
+});
+
+test("the static 2025 story preserves any explicitly supplied result instead of deleting historical data", async () => {
+  const supplied = { years: [{ id: "2025", year: 2025, podium: [{ id: "stored", dip_name: "Stored result", by: "Recorded chef", place: 2, award: "Stored award", category: "Stored category" }] }], historicalDips: [], has_unresolved: false };
+  const before = JSON.stringify(supplied);
+  const page = harness(); page.render(); page.effects[0](); await page.respond(supplied);
+  const tree = page.render();
+  assert.match(content(tree), /The Great Voting Disaster of 2025.*Stored result.*Recorded chef/);
+  assert.match(content(tree), /2nd Place.*Stored award.*Stored category/);
+  assert.equal(JSON.stringify(supplied), before);
 });

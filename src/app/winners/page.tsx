@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import EmptyState from "@/components/EmptyState";
+import VotingDisaster2025 from "@/components/VotingDisaster2025";
 import { getClientDB } from "@/lib/firebase";
 import ChampionPhoto from "@/components/ChampionPhoto";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
@@ -17,6 +17,7 @@ type PodiumEntry = {
 
 type YearWinner = {
   id: string;
+  year?: number;
   image?: string;
   podium: PodiumEntry[];
 };
@@ -31,6 +32,8 @@ type HistoricalDip = {
 };
 
 export default isMultiDipEnabled ? MultiDipChampionsPage : HistoricDipChampions;
+
+const winnerYear = (winner: YearWinner) => winner.year ?? Number(winner.id);
 
 function HistoricDipChampions() {
   const [years, setYears] = useState<YearWinner[]>([]);
@@ -53,13 +56,14 @@ function HistoricDipChampions() {
 
           result.push({
             id: doc.id,
+            ...(Number.isInteger(data.year) ? { year: data.year as number } : {}),
             image: typeof data.image === "string" ? data.image : undefined,
             podium: Array.isArray(data.podium) ? data.podium as PodiumEntry[] : [],
           });
         });
 
         // Keep confirmed champions visible even if the archive read fails.
-        result.sort((a, b) => Number(b.id) - Number(a.id));
+        result.sort((a, b) => winnerYear(b) - winnerYear(a));
         setYears(result);
 
         const historicalSnap = await getDocs(collection(db, "historicalDips"));
@@ -117,8 +121,8 @@ function HistoricDipChampions() {
     {}
   );
 
-  const archivedYears = Object.keys(dipsByYear)
-    .map(Number)
+  const timelineYears = [...new Set([2025, ...years.map(winnerYear), ...Object.keys(dipsByYear).map(Number)])]
+    .filter(Number.isFinite)
     .sort((a, b) => b - a);
 
   return (
@@ -146,84 +150,79 @@ function HistoricDipChampions() {
           </p>
         )}
 
-        {!isLoading && years.length === 0 && historicalDips.length === 0 && !error && (
-          <EmptyState
-            variant="champions"
-            title="The Legends Are Still Being Written."
-            description="Every legendary dip has to start somewhere. Who will claim the crown?"
-          />
-        )}
+        {timelineYears.map((timelineYear) => (
+          <div key={timelineYear} data-champions-year={timelineYear} className="space-y-8">
+            {timelineYear === 2025 && <VotingDisaster2025 />}
 
-        {years.map((year) => (
-          <section
-            key={year.id}
-            className="festival-card space-y-7 p-5 sm:p-8"
-          >
-            <h2 className="border-b border-border pb-5 font-display text-3xl text-foreground sm:text-4xl">
-              Dipsgiving {year.id}
-            </h2>
+            {years.filter(year => winnerYear(year) === timelineYear).map((year) => (
+              <section
+                key={year.id}
+                className="festival-card space-y-7 p-5 sm:p-8"
+              >
+                <h2 className="border-b border-border pb-5 font-display text-3xl text-foreground sm:text-4xl">
+                  Dipsgiving {winnerYear(year)}
+                </h2>
 
-            {/* Podium */}
-            <div className="grid gap-4 text-center sm:grid-cols-3">
-              {year.podium
-                .sort((a, b) => a.place - b.place)
-                .map((entry) => (
-                  <div
-                    key={entry.place}
-                    className="min-w-0 rounded-2xl border border-gold/40 bg-background p-5"
-                  >
-                    <div className="mb-4 text-sm font-bold uppercase tracking-wider text-orange-700">
-                      🏆 {entry.place === 1 ? "1st Place" : entry.place === 2 ? "2nd Place" : "3rd Place"}
-                    </div>
+                {/* Podium */}
+                <div className="grid gap-4 text-center sm:grid-cols-3">
+                  {[...year.podium]
+                    .sort((a, b) => a.place - b.place)
+                    .map((entry) => (
+                      <div
+                        key={entry.place}
+                        className="min-w-0 rounded-2xl border border-gold/40 bg-background p-5"
+                      >
+                        <div className="mb-4 text-sm font-bold uppercase tracking-wider text-orange-700">
+                          🏆 {entry.place === 1 ? "1st Place" : entry.place === 2 ? "2nd Place" : "3rd Place"}
+                        </div>
 
-                    {entry.image && (
-                      <ChampionPhoto
-                        src={entry.image}
-                        alt={`${entry.dip_name}, place ${entry.place} at Dipsgiving ${year.id}${entry.by ? `, by ${entry.by}` : ""}`}
-                      />
-                    )}
+                        {entry.image && (
+                          <ChampionPhoto
+                            src={entry.image}
+                            alt={`${entry.dip_name}, place ${entry.place} at Dipsgiving ${winnerYear(year)}${entry.by ? `, by ${entry.by}` : ""}`}
+                          />
+                        )}
 
-                    <h3 className="break-words font-display text-2xl leading-snug text-foreground">
-                      {entry.dip_name}
-                    </h3>
-                    <div className="mt-2 text-sm text-muted-foreground">
-                      by {entry.by}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </section>
-        ))}
+                        <h3 className="break-words font-display text-2xl leading-snug text-foreground">
+                          {entry.dip_name}
+                        </h3>
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          by {entry.by}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </section>
+            ))}
 
-        {archivedYears.map((year) => (
-          <section
-            key={year}
-            className="space-y-5"
-          >
-            <h2 className="font-display text-3xl text-foreground sm:text-4xl">
-              {year} Historical Dips
-            </h2>
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {dipsByYear[year].map((dip) => (
-                <li
-                  key={dip.id}
-                  className="festival-card festival-lift min-w-0 p-5"
-                >
-                  <h3 className="break-words font-display text-xl text-foreground">
-                    {dip.dip_name}
-                  </h3>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    {dip.by ? `by ${dip.by}` : "by guest"}
-                  </div>
-                  {dip.notes && (
-                    <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
-                      {dip.notes}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
+            {dipsByYear[timelineYear] && (
+              <section className="space-y-5">
+                <h2 className="font-display text-3xl text-foreground sm:text-4xl">
+                  {timelineYear} Historical Dips
+                </h2>
+                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {dipsByYear[timelineYear].map((dip) => (
+                    <li
+                      key={dip.id}
+                      className="festival-card festival-lift min-w-0 p-5"
+                    >
+                      <h3 className="break-words font-display text-xl text-foreground">
+                        {dip.dip_name}
+                      </h3>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        {dip.by ? `by ${dip.by}` : "by guest"}
+                      </div>
+                      {dip.notes && (
+                        <div className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
+                          {dip.notes}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         ))}
       </div>
     </main>

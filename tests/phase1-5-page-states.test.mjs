@@ -103,6 +103,10 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     },
     "@/components/PhoneRsvpForm": (props) => element("phone-rsvp-form", props),
     "@/components/EmptyState": EmptyState,
+    "@/components/VotingDisaster2025": loadComponent("src/components/VotingDisaster2025.tsx", {
+      "react/jsx-runtime": jsx,
+      "@/lib/testingMode": { testingAssetPath: path => testingMode ? `/testing${path}` : path },
+    }),
     "@/components/ChampionPhoto": loadComponent("src/components/ChampionPhoto.tsx", {
       react,
       "react/jsx-runtime": jsx,
@@ -237,7 +241,7 @@ test("dip read failures display an error rather than an invitation to enter an e
   assert.equal(page.errors.length, 0);
 });
 
-test("champions remain in loading state until both collections finish, then show a true empty state", async () => {
+test("champions retain loading feedback until reads finish while the static 2025 story replaces the empty archive card", async () => {
   const page = championsPage();
   const initial = page.render();
   assert.match(content(statusMessages(initial)), /Opening the hall of fame/);
@@ -251,15 +255,17 @@ test("champions remain in loading state until both collections finish, then show
   await page.resolveRead("historicalDips", []);
   const loaded = page.render();
   assert.equal(statusMessages(loaded).length, 0);
-  const [card] = emptyCards(loaded);
+  assert.equal(emptyCards(loaded).length, 0);
+  const [card] = nodes(loaded, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title");
   assert.ok(card);
-  assert.match(content(card), /The Legends Are Still Being Written\./);
-  assert.match(content(card), /Every legendary dip has to start somewhere\. Who will claim the crown\?/);
+  assert.match(content(card), /The Great Voting Disaster of 2025/);
+  assert.match(content(card), /NO OFFICIAL CHAMPION/);
+  assert.match(content(card), /Official Result: Everyone Lost\. Especially IT\./);
   const [illustration] = nodes(card, (node) => node.type === "img");
-  assert.equal(illustration.props.src, "/illustrations/dip-trophy.svg");
-  assert.equal(illustration.props.alt, "");
-  assert.equal(illustration.props["aria-hidden"], "true");
+  assert.equal(illustration.props.src, "/testing/illustrations/voting-disaster-2025.svg");
+  assert.match(illustration.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
   assert.equal(nodes(card, (node) => node.type === "a").length, 0);
+  assert.doesNotMatch(content(loaded), /1st Place|2nd Place|3rd Place|by guest/);
 });
 
 test("archived dips without winner documents preserve history and suppress the champions empty state", async () => {
@@ -279,7 +285,8 @@ test("archived dips without winner documents preserve history and suppress the c
   assert.match(content(tree), /Garden Dipby TaylorFresh herbs/);
   assert.match(content(tree), /Classic Quesoby Jordan/);
   assert.equal(nodes(tree, (node) => node.type === "li").length, 2);
-  assert.equal(nodes(tree, (node) => node.type === "img").length, 0);
+  assert.equal(nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/")).length, 0);
+  assert.equal(nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title").length, 1);
 });
 
 test("real winners remain visible with lazy, sized, descriptive images when archived dips are absent", async () => {
@@ -287,19 +294,63 @@ test("real winners remain visible with lazy, sized, descriptive images when arch
   page.render();
   page.startEffects();
   await page.resolveRead("winners", [{
-    id: "2025",
-    data: { podium: [{ place: 1, dip_name: "Pepper Party", by: "Casey", image: "/winners/2025-pepper.jpg" }] },
+    id: "2026",
+    data: { podium: [{ place: 1, dip_name: "Pepper Party", by: "Casey", image: "/winners/2026-pepper.jpg" }] },
   }]);
   await page.resolveRead("historicalDips", []);
   const tree = page.render();
   assert.equal(emptyCards(tree).length, 0);
-  assert.match(content(tree), /Dipsgiving 2025/);
+  assert.match(content(tree), /Dipsgiving 2026/);
   assert.match(content(tree), /Pepper Partyby Casey/);
-  const [image] = nodes(tree, (node) => node.type === "img");
-  assert.equal(image.props.src, "/winners/2025-pepper.jpg");
-  assert.match(image.props.alt, /Pepper Party.*2025.*Casey/);
+  const [image] = nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/"));
+  assert.equal(image.props.src, "/winners/2026-pepper.jpg");
+  assert.match(image.props.alt, /Pepper Party.*2026.*Casey/);
   assert.equal(image.props.loading, "lazy");
   assert.ok(image.props.width > 0 && image.props.height > 0);
+});
+
+test("legacy Champions interleaves custom-ID future results and archives by year while preserving 2024 photos and raw records", async () => {
+  const winners = [
+    { id: "2024", data: { podium: [
+      { place: 3, dip_name: "Butter Chicken", by: "The Packlas", image: "/winners/2024-3rd.jpg" },
+      { place: 1, dip_name: "Smoked Jalapeño", by: "Monty and Bethany", image: "/winners/2024-1st.jpeg" },
+      { place: 2, dip_name: "Fried Pickle", by: "The Neals", image: "/winners/2024-2nd.jpeg" },
+    ] } },
+    { id: "future-event-custom-id", data: { year: 2027, podium: [{ place: 1, dip_name: "Winner 2027", by: "Future chef" }] } },
+    { id: "2026", data: { podium: [{ place: 1, dip_name: "Winner 2026", by: "Another chef" }] } },
+  ];
+  const archives = [2024, 2025, 2027, 2026].map(year => ({ id: `archive-${year}`, data: { archive_year: year, dip_name: `Archive ${year}`, by: `Chef ${year}`, notes: `Original ${year}`, votes: year } }));
+  const before = JSON.stringify({ winners, archives });
+  function freeze(value) {
+    if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); }
+    return value;
+  }
+  freeze(winners); freeze(archives);
+  const page = championsPage(); page.render(); page.startEffects();
+  await page.resolveRead("winners", winners);
+  await page.resolveRead("historicalDips", archives);
+  const tree = page.render();
+  assert.deepEqual(nodes(tree, node => node.props["data-champions-year"] !== undefined).map(node => node.props["data-champions-year"]), [2027, 2026, 2025, 2024]);
+  const text = content(tree);
+  const ordered = ["Winner 2027", "Archive 2027", "Winner 2026", "Archive 2026", "The Great Voting Disaster of 2025", "Archive 2025", "Smoked Jalapeño", "Archive 2024"];
+  const indices = ordered.map(marker => text.indexOf(marker));
+  assert(indices.every(index => index >= 0) && indices.every((index, i) => i === 0 || index > indices[i - 1]));
+  assert.match(text, /Dipsgiving 2027/);
+  for (const expected of ["Monty and Bethany", "Fried Pickle", "The Neals", "Butter Chicken", "The Packlas", "Original 2025"]) assert(text.includes(expected));
+  assert.deepEqual(nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/")).map(node => node.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-2nd.jpeg", "/winners/2024-3rd.jpeg"]);
+  const disasterYear = nodes(tree, node => node.props["data-champions-year"] === 2025)[0];
+  assert.doesNotMatch(content(disasterYear), /1st Place|2nd Place|3rd Place/);
+  assert.equal(nodes(disasterYear, node => node.type === "h2" && content(node) === "Dipsgiving 2025").length, 0);
+  assert.equal(JSON.stringify({ winners, archives }), before);
+});
+
+test("the 2025 story illustration uses the testing asset prefix while preserving its accessible error label", async () => {
+  const page = championsPage({ testingMode: true }); page.render(); page.startEffects();
+  await page.resolveRead("winners", []); await page.resolveRead("historicalDips", []);
+  const card = nodes(page.render(), node => node.props["aria-labelledby"] === "voting-disaster-2025-title")[0];
+  const image = nodes(card, node => node.type === "img")[0];
+  assert.equal(image.props.src, "/testing/illustrations/voting-disaster-2025.svg");
+  assert.match(image.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
 });
 
 test("a champions read error never claims the historical record is empty", async () => {
@@ -319,7 +370,7 @@ test("confirmed champions remain visible if the historical archive read fails", 
   page.render();
   page.startEffects();
   await page.resolveRead("winners", [{
-    id: "2025",
+    id: "2026",
     data: { podium: [{ place: 1, dip_name: "Real Champion", by: "Casey" }] },
   }]);
   await page.failRead("historicalDips");

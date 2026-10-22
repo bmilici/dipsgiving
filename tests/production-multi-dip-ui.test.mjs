@@ -74,6 +74,10 @@ function uiModules(env) {
     "@/components/MultiDipChampionsPage": "individual-dip-champions-page",
     "@/components/EmptyState": "empty-state",
     "@/components/ChampionPhoto": "champion-photo",
+    "@/components/VotingDisaster2025": load("src/components/VotingDisaster2025.tsx", env, {
+      "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
+      "@/lib/testingMode": testing,
+    }),
   };
 }
 
@@ -140,4 +144,19 @@ test("static testing public flags keep existing registration and voting controls
   assert.match(text(tree), /Voting is disabled and no votes will be submitted/);
   assert.notEqual(load("src/app/winners/page.tsx", env, imports).default, "individual-dip-champions-page");
   assert.equal(imports["@/lib/testingMode"].testingAssetPath("/api/dips"), "/testing/api/dips");
+});
+
+test("the static 2025 story uses the current environment's asset path without SDK access or fabricated winners", () => {
+  for (const preview of [false, true]) {
+    const env = { ...approvedProduction, NEXT_PUBLIC_DESIGN_PREVIEW: String(preview), NEXT_PUBLIC_RSVP_MULTI_DIP: String(!preview) };
+    const imports = uiModules(env);
+    const tree = imports["@/components/VotingDisaster2025"].default();
+    assert.match(text(tree), /The Great Voting Disaster of 2025/);
+    assert.match(text(tree), /NO OFFICIAL CHAMPION/);
+    assert.match(text(tree), /Official Result: Everyone Lost\. Especially IT\./);
+    const image = nodes(tree, node => node.type === "img")[0];
+    assert.equal(image.props.src, `${preview ? "/testing" : ""}/illustrations/voting-disaster-2025.svg`);
+    assert.match(image.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
+    assert.doesNotMatch(text(tree), /1st Place|2nd Place|3rd Place|Created by/);
+  }
 });
