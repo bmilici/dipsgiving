@@ -320,6 +320,9 @@ test("development admin dip totals join independent confirmed entries without du
   assert(!JSON.stringify(result.dips).includes("phone"));
   assert(!JSON.stringify(result.dips).includes("registration_id"));
   assert.equal(result.dipEditReviews[0].proposed.dip_name, "New Salsa");
+  assert.equal(result.dipEditReviews[0].name, "Two Dips");
+  assert.equal(result.dipEditReviews[0].current_dip_name, "Salsa");
+  assert.equal(result.dipEditReviews[0].proposed.notes, "Dairy");
   assert.deepEqual(fixture.db.registrations(), before);
 });
 

@@ -27,7 +27,10 @@ export default function AdminDashboard() {
 function AdminDashboardContent() {
   const [rows, setRows] = useState<Reg[]>([]);
   const [competitionDips, setCompetitionDips] = useState<PublicDip[]>([]);
-  const [dipReviews, setDipReviews] = useState<Array<{ id: string; dip_id: string; proposed: { dip_name?: string | null } }>>([]);
+  const [dipReviews, setDipReviews] = useState<Array<{
+    id: string; name: string | null; current_dip_name: string | null;
+    proposed: { status: "pending" | "confirmed"; dip_name: string | null; notes: string | null };
+  }>>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,7 +143,11 @@ function AdminDashboardContent() {
           <section className="rounded-2xl border border-orange-200 bg-white/80 p-5" aria-label="Dip changes for review">
             <h2 className="text-xl font-semibold text-orange-900">Dip Changes for Review</h2>
             <p className="mt-2 text-sm text-orange-800">These requests have not changed the competition entries or their votes. Contact the guest before making any approved change.</p>
-            <ul className="mt-3 space-y-2">{dipReviews.map(review => <li key={review.id} className="break-words text-sm">{review.proposed.dip_name || "Pending dip"} — entry {review.dip_id}</li>)}</ul>
+            <ul className="mt-3 space-y-3">{dipReviews.map(review => <li key={review.id} className="space-y-1 break-words rounded-xl border border-orange-200 p-3 text-sm">
+              <p className="font-semibold">{review.current_dip_name || "Pending dip"} — {review.name || "Guest"}</p>
+              <p>Requested: {review.proposed.status === "pending" ? "TBD" : review.proposed.dip_name || "Unnamed dip"}</p>
+              {review.proposed.notes && <p>Notes / Allergens: {review.proposed.notes}</p>}
+            </li>)}</ul>
           </section>
         )}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
