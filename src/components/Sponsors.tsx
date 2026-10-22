@@ -9,6 +9,7 @@ const defaultSponsors: readonly Sponsor[] = [
   { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
   { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
   { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", logo: "/sponsors/smilee-logo.webp" },
+  { name: "Amber Reyes, Broker Associate", url: "https://www.amberreyesrealtor.com/", logo: "/sponsors/amber-reyes-realtor.png" },
 ];
 
 export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: readonly Sponsor[] }) {
