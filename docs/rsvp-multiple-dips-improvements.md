@@ -237,6 +237,20 @@ The visual browser connection was retried but failed before opening with the
 tool's `sandboxPolicy` initialization error. No screenshot or interactive visual
 verification is claimed. Component, API, and real database checks passed.
 
+The final application build passed in the separate build checkout. Actual HTTP
+requests against that compiled build, with hosted-production settings and
+inherited experiment flags, returned 404 for both experimental APIs and retained
+the existing form. The local development pages all loaded directly; their RSVP
+HTML contained exactly three required, initially unselected radio choices and no
+dip fields until a choice is made. Nothing was uploaded or deployed.
+
+The development preview remains available at `http://127.0.0.1:3028` from
+`/private/tmp/dipsgiving-multiple-dips-dev`. Use a synthetic name and an example
+number such as `(202) 555-0101` to create a demo RSVP before testing lookup.
+Production guests are not imported. The local lookup limit consumed by QA was
+reset after verification so manual review can begin immediately. The temporary
+hosted-build check server was stopped; the development preview stays running.
+
 ## Modified files
 
 - `docs/multiple-dips.md`
