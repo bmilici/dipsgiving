@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { EVENT_YEAR } from "@/lib/eventSchedule";
 import { isTestingMode, testingAssetPath } from "@/lib/testingMode";
+import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -95,7 +96,9 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-5 focus:py-3 focus:text-espresso">Skip to content</a>
         {isTestingMode && (
           <aside className="border-b border-forest/15 bg-gold px-4 py-2.5 text-center text-xs leading-relaxed text-espresso sm:text-sm" aria-label="Design preview notice">
-            <strong>Design preview</strong> — submissions and voting are disabled.
+            <strong>Design preview</strong> — {isRsvpLookupTestingEnabled
+              ? "RSVP changes are for testing only. Voting is disabled."
+              : "submissions and voting are disabled."}
           </aside>
         )}
         <Nav />

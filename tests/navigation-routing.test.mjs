@@ -27,6 +27,7 @@ function load(file, env = {}) {
       if (name === "next/server") return { NextResponse: nextResponse };
       if (["@/lib/siteNavigation", "./siteNavigation", "./src/lib/siteNavigation"].includes(name)) return load("src/lib/siteNavigation.ts", env);
       if (["@/lib/testingMode", "./lib/testingMode"].includes(name)) return load("src/lib/testingMode.ts", env);
+      if (name === "@/lib/rsvp/testing") return load("src/lib/rsvp/testing.ts", env);
       throw new Error(`Unexpected integration import: ${name}`);
     },
   }, { filename: file, timeout: 2_000 });

@@ -25,6 +25,7 @@ vm.runInNewContext(compiled, {
   require(name) {
     if (name === "@/lib/testingMode") return helper("src/lib/testingMode.ts");
     if (name === "@/lib/siteNavigation") return helper("src/lib/siteNavigation.ts");
+    if (name === "@/lib/rsvp/testing") return { isRsvpLookupTestingEnabled: false };
     assert.equal(name, "next/server", "Unexpected integration import");
     return { NextResponse: {
       next: () => ({ kind: "next" }),

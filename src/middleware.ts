@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isTestingMode } from "@/lib/testingMode";
 import { siteNavigation, TESTING_BASE_PATH } from "@/lib/siteNavigation";
+import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
 
 const reviewPages = new Set<string>(siteNavigation.map(({ href }) => href));
 const publicAsset = /^(?:\/(?:illustrations|sponsors|winners)\/[^?]+\.(?:avif|gif|ico|jpe?g|png|svg|webp)|\/(?:favicon[^/]*\.(?:ico|png|svg)|apple-touch-icon\.png|og-image\.png|web-app-manifest-[^/]+\.png|site\.webmanifest))$/i;
@@ -28,6 +29,12 @@ export function middleware(request: NextRequest) {
   }
 
   const page = prefix ? pathname.slice(prefix.length) || "/" : pathname;
+  if (prefix && page === "/api/rsvp" && isRsvpLookupTestingEnabled) {
+    if (!["GET", "HEAD", "POST"].includes(request.method)) {
+      return new NextResponse("Method not allowed.", { status: 405, headers: { Allow: "GET, HEAD, POST" } });
+    }
+    return NextResponse.next();
+  }
   const isAsset = prefix && (page.startsWith("/_next/") || publicAsset.test(page));
   if (!prefix || (!reviewPages.has(page) && !isAsset)) {
     return new NextResponse("This page is not included in the Dipsgiving testing preview.", { status: 404 });

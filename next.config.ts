@@ -9,9 +9,15 @@ const developmentPreview =
     process.env.NODE_ENV === "development" ||
     process.env.NEXT_PUBLIC_DESIGN_PREVIEW === "true");
 
+const rsvpLookupTesting = developmentPreview &&
+  process.env.DIPSGIVING_RSVP_LOOKUP_TESTING === "true";
+
 const nextConfig: NextConfig = {
   ...(developmentPreview ? { basePath: "/testing" } : {}),
-  env: { NEXT_PUBLIC_DESIGN_PREVIEW: developmentPreview ? "true" : "false" },
+  env: {
+    NEXT_PUBLIC_DESIGN_PREVIEW: developmentPreview ? "true" : "false",
+    NEXT_PUBLIC_RSVP_LOOKUP_TESTING: rsvpLookupTesting ? "true" : "false",
+  },
   eslint: {
     // ⚠️ Temporarily ignore ESLint errors in production builds
     ignoreDuringBuilds: true,
@@ -25,7 +31,10 @@ const nextConfig: NextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
         ],
-      }];
+      }, ...(rsvpLookupTesting ? [{
+        source: "/api/rsvp",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      }] : [])];
     }
     return [
       {

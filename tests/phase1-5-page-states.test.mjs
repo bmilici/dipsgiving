@@ -50,7 +50,7 @@ const snapshot = (rows) => ({
   },
 });
 
-function pageHarness(file, { databaseAvailable = true } = {}) {
+function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false } = {}) {
   const state = [];
   const reads = [];
   const events = [];
@@ -91,6 +91,8 @@ function pageHarness(file, { databaseAvailable = true } = {}) {
     },
     "@/lib/firebase": { getClientDB: () => databaseAvailable ? db : null },
     "@/lib/siteNavigation": navigationModule,
+    "@/lib/rsvp/testing": { isRsvpLookupTestingEnabled: rsvpLookupEnabled },
+    "@/components/PhoneRsvpForm": (props) => element("phone-rsvp-form", props),
     "@/components/EmptyState": EmptyState,
     "@/lib/testingMode": { testingAssetPath: (path) => path },
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon", CalendarDays: "calendar-icon" },
@@ -319,5 +321,23 @@ test("RSVP and dip registration have distinct headings and icons while reusing t
     assert.equal(nodes(tree, (node) => ["form", "input", "textarea", "select"].includes(node.type)).length, 0);
     page.startEffects();
     assert.deepEqual(page.events.map((event) => event.type), expected.variant === "dip" ? ["open-dip-only"] : []);
+  }
+});
+
+
+test("registration page gate selects the isolated phone flow and preserves legacy dip-only effects", () => {
+  for (const [file, initialMode] of [["src/app/register/page.tsx", "rsvp"], ["src/app/register/dip/page.tsx", "lookup"]]) {
+    for (const rsvpLookupEnabled of [false, true]) {
+      const page = pageHarness(file, { rsvpLookupEnabled });
+      const tree = page.render();
+      const phoneForms = nodes(tree, (node) => node.type === "phone-rsvp-form");
+      const existingForms = nodes(tree, (node) => node.type === "existing-registration-form");
+      assert.equal(phoneForms.length, rsvpLookupEnabled ? 1 : 0);
+      assert.equal(existingForms.length, rsvpLookupEnabled ? 0 : 1);
+      if (rsvpLookupEnabled) assert.equal(phoneForms[0].props.initialMode, initialMode);
+      page.startEffects();
+      assert.deepEqual(page.events.map((event) => event.type), !rsvpLookupEnabled && initialMode === "lookup" ? ["open-dip-only"] : []);
+      assert.equal(page.reads.length, 0);
+    }
   }
 });

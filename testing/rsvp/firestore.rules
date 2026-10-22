@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // The test flow uses the local server. No browser can read guest phones,
+    // sessions or rate-limit records, or write directly to this emulator.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
