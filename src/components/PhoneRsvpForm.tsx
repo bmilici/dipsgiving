@@ -15,10 +15,10 @@ type RegistrationSummary = { name: string; party_size: number | null; confirmed_
 type Confirmation = { title: string; message: string; kind: "rsvp_pending" | "rsvp_none" | "dip_confirmed" | "dip_added" | "dip_pending" | "dip_updated" };
 type ApiReply = { ok?: boolean; error?: string; dip_name?: string; notes?: string; context?: string; dips?: unknown; dip_id?: string; registration_summary?: unknown; confirmation?: unknown };
 
-const DIP_CHOICES: { value: DipChoice; label: string }[] = [
+const DIP_CHOICES: { value: DipChoice; label: string; help?: string }[] = [
   { value: "confirmed", label: "Yes! I know what I'm bringing." },
-  { value: "pending", label: "Yes, but I'll decide later." },
-  { value: "none", label: "No dip for me!" },
+  { value: "pending", label: "Yes, but I'll decide later.", help: "No pressure! Save your spot now and come back to register your dip once you've decided what to bring." },
+  { value: "none", label: "No dip for me!", help: "Just here for the food and good times? We love that! No dip required—just bring your appetite." },
 ];
 
 const ENDPOINT = testingAssetPath("/api/rsvp");
@@ -407,7 +407,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
                     <input name="dip_status" type="radio" required value={choice.value} checked={dipChoice === choice.value} onChange={() => setDipChoice(choice.value)} aria-describedby={showHelp ? helpId : undefined} className="h-5 w-5 shrink-0 accent-primary" />
                     <span className="text-sm font-semibold text-foreground">{choice.label}</span>
                   </label>
-                  {showHelp && <p id={helpId} className="px-4 text-sm leading-relaxed text-muted-foreground">RSVP now and add a dip later using “Add a Dip (Already Registered?)” with the same name and phone number.</p>}
+                  {showHelp && <p id={helpId} className="px-4 text-sm leading-relaxed text-muted-foreground">{choice.help}</p>}
                 </div>;
               })}
             </fieldset> : <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3">
