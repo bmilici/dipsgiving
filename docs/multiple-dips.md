@@ -152,6 +152,12 @@ admin passcode is `local-demo-admin-passcode`; it is unrelated to production
 admin access. Changing the synthetic event's `votingOpen` setting allows voting
 checks without changing the real event settings.
 
+The preview is running in `/private/tmp/dipsgiving-multiple-dips-dev`. Create a
+test RSVP with a synthetic name and valid reserved example number such as
+`(202) 555-0101`, then use that same name and number to try adding more dips.
+Production guest records are not imported. The local lookup limit consumed by
+automated tests was reset afterward so manual review can begin immediately.
+
 ## Verification
 
 The opt-in `tests/multiple-dips-emulator.test.mjs` runs the actual RSVP and
@@ -198,8 +204,11 @@ parent integration test).
 
 The complete offline suite also passed **267 tests**, including service,
 endpoint, UI, feature-isolation, and existing regression coverage. TypeScript
-checking passed. The final aggregate count, application build, and any browser
-tool limitations are reported in the task delivery alongside this document.
+checking and focused ESLint passed. The final application build also passed in
+a separate checkout. Serving that compiled build locally under hosted production
+settings (including inherited experiment flags) retained the existing voting page
+and returned 404 for the experimental voting API, confirming the hosted feature
+stays disabled. No build was uploaded or deployed.
 
 `scripts/verify-multiple-dips.mjs` also passed through the running application
 at its fixed `http://127.0.0.1:3028` address with Firestore on `8189` and Auth on
@@ -218,7 +227,8 @@ reads returned the joined individual dip counts and review proposals. Raw
 private-record reads and direct counter or ballot writes were denied with
 HTTP 403 under the development rules. All owned synthetic data, sessions,
 ballots, proposals, request receipts, and Auth users were cleaned up; prior
-demo event settings were restored. Shared rate-limit counters remain active.
+demo event settings were restored. The verifier retains shared rate-limit
+metadata; only the local demo lookup bucket was reset afterward for manual review.
 
 ```sh
 node scripts/verify-multiple-dips.mjs
