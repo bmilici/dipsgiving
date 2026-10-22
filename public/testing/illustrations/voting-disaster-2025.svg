@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="460" viewBox="0 0 600 460" fill="none">
+  <title>The voting machine has misplaced the champion</title>
+  <desc>A warm retro computer reads ERROR 404: CHAMPION NOT FOUND beside a ballot box, a broken trophy, and an unplugged cable.</desc>
+  <defs>
+    <pattern id="scanlines" width="5" height="7" patternUnits="userSpaceOnUse"><path d="M0 6h5" stroke="#F7EBD6" stroke-opacity=".06"/></pattern>
+    <pattern id="chip-specks" width="19" height="21" patternUnits="userSpaceOnUse"><circle cx="4" cy="5" r="1.2" fill="#9B5A29" opacity=".45"/><circle cx="14" cy="16" r="1" fill="#9B5A29" opacity=".3"/></pattern>
+  </defs>
+  <ellipse cx="301" cy="229" rx="225" ry="190" fill="#E7AA42" fill-opacity=".16"/>
+  <ellipse cx="305" cy="420" rx="223" ry="21" fill="#2B2420" opacity=".08"/>
+  <g stroke="#2B2420" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M140 89h291c16 0 29 13 29 29v209c0 18-12 32-29 32H140c-17 0-29-14-29-32V118c0-16 13-29 29-29Z" fill="#DFCBA7"/>
+    <path d="M128 118c0-7 6-13 13-13h287c8 0 14 6 14 13v191H128Z" fill="#F7EBD6" stroke="none"/>
+    <rect x="139" y="116" width="292" height="189" rx="18" fill="#324F3C"/>
+    <rect x="145" y="122" width="280" height="177" rx="13" fill="url(#scanlines)" stroke="none"/>
+    <path d="M155 142c10-12 22-15 40-15" stroke="#F7EBD6" stroke-opacity=".35"/>
+    <path d="M143 329h75m-75 11h54" stroke="#8F795B" stroke-width="3"/>
+    <circle cx="414" cy="332" r="7" fill="#B84A2B"/>
+    <path d="M255 360v29h65v-29" fill="#DFCBA7"/>
+    <path d="M239 389h98c7 0 12 5 12 12v4H227v-4c0-7 5-12 12-12Z" fill="#F7EBD6"/>
+    <path d="M464 338c44-4 61 7 61 29 0 18-27 24-37 10" stroke="#324F3C" stroke-width="5"/>
+    <path d="m477 367 17 10-10 17-17-10z" fill="#B84A2B"/>
+    <path d="m471 369-7-4m3 11-7-4" stroke-width="3"/>
+  </g>
+  <g fill="#F7EBD6" font-family="ui-monospace, 'Courier New', monospace" font-weight="700" text-anchor="middle">
+    <text x="285" y="180" font-size="34" letter-spacing="1">ERROR 404:</text>
+    <text x="285" y="223" font-size="27" letter-spacing="2">CHAMPION</text>
+    <text x="285" y="258" font-size="27" letter-spacing="2">NOT FOUND</text>
+  </g>
+  <path d="M270 280h31" stroke="#E7AA42" stroke-width="4" stroke-linecap="round"/>
+  <g transform="rotate(-13 124 122)" stroke="#2B2420" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M80 62h65l21 22v101H80Z" fill="#F7EBD6"/>
+    <path d="M145 62v23h21" fill="#E7AA42"/>
+    <path d="M95 104h14v14H95Zm0 29h14v14H95Z" fill="#E7AA42"/>
+    <path d="m96 106 11 10m0-10-11 10" stroke="#B84A2B" stroke-width="4"/>
+    <path d="m95 138 5 5 12-15" stroke="#324F3C" stroke-width="4"/>
+    <path d="M122 111h28m-28 29h28M95 167h54" stroke="#8F795B" stroke-width="3"/>
+  </g>
+  <g transform="rotate(6 143 357)" stroke="#2B2420" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m80 325 22-20h88l21 20v90H80Z" fill="#B84A2B"/>
+    <path d="M80 325h131m-99-13h60" stroke="#2B2420"/>
+    <path d="m120 273 63 7-5 36h-63Z" fill="#F7EBD6"/>
+    <path d="m139 288 7 9 17-13" stroke="#324F3C"/>
+    <rect x="97" y="347" width="98" height="44" rx="6" fill="#F7EBD6" stroke-width="3"/>
+    <text x="146" y="376" fill="#324F3C" stroke="none" font-family="ui-monospace, 'Courier New', monospace" font-size="19" font-weight="700" letter-spacing="1" text-anchor="middle">VOTES</text>
+  </g>
+  <g transform="rotate(12 474 291)" stroke="#2B2420" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M439 246h-18c0 31 13 45 33 48m54-48h18c0 31-13 45-33 48" fill="#E7AA42"/>
+    <path d="M436 230h75l-6 44c-2 18-13 31-31 31s-29-13-31-31Z" fill="#E7AA42"/>
+    <path d="M434 231h79" stroke="#F9D982" stroke-width="8"/>
+    <path d="m477 244-8 16 12 11-11 17" stroke="#B84A2B"/>
+    <path d="m472 306-5 12 15 8-9 12" stroke="#E7AA42" stroke-width="8"/>
+    <path d="M445 345h58v15h-58Zm-8 15h74v19h-74Z" fill="#324F3C"/>
+  </g>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="m360 372-19 39c-3 6 0 10 7 8l47-13c6-1 7-5 3-9l-26-28c-5-5-9-4-12 3Z" fill="#E7AA42" stroke="#2B2420" stroke-width="3"/>
+    <path d="m360 372-19 39c-3 6 0 10 7 8l47-13c6-1 7-5 3-9l-26-28c-5-5-9-4-12 3Z" fill="url(#chip-specks)"/>
+    <path d="m363 383-10 23 29-8" stroke="#F9D982" stroke-width="3"/>
+    <path d="m472 96 7-15m5 24 16-3M70 224l-15-7m17 23-15 4m313-181 2-12" stroke="#B84A2B" stroke-width="4"/>
+    <path d="m229 61 3-10m273 147 12 2" stroke="#324F3C" stroke-width="3"/>
+  </g>
+  <circle cx="81" cy="281" r="4" fill="#324F3C"/>
+  <circle cx="518" cy="149" r="4" fill="#E7AA42"/>
+</svg>
