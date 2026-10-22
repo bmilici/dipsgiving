@@ -56,7 +56,15 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
-        source: "/api/:path*",
+        source: "/api/rsvp",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
+      {
+        source: "/api/dips",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
+      {
+        source: "/api/admin/:path*",
         headers: [{ key: "Cache-Control", value: "no-store, private" }],
       },
       {

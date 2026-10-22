@@ -70,10 +70,11 @@ test("testing rewrites and noindex headers remain isolated from live routes", as
   }
   assert(rewrites.afterFiles.some(({ source, destination }) => source === "/Games" && destination === "/Games/index.html"));
   for (const header of plain(await config.headers())) {
-    if (header.source === "/api/:path*") {
+    if (["/api/rsvp", "/api/dips", "/api/admin/:path*"].includes(header.source)) {
       assert.deepEqual(header.headers, [{ key: "Cache-Control", value: "no-store, private" }]);
     } else {
       assert(header.source.startsWith("/testing"), "Preview headers never affect a live page");
     }
   }
+  assert(!(await config.headers()).some(({ source }) => source === "/api/:path*" || source === "/api/text-to-speech"), "Existing text-to-speech caching stays unchanged");
 });
