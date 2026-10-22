@@ -160,5 +160,5 @@ assert(rsvp.text.includes("You’re Invited to Dipsgiving!"), "Polished RSVP pre
 const dip = await read("/testing/register/dip");
 assert(dip.text.includes("Enter the Dip Showdown!"), "Polished dip registration presentation");
 const vote = await read("/testing/vote");
-assert(vote.text.includes("Back to Home") && !vote.text.includes("Back to About"), "Updated home link");
+assert(visibleText(vote.text).includes("Back to Home") && !visibleText(vote.text).includes("Back to About"), "Updated home link");
 console.log("PASS: Phase 1.5 hero, forms, countdown fallback, footer, and mobile icons");

@@ -152,7 +152,7 @@ test("unprefixed preview bookmarks remain inside the preview including their que
 });
 
 test("preview serves public page assets and blocks administrative, API, and unknown routes", () => {
-  for (const path of ["/testing/_next/static/chunks/main.js", "/testing/_next/image?url=%2Ffavicon.svg&w=64&q=75", "/testing/favicon.svg", "/testing/site.webmanifest", "/testing/illustrations/dip-table.svg", "/testing/sponsors/smilee-logo.webp", "/testing/winners/2025-pepper.jpg"]) {
+  for (const path of ["/testing/_next/static/chunks/main.js", "/testing/_next/image?url=%2Ffavicon.svg&w=64&q=75", "/testing/favicon.svg", "/testing/og-image-5th-2026.png", "/testing/site.webmanifest", "/testing/illustrations/dip-table.svg", "/testing/sponsors/smilee-logo.webp", "/testing/winners/2025-pepper.jpg"]) {
     assert.equal(request(path).kind, "next", path);
   }
   for (const path of ["/testing/admin", "/testing/admin/invitations", "/testing/api/text-to-speech", "/testing/not-a-page", "/admin", "/api/text-to-speech", "/TestingOther", "/Games"]) {
