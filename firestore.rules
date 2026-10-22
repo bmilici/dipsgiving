@@ -38,12 +38,6 @@ service cloud.firestore {
         );
     }
 
-    function validRegistrationCreate() {
-      return request.resource.data.keys().hasAll(["name", "event", "created_at"])
-        && request.resource.data.name is string
-        && request.resource.data.event is string;
-    }
-
     function validVoteChange() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(["votes"])
         && request.resource.data.votes is int
@@ -67,10 +61,10 @@ service cloud.firestore {
     }
 
     match /registrations/{registrationId} {
-      allow read: if true;
-      allow create: if validRegistrationCreate();
+      // RSVP details and phones are private. Server routes use Admin SDK;
+      // browsers receive only the public dip fields through the public API.
+      allow read, create, delete: if false;
       allow update: if signedIn() && validVoteChange();
-      allow delete: if false;
     }
 
     match /userVotes/{voteId} {
@@ -111,24 +105,12 @@ service cloud.firestore {
     }
 
     match /invitationList/{inviteeId} {
-      allow read: if signedIn();
-      allow create, update: if signedIn()
-        && request.resource.data.keys().hasOnly([
-          "name",
-          "phone",
-          "notes",
-          "invite_next_year",
-          "last_party_size",
-          "source_year",
-          "source_registration_ids",
-          "created_at",
-          "updated_at"
-        ])
-        && request.resource.data.name is string
-        && request.resource.data.phone is string
-        && request.resource.data.notes is string
-        && request.resource.data.invite_next_year is bool;
-      allow delete: if signedIn();
+      // Anonymous Firebase sign-in is used for voting, not host authorization.
+      // Invitation access is authorized by the private host API instead.
+      allow read, write: if false;
     }
+
+    // Unmatched server-only session, limiter and lock collections are denied
+    // by default; no guest can read or create a lookup/admin capability.
   }
 }

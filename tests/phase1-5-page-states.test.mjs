@@ -50,7 +50,7 @@ const snapshot = (rows) => ({
   },
 });
 
-function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false } = {}) {
+function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false, testingMode = true } = {}) {
   const state = [];
   const reads = [];
   const events = [];
@@ -92,9 +92,15 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     "@/lib/firebase": { getClientDB: () => databaseAvailable ? db : null },
     "@/lib/siteNavigation": navigationModule,
     "@/lib/rsvp/testing": { isRsvpLookupTestingEnabled: rsvpLookupEnabled },
+    "@/lib/rsvp/public-dips": {
+      watchPublicDips(onNext, onError) {
+        subscription = { source: "public-api", onNext, onError };
+        return { close() { unsubscribed = true; }, async refresh() {} };
+      },
+    },
     "@/components/PhoneRsvpForm": (props) => element("phone-rsvp-form", props),
     "@/components/EmptyState": EmptyState,
-    "@/lib/testingMode": { testingAssetPath: (path) => path },
+    "@/lib/testingMode": { isTestingMode: testingMode, testingAssetPath: (path) => path },
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon", CalendarDays: "calendar-icon" },
     "../../components/InlineRegisterForm": InlineRegisterForm,
     "../../../components/InlineRegisterForm": InlineRegisterForm,
@@ -115,8 +121,11 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     },
     startEffects() { return effects.map((effect) => effect()); },
     emitDips(rows) {
-      assert.equal(subscription?.ref.path, "registrations");
-      subscription.onNext(snapshot(rows));
+      assert.equal(subscription?.source, "public-api");
+      subscription.onNext(rows.flatMap(({ id, data }) => {
+        const dipName = typeof data.dip_name === "string" ? data.dip_name.trim() : "";
+        return dipName ? [{ id, ...data, dip_name: dipName }] : [];
+      }));
     },
     failDips() { subscription.onError(new Error("Local read failure")); },
     async resolveRead(path, rows) {
@@ -211,7 +220,7 @@ test("dip read failures display an error rather than an invitation to enter an e
   assert.equal(emptyCards(tree).length, 0);
   assert.equal(statusMessages(tree).length, 0);
   assert.match(content(tree), /Failed to load dips/);
-  assert.equal(page.errors.length, 1);
+  assert.equal(page.errors.length, 0);
 });
 
 test("champions remain in loading state until both collections finish, then show a true empty state", async () => {
@@ -289,7 +298,7 @@ test("a champions read error never claims the historical record is empty", async
 });
 
 test("unavailable database configuration ends loading without inventing empty records", () => {
-  for (const makePage of [dipPage, championsPage]) {
+  for (const makePage of [championsPage]) {
     const page = makePage({ databaseAvailable: false });
     page.render();
     page.startEffects();
@@ -340,4 +349,29 @@ test("registration page gate selects the isolated phone flow and preserves legac
       assert.equal(page.reads.length, 0);
     }
   }
+});
+
+
+test("production registration pages always select the approved phone RSVP flow", () => {
+  for (const [file, initialMode] of [["src/app/register/page.tsx", "rsvp"], ["src/app/register/dip/page.tsx", "lookup"]]) {
+    for (const rsvpLookupEnabled of [false, true]) {
+      const page = pageHarness(file, { testingMode: false, rsvpLookupEnabled });
+      const tree = page.render();
+      const forms = nodes(tree, (node) => node.type === "phone-rsvp-form");
+      assert.equal(forms.length, 1);
+      assert.equal(forms[0].props.initialMode, initialMode);
+      assert.equal(nodes(tree, (node) => node.type === "existing-registration-form").length, 0);
+      page.startEffects();
+      assert.deepEqual(page.events, []);
+    }
+  }
+});
+
+test("the public dip list does not require browser Firebase configuration", () => {
+  const page = dipPage({ databaseAvailable: false });
+  page.render();
+  page.startEffects();
+  page.emitDips([{ id: "public", data: { name: "Guest", dip_name: "Public Dip" } }]);
+  assert.match(content(page.render()), /Public Dip/);
+  assert.doesNotMatch(content(page.render()), /Database not available/);
 });

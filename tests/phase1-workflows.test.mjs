@@ -11,7 +11,7 @@ import { navigationModule } from "./helpers/navigation-module.mjs";
 function componentHarness(file, options = {}) {
   const state = [...(options.state ?? [])];
   const effects = [];
-  const calls = { add: [], transaction: 0, set: [], update: [], errors: [], authSubscribe: 0, anonymousSignIn: 0 };
+  const calls = { add: [], transaction: 0, set: [], update: [], errors: [], authSubscribe: 0, anonymousSignIn: 0, publicReads: 0, read: [], snapshotReads: [] };
   const db = { testDatabase: true };
   let hookIndex = 0;
   const react = {
@@ -21,6 +21,11 @@ function componentHarness(file, options = {}) {
       return [state[index], (next) => {
         state[index] = typeof next === "function" ? next(state[index]) : next;
       }];
+    },
+    useRef(initial) {
+      const index = hookIndex++;
+      if (!(index in state)) state[index] = { current: initial };
+      return state[index];
     },
     useEffect(effect) { effects.push(effect); },
     useMemo(calculate) { return calculate(); },
@@ -37,6 +42,7 @@ function componentHarness(file, options = {}) {
     increment: (amount) => ({ increment: amount }),
     async addDoc(ref, data) { calls.add.push({ ref, data }); },
     onSnapshot(_ref, onNext) {
+      calls.snapshotReads.push(_ref.path);
       onNext({
         forEach(callback) {
           for (const row of options.rows ?? []) {
@@ -51,6 +57,7 @@ function componentHarness(file, options = {}) {
       calls.transaction++;
       await callback({
         async get(ref) {
+          calls.read.push(ref.path);
           if (ref.path.startsWith("userVotes/")) {
             return {
               exists: () => (options.persistedVotes ?? []).length > 0,
@@ -91,6 +98,16 @@ function componentHarness(file, options = {}) {
     },
     "@/lib/testingMode": { isTestingMode: options.testingMode ?? false },
     "@/lib/siteNavigation": navigationModule,
+    "@/lib/rsvp/public-dips": {
+      watchPublicDips(onNext) {
+        calls.publicReads++;
+        onNext((options.rows ?? []).flatMap(({ id, data }) => {
+          const dipName = typeof data.dip_name === "string" ? data.dip_name.trim() : "";
+          return dipName ? [{ id, ...data, dip_name: dipName }] : [];
+        }));
+        return { close() {}, async refresh() {} };
+      },
+    },
     "@/components/EmptyState": "empty-state",
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
@@ -302,6 +319,8 @@ test("a new vote writes the user/year selection and increments only the chosen d
     ref: { path: "registrations/b" }, data: { votes: { increment: 1 } },
   }]);
   assert.match(content(vote.render()), /Vote recorded/);
+  assert.deepEqual(vote.calls.read, ["userVotes/offline-guest_2026"]);
+  assert.equal(vote.calls.read.some((path) => path.startsWith("registrations/")), false);
 });
 
 test("toggling an existing vote remains allowed at three and decrements it once", async () => {
@@ -315,7 +334,7 @@ test("toggling an existing vote remains allowed at three and decrements it once"
   assert.match(content(vote.render()), /Vote removed/);
 });
 
-test("dip listing displays snapshot data and excludes registrations without a dip", () => {
+test("dip listing displays the public feed and excludes registrations without a dip", () => {
   const list = componentHarness("src/app/dips/page.tsx", {
     rows: [
       { id: "dip", data: { name: "Avery", dip_name: "  Buffalo Dip  ", notes: "Contains dairy" } },
@@ -411,4 +430,21 @@ test("voting back link consistently targets Home in normal and testing modes", (
     assert.equal(content(backLinks[0]).trim(), "Back to Home");
     assert.doesNotMatch(content(tree), /Back to About/);
   }
+});
+
+
+test("readonly registration previews use the sanitized dip feed without reading private RSVP records", () => {
+  const form = componentHarness("src/components/InlineRegisterForm.tsx", {
+    testingMode: true,
+    rows: [{ id: "dip", data: { name: "Public Guest", dip_name: "Public Queso", phone: "Private Phone", party_size: 9 } }],
+  });
+  form.render();
+  for (const effect of [...form.effects]) effect();
+  const tree = form.render();
+  assert.equal(form.calls.publicReads, 1);
+  assert.deepEqual(form.calls.snapshotReads, []);
+  assert.deepEqual(form.calls.add, []);
+  assert.match(content(tree), /Public Queso.*Public Guest/);
+  assert.doesNotMatch(content(tree), /Private Phone/);
+  assert.match(content(tree), /Submissions are disabled/);
 });

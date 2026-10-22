@@ -2,12 +2,13 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { normalizeDipName, normalizeGuestName, normalizeUsPhone } from "@/lib/rsvp/validation";
+import { isTestingMode, testingAssetPath } from "@/lib/testingMode";
 
 type Mode = "rsvp" | "lookup" | "edit";
 type PublicDip = { name: string; dip_name: string };
 type ApiReply = { ok?: boolean; error?: string; dip_name?: string; notes?: string; context?: string };
 
-const ENDPOINT = "/testing/api/rsvp";
+const ENDPOINT = testingAssetPath("/api/rsvp");
 const LOOKUP_ERROR = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host for help.";
 const RETRY_ERROR = "We couldn’t complete that request. Please try again shortly.";
 const RATE_ERROR = "Too many attempts. Please wait a few minutes and try again.";
@@ -206,9 +207,9 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
   return (
     <div className="mx-auto max-w-3xl">
       <form onSubmit={handleSubmit} className="festival-card mx-auto max-w-2xl space-y-6 p-5 sm:p-8" aria-busy={busy}>
-        <p className="rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm leading-relaxed text-foreground">
+        {isTestingMode && <p className="rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm leading-relaxed text-foreground">
           Test RSVP flow. These entries are separate from the event guest list.
-        </p>
+        </p>}
         {mode === "lookup" && <p className="text-sm leading-relaxed text-muted-foreground">Find your RSVP using the name and US phone number you registered with. Older RSVPs without a phone number can be updated with help from the host.</p>}
         {mode === "edit" && <p className="text-sm leading-relaxed text-muted-foreground">Add or update your dip below. This keeps your existing RSVP and party size.</p>}
         <fieldset disabled={busy} className="min-w-0 space-y-6">
@@ -256,7 +257,7 @@ export default function PhoneRsvpForm({ initialMode = "rsvp" }: { initialMode?: 
       </form>
       <div className="mt-12">
         <h3 className="mb-5 font-display text-2xl text-foreground sm:text-3xl">Registered Dips <span className="text-orange-700">({dips.length})</span></h3>
-        {dipsLoading ? <p className="text-sm text-muted-foreground">Loading registered dips…</p> : dipsFailed ? <p className="festival-card px-5 py-8 text-center text-sm text-muted-foreground">The dip list is unavailable right now. You can still submit your form.</p> : dips.length === 0 ? <p className="festival-card px-5 py-8 text-center text-sm leading-relaxed text-muted-foreground">No test dips are registered yet.</p> : <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {dipsLoading ? <p className="text-sm text-muted-foreground">Loading registered dips…</p> : dipsFailed ? <p className="festival-card px-5 py-8 text-center text-sm text-muted-foreground">The dip list is unavailable right now. You can still submit your form.</p> : dips.length === 0 ? <p className="festival-card px-5 py-8 text-center text-sm leading-relaxed text-muted-foreground">No dips are registered yet.</p> : <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {dips.map((dip, index) => <li key={`${dip.dip_name}-${index}`} className="festival-card min-w-0 px-5 py-4"><div className="break-words font-display text-xl text-foreground">{dip.dip_name}</div><div className="mt-1 text-sm text-muted-foreground">{dip.name ? `by ${dip.name}` : "by RSVP’d guest"}</div></li>)}
         </ul>}
       </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { getClientDB } from "@/lib/firebase";
+import { adminRequest } from "@/lib/rsvp/admin-client";
 import Link from "next/link";
 import AdminGate from "@/components/AdminGate";
 
@@ -20,35 +19,26 @@ type Reg = {
 };
 
 export default function AdminDashboard() {
+  return <AdminGate><AdminDashboardContent /></AdminGate>;
+}
+
+function AdminDashboardContent() {
   const [rows, setRows] = useState<Reg[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const db = getClientDB();
-    if (!db) {
-      setError("Database not available. Check Firebase config.");
-      return;
-    }
-
-    const q = query(
-      collection(db, "registrations"),
-      orderBy("created_at", "desc")
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const out: Reg[] = [];
-        snap.forEach((d) => out.push({ id: d.id, ...(d.data() as any) }));
-        setRows(out);
-      },
-      (err) => {
-        console.error(err);
-        setError("Failed to load registrations.");
+    let active = true;
+    const refresh = async () => {
+      try {
+        const result = await adminRequest("registrations");
+        if (active) { setRows(result.registrations); setError(null); }
+      } catch (failure) {
+        if (active) setError(failure instanceof Error ? failure.message : "Failed to load registrations.");
       }
-    );
-
-    return () => unsub();
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 15000);
+    return () => { active = false; window.clearInterval(timer); };
   }, []);
 
   // Helpers
@@ -92,7 +82,6 @@ export default function AdminDashboard() {
   }, [rows]);
 
   return (
-    <AdminGate>
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
       <div className="mx-auto max-w-6xl px-4 space-y-8">
         <h1 className="text-3xl font-bold text-orange-900 text-center">
@@ -198,6 +187,5 @@ export default function AdminDashboard() {
         </section>
       </div>
     </main>
-    </AdminGate>
   );
 }

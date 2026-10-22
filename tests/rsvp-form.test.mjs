@@ -48,6 +48,10 @@ function harness(options = {}) {
     react,
     "react/jsx-runtime": { jsx: element, jsxs: element, Fragment: "fragment" },
     "@/lib/rsvp/validation": validation,
+    "@/lib/testingMode": {
+      isTestingMode: options.testingMode ?? true,
+      testingAssetPath: (path) => (options.testingMode ?? true) ? `/testing${path}` : path,
+    },
   };
   const file = "src/components/PhoneRsvpForm.tsx";
   const compiled = ts.transpileModule(readFileSync(new URL(`../${file}`, import.meta.url), "utf8"), {
@@ -316,7 +320,7 @@ test("network errors and dip-list failures recover without leaking internal erro
   assert.equal(button(form, "Click to RSVP").props.disabled, false);
 });
 
-test("all requests stay inside the testing API and list output excludes private fields", async () => {
+test("preview requests stay inside the testing API and list output excludes private fields", async () => {
   const form = harness({ dips: [{ name: "Public Guest", dip_name: "Public Dip", phone: "Private Phone", id: "Private ID", notes: "Private Notes" }] });
   await form.mount();
   guest(form);
@@ -393,4 +397,16 @@ test("a mismatched tab context returns to lookup and a fresh match replaces the 
   await submit(form);
   const saves = form.calls.filter((call) => call.payload?.action === "saveDip");
   assert.deepEqual(saves.map((call) => call.headers["X-Rsvp-Context"]), [CONTEXT_A, CONTEXT_B]);
+});
+
+
+test("production RSVP uses the root API and displays live guest copy", async () => {
+  const form = harness({ testingMode: false });
+  await form.mount();
+  guest(form);
+  await submit(form);
+  await click(form, "Add a Dip (Already Registered?)");
+  assert.ok(form.calls.length >= 3);
+  for (const call of form.calls) assert.equal(call.url, "/api/rsvp");
+  assert.doesNotMatch(text(form.render()), /Test RSVP flow|test dips|separate from the event guest list/);
 });

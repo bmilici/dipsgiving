@@ -53,7 +53,7 @@ function ensureUniqueDip(docs: QueryDocumentSnapshot[], dipName: string | null, 
   }
 }
 
-/** Used exclusively with the separately configured testing Firestore emulator. */
+/** Server-only RSVP operations; the caller supplies a guarded database connection. */
 export class RsvpService {
   constructor(private readonly db: Firestore) {}
 
@@ -74,6 +74,7 @@ export class RsvpService {
         tx.set(refs[index], {
           window_start: active ? data?.window_start : now,
           count: Math.min(count + 1, dimensions[index].max + 1),
+          delete_after: new Date((active ? data?.window_start : now) + WINDOW_MS),
         });
       });
       return denied;
@@ -121,6 +122,7 @@ export class RsvpService {
         event,
         identity: guestIdentity,
         expires_at: Date.now() + SESSION_TTL_SECONDS * 1000,
+        delete_after: new Date(Date.now() + SESSION_TTL_SECONDS * 1000),
       });
       return { token, dip_name: displayText(match.data().dip_name, 120), notes: displayText(match.data().notes, 1000) };
     });

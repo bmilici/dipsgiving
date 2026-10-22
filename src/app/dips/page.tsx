@@ -1,68 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { Soup } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { siteRoutes } from "@/lib/siteNavigation";
-import { getClientDB } from "@/lib/firebase";
-
-type DipRow = {
-  id: string;
-  name?: string | null;
-  dip_name?: string | null;
-  notes?: string | null;
-  created_at?: any;
-};
+import { watchPublicDips, type PublicDip } from "@/lib/rsvp/public-dips";
 
 export default function DipListPage() {
-  const [dips, setDips] = useState<DipRow[]>([]);
+  const [dips, setDips] = useState<PublicDip[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const db = getClientDB();
-    if (!db) {
-      // Avoid TS error + avoid calling Firestore without an instance
-      setError("Database not available. Check Firebase config.");
-      setIsLoading(false);
-      return;
-    }
-
-    // Subscribe to all registrations; client-filter to those with a dip_name
-    const q = query(
-      collection(db, "registrations"),
-      orderBy("created_at", "desc")
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const rows: DipRow[] = [];
-        snap.forEach((doc) => {
-          const d = doc.data() as any;
-          const dipName = (d?.dip_name ?? "").toString().trim();
-          if (dipName) {
-            rows.push({
-              id: doc.id,
-              name: d?.name ?? null,
-              dip_name: dipName,
-              notes: d?.notes ?? null,
-              created_at: d?.created_at ?? null,
-            });
-          }
-        });
+    const feed = watchPublicDips(
+      (rows) => {
         setDips(rows);
+        setError(null);
         setIsLoading(false);
       },
-      (err) => {
-        console.error(err);
+      () => {
         setError("Failed to load dips. Please try again later.");
         setIsLoading(false);
-      }
+      },
     );
-
-    return () => unsub();
+    return () => feed.close();
   }, []);
 
   return (

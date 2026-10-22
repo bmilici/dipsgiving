@@ -1,6 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { RsvpService, RsvpError, SESSION_TTL_SECONDS, LOOKUP_FAILURE } from "@/lib/rsvp/service";
-import { getRsvpTestingDb, RsvpTestingUnavailable } from "@/lib/rsvp/testing-db";
+import { RsvpTestingUnavailable } from "@/lib/rsvp/testing-db";
+import { getRsvpDb, RsvpUnavailable } from "@/lib/rsvp/db";
+import { isTestingMode } from "@/lib/testingMode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +23,8 @@ function reply(data: unknown, status = 200, cookie?: string, retryAfter?: number
 
 function cookieValue(request: Request, token = "", maxAge = 0) {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
-  return `${COOKIE}=${token}; Path=/testing/api/rsvp; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
+  const path = isTestingMode ? "/testing/api/rsvp" : "/api/rsvp";
+  return `${COOKIE}=${token}; Path=${path}; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure}`;
 }
 
 function readToken(request: Request) {
@@ -34,7 +37,7 @@ const editorContext = (token: string) => createHash("sha256").update(token).dige
 
 function failure(request: Request, error: unknown, clearSession = false) {
   const cookie = clearSession ? cookieValue(request) : undefined;
-  if (error instanceof RsvpTestingUnavailable) {
+  if (error instanceof RsvpTestingUnavailable || error instanceof RsvpUnavailable) {
     return reply({ ok: false, error: error.status === 404 ? "Not found." : GENERIC_ERROR }, error.status, cookie);
   }
   if (error instanceof RsvpError) {
@@ -73,7 +76,7 @@ async function body(request: Request): Promise<Record<string, unknown>> {
 
 export async function GET(request: Request) {
   try {
-    const service = new RsvpService(getRsvpTestingDb());
+    const service = new RsvpService(getRsvpDb());
     return reply({ dips: await service.listDips() });
   } catch (error) {
     return failure(request, error);
@@ -83,7 +86,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   let action: unknown;
   try {
-    const service = new RsvpService(getRsvpTestingDb());
+    const service = new RsvpService(getRsvpDb());
     // A guest browser must submit from this host, with no cross-site writes.
     const origin = request.headers.get("origin");
     const host = request.headers.get("host") || new URL(request.url).host;
@@ -99,9 +102,11 @@ export async function POST(request: Request) {
     ({ action } = parsed);
     const { action: _action, ...input } = parsed;
     void _action;
-    // The local preview is bound to loopback. On a trusted reverse proxy, this
-    // header supplies the client bucket; the service stores only a hash of it.
-    const client = (request.headers.get("x-forwarded-for") || "local").split(",")[0].trim().slice(0, 100);
+    // Vercel supplies this header. Outside that trusted proxy all callers share
+    // a local bucket; user-supplied forwarding headers cannot bypass the limit.
+    const client = process.env.VERCEL === "1"
+      ? (request.headers.get("x-vercel-forwarded-for") || "unknown").split(",")[0].trim().slice(0, 100)
+      : "local";
     if (action === "create") {
       const result = await service.create(input, client);
       return reply({ ok: true, message: result.message }, 201, cookieValue(request));

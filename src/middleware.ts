@@ -29,6 +29,12 @@ export function middleware(request: NextRequest) {
   }
 
   const page = prefix ? pathname.slice(prefix.length) || "/" : pathname;
+  if (prefix && page === "/api/dips") {
+    if (!["GET", "HEAD"].includes(request.method)) {
+      return new NextResponse("The testing preview is read-only.", { status: 405, headers: { Allow: "GET, HEAD" } });
+    }
+    return NextResponse.next();
+  }
   if (prefix && page === "/api/rsvp" && isRsvpLookupTestingEnabled) {
     if (!["GET", "HEAD", "POST"].includes(request.method)) {
       return new NextResponse("Method not allowed.", { status: 405, headers: { Allow: "GET, HEAD, POST" } });

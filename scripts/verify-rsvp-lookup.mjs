@@ -4,7 +4,7 @@ import { initializeApp, deleteApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 // Writes are limited to synthetic fixtures in this fixed local demo project.
-// Neither this script nor the feature accepts a live Firestore project.
+// This verifier never accepts a live Firestore project, including root-UI mode.
 const base = new URL(process.argv[2] || "http://localhost:3018");
 assert(["localhost", "127.0.0.1", "[::1]"].includes(base.hostname), "Local testing server only");
 process.env.FIRESTORE_EMULATOR_HOST ||= "127.0.0.1:8188";
@@ -12,17 +12,22 @@ assert.equal(process.env.FIRESTORE_EMULATOR_HOST, "127.0.0.1:8188", "Fixed local
 process.env.METADATA_SERVER_DETECTION = "none";
 const app = initializeApp({ projectId: "demo-dipsgiving-rsvp-test" }, `rsvp-api-${randomUUID()}`);
 const db = getFirestore(app);
-const endpoint = new URL("/testing/api/rsvp", base);
+const productionUi = process.argv[3] === "production";
+const prefix = productionUi ? "" : "/testing";
+const endpoint = new URL(`${prefix}/api/rsvp`, base);
 const suffix = randomUUID().slice(0, 8);
 const name = (label) => `Synthetic ${label} ${suffix}`;
 const dip = (label) => `${label} ${suffix}`;
 const owned = new Set();
-let peer = 1;
+const localLookupLimit = db.doc(`_rsvpLookupRateLimits/${createHash("sha256").update("lookup:client:local").digest("hex")}`);
 
-async function post(input, { cookie, context, client = `2001:db8:${suffix.slice(0, 4)}:${suffix.slice(4)}::${(peer++).toString(16)}` } = {}) {
+async function post(input, { cookie, context, preserveRateLimit = false } = {}) {
+  // Local servers intentionally ignore caller-supplied proxy headers. Reset
+  // only the fixed demo's local bucket between independent lookup scenarios.
+  if (input.action === "lookup" && !preserveRateLimit) await localLookupLimit.delete();
   const response = await fetch(endpoint, {
     method: "POST", redirect: "manual", signal: AbortSignal.timeout(30_000),
-    headers: { Origin: base.origin, "Content-Type": "application/json", "x-forwarded-for": client, ...(cookie ? { Cookie: cookie } : {}), ...(context ? { "X-Rsvp-Context": context } : {}) },
+    headers: { Origin: base.origin, "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}), ...(context ? { "X-Rsvp-Context": context } : {}) },
     body: JSON.stringify(input),
   });
   const data = await response.json();
@@ -39,15 +44,15 @@ async function find(label) {
 const input = (label, phone, extra = {}) => ({ action: "create", name: name(label), phone, party_size: 3, bringing_dip: false, ...extra });
 
 try {
-  for (const path of ["/testing/register", "/testing/register/dip"]) {
+  for (const path of [`${prefix}/register`, `${prefix}/register/dip`]) {
     const response = await fetch(new URL(path, base));
     assert.equal(response.status, 200);
     const html = await response.text();
-    assert(html.includes("Test RSVP flow"));
+    assert.equal(html.includes("Test RSVP flow"), !productionUi);
     assert(/<input(?=[^>]*name="phone")(?=[^>]*\srequired(?:=|[\s>]))[^>]*>/.test(html), "Phone required in rendered form");
-    assert(html.includes("Voting is disabled."));
+    assert.equal(html.includes("Voting is disabled."), !productionUi);
   }
-  console.log("PASS: both testing pages render the gated phone flow; voting remains disabled");
+  console.log(`PASS: both ${productionUi ? "production" : "testing"} pages render the phone flow with the correct mode`);
 
   const without = await post(input("Without Dip", "(202) 555-0123"));
   assert.equal(without.response.status, 201);
@@ -76,7 +81,7 @@ try {
     const cookie = matched.response.headers.get("set-cookie");
     assert.match(cookie, /HttpOnly/);
     assert.match(cookie, /SameSite=Strict/);
-    assert.match(cookie, /Path=\/testing\/api\/rsvp/);
+    assert(cookie.includes(`Path=${prefix}/api/rsvp;`));
   }
   const countBefore = (await db.collection("registrations").where("event", "==", event).get()).size;
   await original.ref.update({ votes: 7, year: 2026 });
@@ -133,9 +138,9 @@ try {
   console.log("PASS: generic wrong-name/phone/missing-phone results; legacy record untouched; session and ID tampering denied");
 
   const lookup = { action: "lookup", name: name("Rate Limit"), phone: "2025550188" };
-  const limitedClient = `2001:db8:${suffix.slice(0, 4)}:${suffix.slice(4)}:ffff::1`;
-  for (let attempt = 0; attempt < 6; attempt++) assert.equal((await post(lookup, { client: limitedClient })).response.status, 404);
-  const limited = await post(lookup, { client: limitedClient });
+  await localLookupLimit.delete();
+  for (let attempt = 0; attempt < 6; attempt++) assert.equal((await post(lookup, { preserveRateLimit: true })).response.status, 404);
+  const limited = await post(lookup, { preserveRateLimit: true });
   assert.equal(limited.response.status, 429);
   assert(limited.response.headers.has("retry-after"));
 
@@ -147,7 +152,7 @@ try {
   const publicResponse = await fetch(endpoint);
   const publicData = await publicResponse.json();
   assert(publicData.dips.every((row) => Object.keys(row).sort().join() === "dip_name,name"));
-  assert.equal((await fetch(new URL("/testing/api/text-to-speech", base))).status, 404);
+  assert.equal((await fetch(new URL(`${prefix}/api/text-to-speech`, base))).status, productionUi ? 400 : 404);
   const denied = await fetch(`http://127.0.0.1:8188/v1/projects/demo-dipsgiving-rsvp-test/databases/(default)/documents/registrations/${original.id}`);
   assert.equal(denied.status, 403, "Browser cannot read raw registrations from the test database");
   console.log("PASS: durable throttling, expiry, sanitized public list, closed unrelated API, and deny-all test database rules");
@@ -159,6 +164,7 @@ try {
   for (const row of sessions.docs) if (owned.has(row.data().registration_id)) await row.ref.delete();
   for (const id of owned) await db.collection("registrations").doc(id).delete();
   await db.doc(`userVotes/synthetic_${suffix}_2026`).delete();
+  await localLookupLimit.delete();
   await db.terminate();
   await deleteApp(app);
 }

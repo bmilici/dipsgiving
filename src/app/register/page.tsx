@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 import InlineRegisterForm from "../../components/InlineRegisterForm";
 import PhoneRsvpForm from "@/components/PhoneRsvpForm";
 import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
+import { isTestingMode } from "@/lib/testingMode";
 
 export default function RegisterPage() {
   return (
@@ -22,7 +23,7 @@ export default function RegisterPage() {
           </p>
         </header>
 
-        {isRsvpLookupTestingEnabled ? <PhoneRsvpForm initialMode="rsvp" /> : <InlineRegisterForm />}
+        {!isTestingMode || isRsvpLookupTestingEnabled ? <PhoneRsvpForm initialMode="rsvp" /> : <InlineRegisterForm />}
       </section>
     </main>
   );

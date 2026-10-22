@@ -9,7 +9,7 @@
  *
  * Only the seven public Firebase settings are loaded from --env-dir. They stay
  * in memory; no .env files, server credentials, or temporary build files are
- * copied into public/testing. The source revision is pinned by default.
+ * copied into public/testing. The committed source revision defaults to HEAD.
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -30,17 +30,18 @@ const publicKeys = [
   'NEXT_PUBLIC_FIREBASE_APP_ID',
   'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
 ];
-const settings = { sourceRef: 'e8b86d1', envDir: undefined, dependencies: undefined };
+const settings = { sourceRef: 'HEAD', envDir: undefined, dependencies: undefined };
+const isEntrypoint = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 const flagNames = new Map([
   ['--source-ref', 'sourceRef'],
   ['--env-dir', 'envDir'],
   ['--dependencies', 'dependencies'],
 ]);
 
-for (let index = 2; index < process.argv.length; index += 1) {
+for (let index = 2; isEntrypoint && index < process.argv.length; index += 1) {
   const flag = process.argv[index];
   if (flag === '--help' || flag === '-h') {
-    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref e8b86d1] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
+    console.log('Usage: node scripts/build-testing-preview.mjs [--source-ref HEAD] [--env-dir DIRECTORY] [--dependencies NODE_MODULES_DIRECTORY]');
     process.exit(0);
   }
   const name = flagNames.get(flag);
@@ -137,7 +138,12 @@ async function buildEnvironment(directory) {
     }
   }
 
-  const result = { ...inherited, NEXT_TELEMETRY_DISABLED: '1', NODE_ENV: 'production' };
+  const result = {
+    ...inherited, NEXT_TELEMETRY_DISABLED: '1', NODE_ENV: 'production',
+    NEXT_PUBLIC_DESIGN_PREVIEW: 'true',
+    NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false',
+    DIPSGIVING_RSVP_LOOKUP_TESTING: 'false',
+  };
   for (const key of publicKeys) {
     delete result[key];
     if (candidate[key]) result[key] = candidate[key];
@@ -148,7 +154,7 @@ async function buildEnvironment(directory) {
   return result;
 }
 
-async function prepareSource(directory) {
+export async function prepareSource(directory) {
   const app = path.join(directory, 'src', 'app');
   const retainedAppDirectories = new Set(['register', 'dips', 'vote', 'winners']);
   for (const entry of await readdir(app, { withFileTypes: true })) {
@@ -157,7 +163,7 @@ async function prepareSource(directory) {
     }
   }
   const retainedPublicDirectories = new Set(['sponsors', 'winners', 'illustrations']);
-  const retainedPublicFile = /^(favicon(?:-dipsgiving|-96x96)?\.(?:ico|svg|png)|apple-touch-icon\.png|web-app-manifest-\d+x\d+\.png|site\.webmanifest|og-image\.png)$/;
+  const retainedPublicFile = /^(favicon(?:-dipsgiving|-96x96)?\.(?:ico|svg|png)|apple-touch-icon\.png|web-app-manifest-\d+x\d+\.png|site\.webmanifest|og-image(?:-5th-2026)?\.png)$/;
   for (const entry of await readdir(path.join(directory, 'public'), { withFileTypes: true })) {
     if (entry.isDirectory() ? !retainedPublicDirectories.has(entry.name) : !retainedPublicFile.test(entry.name)) {
       await rm(path.join(directory, 'public', entry.name), { recursive: true, force: true });
@@ -174,7 +180,7 @@ const nextConfig: NextConfig = {
   output: 'export',
   basePath: '${previewPrefix}',
   images: { unoptimized: true },
-  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true' },
+  env: { NEXT_PUBLIC_DESIGN_PREVIEW: 'true', NEXT_PUBLIC_RSVP_LOOKUP_TESTING: 'false' },
   eslint: { ignoreDuringBuilds: true },
 };
 export default nextConfig;
@@ -197,6 +203,13 @@ export default nextConfig;
     return updated.replace('disabled:cursor-wait', 'disabled:cursor-not-allowed');
   });
   await patchFile(directory, 'src/app/vote/page.tsx', source => {
+    // The reviewed production handler reads the voter's own selections and writes
+    // the existing dip ID. Keep this assertion strict when future source changes.
+    if (!source.includes('const userSnap = await tx.get(userVoteRef);') ||
+        !source.includes('tx.update(dipRef, { votes: increment(alreadyVoted ? -1 : 1) });') ||
+        source.includes('await tx.get(dipRef)')) {
+      throw new Error('Vote handler differs from the reviewed private-registration flow');
+    }
     let updated = replaceBetween(source, 'function useEnsureAnonAuth() {', 'function Podium(',
       `function useEnsureAnonAuth() {
   useEffect(() => {
@@ -273,22 +286,24 @@ async function installExport(directory, revision) {
   console.log(JSON.stringify({ sourceRevision: revision, output: 'public/testing', routes: 6, readOnly: true }));
 }
 
-const temporaryRoot = existsSync('/private/tmp') ? '/private/tmp' : tmpdir();
-const temporary = await mkdtemp(path.join(temporaryRoot, 'dipsgiving-testing-export-'));
-try {
-  const revisionResult = run('git', ['rev-parse', '--verify', `${settings.sourceRef}^{commit}`], { encoding: 'utf8', stdio: 'pipe' });
-  const revision = revisionResult.stdout.trim();
-  const archive = path.join(temporary, 'reviewed-source.tar');
-  const sourceDirectory = path.join(temporary, 'source');
-  await mkdir(sourceDirectory);
-  run('git', ['archive', '--format=tar', '--output', archive, revision]);
-  run('tar', ['-xf', archive, '-C', sourceDirectory]);
-  await rm(archive);
-  await prepareSource(sourceDirectory);
-  await copyDependencies(sourceDirectory, { ...process.env, NEXT_TELEMETRY_DISABLED: '1' });
-  const environment = await buildEnvironment(sourceDirectory);
-  run('npm', ['run', 'build'], { cwd: sourceDirectory, env: environment });
-  await installExport(sourceDirectory, revision);
-} finally {
-  await rm(temporary, { recursive: true, force: true });
+if (isEntrypoint) {
+  const temporaryRoot = existsSync('/private/tmp') ? '/private/tmp' : tmpdir();
+  const temporary = await mkdtemp(path.join(temporaryRoot, 'dipsgiving-testing-export-'));
+  try {
+    const revisionResult = run('git', ['rev-parse', '--verify', `${settings.sourceRef}^{commit}`], { encoding: 'utf8', stdio: 'pipe' });
+    const revision = revisionResult.stdout.trim();
+    const archive = path.join(temporary, 'reviewed-source.tar');
+    const sourceDirectory = path.join(temporary, 'source');
+    await mkdir(sourceDirectory);
+    run('git', ['archive', '--format=tar', '--output', archive, revision]);
+    run('tar', ['-xf', archive, '-C', sourceDirectory]);
+    await rm(archive);
+    await prepareSource(sourceDirectory);
+    await copyDependencies(sourceDirectory, { ...process.env, NEXT_TELEMETRY_DISABLED: '1' });
+    const environment = await buildEnvironment(sourceDirectory);
+    run('npm', ['run', 'build'], { cwd: sourceDirectory, env: environment });
+    await installExport(sourceDirectory, revision);
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
 }

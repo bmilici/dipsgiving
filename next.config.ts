@@ -31,10 +31,10 @@ const nextConfig: NextConfig = {
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
           { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
         ],
-      }, ...(rsvpLookupTesting ? [{
-        source: "/api/rsvp",
+      }, {
+        source: "/api/:path*",
         headers: [{ key: "Cache-Control", value: "no-store, private" }],
-      }] : [])];
+      }];
     }
     return [
       {
@@ -55,6 +55,14 @@ const nextConfig: NextConfig = {
         source: "/testing/_next/static/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      {
+        source: "/api/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
+      {
+        source: "/testing/api/dips",
+        headers: [{ key: "Cache-Control", value: "no-store, private" }],
+      },
     ];
   },
   async rewrites() {
@@ -62,6 +70,7 @@ const nextConfig: NextConfig = {
       // Testing builds serve current App Router source, not the older static
       // snapshot. Production keeps all seven existing export rewrites.
       beforeFiles: developmentPreview ? [] : [
+        { source: "/testing/api/dips", destination: "/api/dips" },
         { source: "/testing", destination: "/testing/index.html" },
         { source: "/testing/register", destination: "/testing/register.html" },
         { source: "/testing/register/dip", destination: "/testing/register/dip.html" },

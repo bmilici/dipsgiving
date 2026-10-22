@@ -5,11 +5,12 @@ import { Trophy } from "lucide-react";
 import InlineRegisterForm from "../../../components/InlineRegisterForm";
 import PhoneRsvpForm from "@/components/PhoneRsvpForm";
 import { isRsvpLookupTestingEnabled } from "@/lib/rsvp/testing";
+import { isTestingMode } from "@/lib/testingMode";
 
 export default function RegisterDipPage() {
   // open the form in “dip-only” mode
   useEffect(() => {
-    if (!isRsvpLookupTestingEnabled) {
+    if (isTestingMode && !isRsvpLookupTestingEnabled) {
       window.dispatchEvent(new CustomEvent("open-dip-only"));
     }
   }, []);
@@ -30,7 +31,7 @@ export default function RegisterDipPage() {
           </p>
         </header>
 
-        {isRsvpLookupTestingEnabled ? <PhoneRsvpForm initialMode="lookup" /> : <InlineRegisterForm />}
+        {!isTestingMode || isRsvpLookupTestingEnabled ? <PhoneRsvpForm initialMode="lookup" /> : <InlineRegisterForm />}
       </section>
     </main>
   );

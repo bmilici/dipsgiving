@@ -20,11 +20,31 @@ const TOKEN = "a".repeat(43);
 const CONTEXT = crypto.createHash("sha256").update(TOKEN).digest("hex");
 const GENERIC = "We couldn’t process that request. Please try again later.";
 const LOOKUP_FAILURE = "We couldn’t find a matching RSVP. Check your name and phone number, or contact the host if you registered without a phone number.";
+const productionCredentials = {
+  type: "service_account", project_id: "dipsgiving",
+  client_email: "synthetic@dipsgiving.iam.gserviceaccount.com",
+  private_key: "synthetic-private-key-for-closed-vm-only",
+};
+const production = {
+  VERCEL: "1", VERCEL_ENV: "production",
+  DIPSGIVING_RSVP_LOOKUP_PRODUCTION: "true",
+  NEXT_PUBLIC_DESIGN_PREVIEW: "false",
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: "dipsgiving",
+  DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS: JSON.stringify(productionCredentials),
+};
 
 function harness(env = {}, behavior = {}) {
   const modules = new Map();
   const calls = [];
   const admin = [];
+  const envReads = [];
+  const environment = new Proxy({ ...env }, {
+    get(target, key) {
+      envReads.push(key);
+      if (behavior.forbiddenEnvReads?.includes(key)) throw new Error(`Forbidden environment read: ${String(key)}`);
+      return target[key];
+    },
+  });
   const db = Object.freeze({ mockDatabase: true });
   class RsvpError extends Error {
     constructor(code, status, message, retryAfter) { super(message); Object.assign(this, { code, status, retryAfter }); }
@@ -60,11 +80,16 @@ function harness(env = {}, behavior = {}) {
     }).outputText;
     vm.runInNewContext(compiled, {
       exports, URL, Request, Response, Headers, Buffer, Uint8Array,
-      process: { env: { ...env } },
+      process: { env: environment },
       require(name) {
         if (name === "node:crypto") return crypto;
         if (name === "@/lib/rsvp/service") return { RsvpService, RsvpError, SESSION_TTL_SECONDS: 900, LOOKUP_FAILURE };
         if (name === "firebase-admin/app") return {
+          cert: (credentials) => {
+            admin.push(["cert", credentials]);
+            if (behavior.certError) throw new Error("Synthetic certificate failure");
+            return { mockCredential: true };
+          },
           getApps: () => { admin.push(["getApps"]); return behavior.apps ?? []; },
           initializeApp: (options, name) => { admin.push(["initializeApp", options, name]); return { name, options }; },
         };
@@ -74,6 +99,8 @@ function harness(env = {}, behavior = {}) {
         if (name === "next/server") return { NextResponse };
         const local = {
           "@/lib/rsvp/testing-db": "src/lib/rsvp/testing-db.ts",
+          "./testing-db": "src/lib/rsvp/testing-db.ts",
+          "@/lib/rsvp/db": "src/lib/rsvp/db.ts",
           "@/lib/rsvp/testing": "src/lib/rsvp/testing.ts",
           "@/lib/testingMode": "src/lib/testingMode.ts",
           "@/lib/siteNavigation": "src/lib/siteNavigation.ts",
@@ -84,15 +111,15 @@ function harness(env = {}, behavior = {}) {
     }, { filename: file, timeout: 2_000 });
     return exports;
   }
-  return { load, calls, admin, db, RsvpError };
+  return { load, calls, admin, db, envReads, RsvpError };
 }
 
 function post(data = { action: "lookup", name: "Guest", phone: "212-555-0123" }, options = {}) {
-  const { origin = "https://www.dipsgiving.com", contentType = "application/json", raw, ...extra } = options;
+  const { origin = "https://www.dipsgiving.com", contentType = "application/json", raw, url = API, ...extra } = options;
   const headers = new Headers(extra.headers);
   if (origin !== null) headers.set("Origin", origin);
   if (contentType !== null) headers.set("Content-Type", contentType);
-  return new Request(API, { method: "POST", body: raw ?? JSON.stringify(data), ...extra, headers });
+  return new Request(url, { method: "POST", body: raw ?? JSON.stringify(data), ...extra, headers });
 }
 
 const methods = (h) => h.calls.filter(([method]) => method !== "constructor");
@@ -101,8 +128,11 @@ function privateResponse(response) {
   assert.equal(response.headers.get("vary"), "Cookie");
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
 }
-function clearedCookie(response) {
-  assert.match(response.headers.get("set-cookie") ?? "", /^dipsgiving_rsvp_lookup=; Path=\/testing\/api\/rsvp; HttpOnly; SameSite=Strict; Max-Age=0; Secure$/);
+function clearedCookie(response, path = "/testing/api/rsvp") {
+  const cookie = response.headers.get("set-cookie") ?? "";
+  assert(cookie.startsWith("dipsgiving_rsvp_lookup=; "));
+  assert(cookie.includes(`Path=${path};`));
+  for (const attribute of ["HttpOnly", "SameSite=Strict", "Max-Age=0", "Secure"]) assert(cookie.split("; ").includes(attribute));
 }
 
 test("configuration explicitly embeds false unless a development preview privately opts in", () => {
@@ -135,23 +165,30 @@ test("client feature requires both testing mode and the dedicated public flag", 
   }
 });
 
-test("opted-in preview overrides broad caching with an exact private API rule last", async () => {
+test("preview overrides broad caching with a private API rule and production APIs stay private", async () => {
   const preview = harness({ VERCEL_ENV: "preview", DIPSGIVING_RSVP_LOOKUP_TESTING: "true" }).load("next.config.ts").default;
   const headers = plain(await preview.headers());
-  assert.equal(headers.length, 2);
   assert.equal(headers[0].source, "/:path*");
   assert(headers[0].headers.some(({ key, value }) => key === "X-Robots-Tag" && value === "noindex, nofollow"));
-  assert.deepEqual(headers.at(-1), { source: "/api/rsvp", headers: [{ key: "Cache-Control", value: "no-store, private" }] });
+  const rsvpApiRule = ({ source }) => source === "/api/rsvp" || source === "/api/:path*";
+  assert(headers.some((rule) => rsvpApiRule(rule) && rule.headers.some(({ key, value }) => key === "Cache-Control" && value === "no-store, private")));
+  const broadIndex = headers.findIndex(({ source }) => source === "/:path*");
+  assert(headers.findIndex(rsvpApiRule) > broadIndex, "Private API override follows broad preview caching");
   assert.equal(preview.basePath, "/testing", "Next applies the prefix once to the exact API header source");
   for (const env of [{ VERCEL_ENV: "preview" }, { VERCEL_ENV: "preview", NEXT_PUBLIC_RSVP_LOOKUP_TESTING: "true" }]) {
     const ordinary = plain(await harness(env).load("next.config.ts").default.headers());
-    assert.deepEqual(ordinary, headers.slice(0, 1), "Ordinary read-only preview header configuration is preserved");
+    assert(ordinary.some(({ source }) => source === "/:path*"), "Ordinary preview keeps its noindex header rule");
+    assert(ordinary.some((rule) => rsvpApiRule(rule) && rule.headers.some(({ key, value }) => key === "Cache-Control" && value === "no-store, private")), "Any API-specific ordinary preview rule must be private");
   }
   const baseline = plain(await harness({ VERCEL_ENV: "production" }).load("next.config.ts").default.headers());
   const inherited = plain(await harness({ ...enabled, VERCEL_ENV: "production" }).load("next.config.ts").default.headers());
   assert.deepEqual(inherited, baseline, "Inherited opt-in flags cannot change production headers");
-  assert.equal(inherited.length, 3);
-  assert(!inherited.some(({ source }) => source === "/api/rsvp"));
+  assert(inherited.some(({ source }) => source === "/testing/:path*"));
+  assert(inherited.some((rule) => rsvpApiRule(rule) && rule.headers.some(({ key, value }) => key === "Cache-Control" && value === "no-store, private")));
+  assert(inherited.some((rule) => rule.source === "/testing/api/dips" && rule.headers.some(({ key, value }) => key === "Cache-Control" && value === "no-store, private")));
+  for (const rule of inherited.filter(({ source }) => source === "/api/rsvp" || source.startsWith("/api/"))) {
+    assert(rule.headers.some(({ key, value }) => key === "Cache-Control" && value === "no-store, private"));
+  }
 });
 
 test("server gate rejects production and every missing opt-in before initializing Admin", () => {
@@ -197,7 +234,122 @@ test("Admin reuses only its dedicated named testing app", () => {
   assert.equal(h.admin.find(([method]) => method === "getFirestore")[1], existing);
 });
 
-test("API is a 404 in production and ordinary preview, without constructing a service", async () => {
+test("live database requires explicit production host and private enable before reading credentials", () => {
+  for (const env of [
+    {}, { ...production, VERCEL_ENV: undefined }, { ...production, VERCEL_ENV: "preview" },
+    { ...production, VERCEL_ENV: "development" },
+    { ...production, DIPSGIVING_RSVP_LOOKUP_PRODUCTION: undefined },
+    { ...production, DIPSGIVING_RSVP_LOOKUP_PRODUCTION: "false" },
+    { ...production, DIPSGIVING_RSVP_LOOKUP_PRODUCTION: "TRUE" },
+  ]) {
+    const h = harness(env, { forbiddenEnvReads: ["DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"] });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 404);
+    assert.deepEqual(h.admin, []);
+    assert(!h.envReads.includes("DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"));
+  }
+});
+
+test("preview always delegates to the isolated demo gate and never reads live credentials", () => {
+  for (const env of [
+    { ...enabled, ...production, VERCEL_ENV: "preview", NEXT_PUBLIC_DESIGN_PREVIEW: "true" },
+    { ...enabled, ...production, VERCEL_ENV: undefined, VERCEL: undefined, NEXT_PUBLIC_DESIGN_PREVIEW: "true" },
+  ]) {
+    const h = harness(env, { forbiddenEnvReads: ["DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"] });
+    assert.equal(h.load("src/lib/rsvp/db.ts").getRsvpDb(), h.db);
+    assert(!h.admin.some(([method]) => method === "cert"));
+    assert.deepEqual(plain(h.admin.find(([method]) => method === "initializeApp")[1]), { projectId: "demo-dipsgiving-rsvp-test" });
+    assert(!h.envReads.includes("DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"));
+  }
+  const h = harness({ ...production, ...enabled }, { forbiddenEnvReads: ["DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"] });
+  const gate = h.load("src/lib/rsvp/testing-db.ts");
+  assert.throws(() => h.load("src/lib/rsvp/db.ts").getRsvpDb(), (error) => error instanceof gate.RsvpTestingUnavailable && error.status === 404);
+  assert.deepEqual(h.admin, [], "Production cannot activate the demo gate through inherited preview flags");
+});
+
+test("production rejects emulator configuration before reading credentials", () => {
+  for (const host of ["127.0.0.1:8188", "localhost:8188", "firestore.googleapis.com:443"]) {
+    const h = harness({ ...production, FIRESTORE_EMULATOR_HOST: host }, { forbiddenEnvReads: ["DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"] });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 503);
+    assert.deepEqual(h.admin, []);
+    assert(!h.envReads.includes("DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"));
+  }
+});
+
+test("production initializes only the intended project from validated private JSON or base64 credentials", () => {
+  for (const value of [JSON.stringify(productionCredentials), Buffer.from(JSON.stringify(productionCredentials)).toString("base64")]) {
+    const h = harness({ ...production, DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS: value });
+    assert.equal(h.load("src/lib/rsvp/db.ts").getRsvpDb(), h.db);
+    assert.deepEqual(plain(h.admin.find(([method]) => method === "cert")[1]), productionCredentials);
+    assert.deepEqual(plain(h.admin.find(([method]) => method === "initializeApp")), [
+      "initializeApp", { projectId: "dipsgiving", credential: { mockCredential: true } }, "dipsgiving-rsvp-production",
+    ]);
+  }
+});
+
+test("production refuses malformed credentials, wrong projects, missing service account fields and SDK certificate errors", () => {
+  const invalid = [
+    undefined, "", "{", "null", "[]", "not-base64-json",
+    ...[
+      { ...productionCredentials, type: "authorized_user" },
+      { ...productionCredentials, project_id: "other-live-project" },
+      { ...productionCredentials, client_email: undefined },
+      { ...productionCredentials, client_email: 123 },
+      { ...productionCredentials, private_key: undefined },
+      { ...productionCredentials, private_key: 123 },
+    ].map((credentials) => JSON.stringify(credentials)),
+  ];
+  for (const value of invalid) {
+    const h = harness({ ...production, DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS: value });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 503, String(value));
+    assert(!h.admin.some(([method]) => method === "initializeApp"));
+  }
+  for (const projectId of [undefined, "", "other-live-project", "demo-dipsgiving-rsvp-test"]) {
+    const h = harness({ ...production, NEXT_PUBLIC_FIREBASE_PROJECT_ID: projectId });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 503);
+    assert.deepEqual(h.admin, []);
+  }
+  const h = harness(production, { certError: true });
+  const gate = h.load("src/lib/rsvp/db.ts");
+  assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 503);
+  assert(!h.admin.some(([method]) => method === "initializeApp"));
+});
+
+test("production reuses only its dedicated named app after validating project credentials", () => {
+  const existing = { name: "dipsgiving-rsvp-production", options: { projectId: "dipsgiving" } };
+  const h = harness(production, { apps: [{ name: "[DEFAULT]" }, existing] });
+  assert.equal(h.load("src/lib/rsvp/db.ts").getRsvpDb(), h.db);
+  assert(!h.admin.some(([method]) => method === "initializeApp"));
+  assert.equal(h.admin.find(([method]) => method === "getFirestore")[1], existing);
+});
+
+test("explicit local root-UI testing connects only the fixed emulator project without credential access", () => {
+  for (const host of ["127.0.0.1:8188", "localhost:8188", "[::1]:8188"]) {
+    const h = harness({ DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true", FIRESTORE_EMULATOR_HOST: host, NEXT_PUBLIC_FIREBASE_PROJECT_ID: "other-live-project" }, { forbiddenEnvReads: ["DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"] });
+    assert.equal(h.load("src/lib/rsvp/db.ts").getRsvpDb(), h.db);
+    assert.deepEqual(plain(h.admin.find(([method]) => method === "initializeApp")), [
+      "initializeApp", { projectId: "demo-dipsgiving-rsvp-test" }, "dipsgiving-rsvp-local-production-test",
+    ]);
+    assert(!h.envReads.includes("DIPSGIVING_FIREBASE_ADMIN_CREDENTIALS"));
+  }
+  for (const host of [undefined, "", "remote.example:8188", "127.0.0.1:0", "127.0.0.1:65536", "127.0.0.1:8188/path"]) {
+    const h = harness({ DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true", FIRESTORE_EMULATOR_HOST: host });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 503);
+    assert.deepEqual(h.admin, []);
+  }
+  for (const env of [{ VERCEL: "1" }, { VERCEL_ENV: "preview" }, { VERCEL_ENV: "production" }]) {
+    const h = harness({ ...env, DIPSGIVING_RSVP_LOOKUP_LOCAL_TEST: "true", FIRESTORE_EMULATOR_HOST: "127.0.0.1:8188" });
+    const gate = h.load("src/lib/rsvp/db.ts");
+    assert.throws(() => gate.getRsvpDb(), (error) => error instanceof gate.RsvpUnavailable && error.status === 404);
+    assert.deepEqual(h.admin, [], "A hosted environment cannot activate the local test bypass");
+  }
+});
+
+test("API is a 404 without a server production opt-in or a complete emulator preview opt-in", async () => {
   for (const env of [{}, { NEXT_PUBLIC_DESIGN_PREVIEW: "true" }, { ...enabled, VERCEL_ENV: "production" }]) {
     const h = harness(env);
     const route = h.load("src/app/api/rsvp/route.ts");
@@ -209,6 +361,40 @@ test("API is a 404 in production and ordinary preview, without constructing a se
     }
     assert.deepEqual(h.admin, []);
     assert.deepEqual(h.calls, []);
+  }
+});
+
+test("production route uses private Admin connection, sanitized results and production-only cookie path", async () => {
+  const h = harness(production);
+  const route = h.load("src/app/api/rsvp/route.ts");
+  const url = "https://www.dipsgiving.com/api/rsvp";
+  const list = await route.GET(new Request(url));
+  assert.equal(list.status, 200);
+  assert.deepEqual(await list.json(), { dips: [{ dip_name: "Seven Layer Dip", name: "Guest" }] });
+  privateResponse(list);
+  const lookup = await route.POST(post(undefined, { url }));
+  assert.equal(lookup.status, 200);
+  assert.deepEqual(await lookup.json(), { ok: true, context: CONTEXT, dip_name: "Seven Layer Dip", notes: "Contains dairy" });
+  const cookie = lookup.headers.get("set-cookie");
+  assert(cookie.includes("Path=/api/rsvp;"));
+  assert(!cookie.includes("/testing"));
+  assert(cookie.includes("HttpOnly") && cookie.includes("SameSite=Strict") && cookie.includes("Secure"));
+  const logout = await route.POST(post({ action: "logout" }, { url }));
+  clearedCookie(logout, "/api/rsvp");
+  assert(h.admin.some(([method]) => method === "cert"));
+  assert(h.calls.filter(([method]) => method === "constructor").every(([, db]) => db === h.db));
+});
+
+test("Vercel buckets only its trusted forwarding header while arbitrary forwarding headers cannot select a bucket", async () => {
+  for (const [headers, expected] of [
+    [{ "X-Forwarded-For": "attacker-selected" }, "unknown"],
+    [{ "X-Forwarded-For": "attacker-selected", "X-Vercel-Forwarded-For": "203.0.113.7, internal-proxy" }, "203.0.113.7"],
+    [{ "X-Vercel-Forwarded-For": "x".repeat(200) }, "x".repeat(100)],
+  ]) {
+    const h = harness(production);
+    const response = await h.load("src/app/api/rsvp/route.ts").POST(post(undefined, { url: "https://www.dipsgiving.com/api/rsvp", headers }));
+    assert.equal(response.status, 200);
+    assert.equal(methods(h).find(([method]) => method === "lookup")[2], expected);
   }
 });
 
@@ -258,13 +444,13 @@ test("unknown actions and logout payload injection are rejected without data ope
   }
 });
 
-test("create returns an allowed confirmation only, clears stale session, and forwards a bounded client key", async () => {
+test("local requests ignore spoofed forwarding headers, return only confirmation, and clear stale session", async () => {
   const h = harness(enabled);
   const input = { name: "Guest", phone: "(212) 555-0123", party_size: 2, bringing_dip: false };
   const response = await h.load("src/app/api/rsvp/route.ts").POST(post({ action: "create", ...input }, { headers: { "X-Forwarded-For": `${"x".repeat(150)}, other-client`, Cookie: `dipsgiving_rsvp_lookup=${TOKEN}` } }));
   assert.equal(response.status, 201);
   assert.deepEqual(await response.json(), { ok: true, message: "You’re RSVP’d! Return later to add a dip." });
-  assert.deepEqual(plain(methods(h)), [["create", input, "x".repeat(100)]]);
+  assert.deepEqual(plain(methods(h)), [["create", input, "local"]]);
   clearedCookie(response);
   privateResponse(response);
 });
@@ -422,4 +608,22 @@ test("ordinary preview exposes no RSVP API while production middleware keeps exi
       assert.equal(middleware(production, path, method).kind, "next", `${method} ${path}`);
     }
   }
+});
+
+test("sanitized dip endpoint remains read-only in every preview and the static testing rewrite is exact", async () => {
+  for (const env of [enabled, { NEXT_PUBLIC_DESIGN_PREVIEW: "true" }]) {
+    for (const method of ["GET", "HEAD"]) {
+      assert.equal(middleware(env, "/testing/api/dips?review=1", method).kind, "next");
+    }
+    for (const method of ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"]) {
+      assert.equal(middleware(env, "/testing/api/dips", method).status, 405);
+    }
+    for (const path of ["/testing/api/dips/private", "/testing/api/dips-other", "/testing/api/Dips"]) {
+      assert.equal(middleware(env, path, "GET").status, 404);
+    }
+  }
+  const config = harness({ VERCEL_ENV: "production" }).load("next.config.ts").default;
+  const rewrites = plain(await config.rewrites());
+  assert(rewrites.beforeFiles.some(({ source, destination }) => source === "/testing/api/dips" && destination === "/api/dips"));
+  assert(!rewrites.beforeFiles.some(({ source, destination }) => source === "/testing/api/rsvp" || destination === "/api/rsvp"), "Read-only static testing cannot forward registration writes to production");
 });

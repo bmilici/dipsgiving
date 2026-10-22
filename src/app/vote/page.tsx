@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  collection,
   doc,
   increment,
   onSnapshot,
-  orderBy,
-  query,
   runTransaction,
   serverTimestamp,
-  where,
 } from "firebase/firestore";
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { getClientAuth, getClientDB } from "@/lib/firebase";
@@ -18,6 +14,7 @@ import Link from "next/link";
 import { siteRoutes } from "@/lib/siteNavigation";
 import { useEventSettings } from "@/lib/eventSettings";
 import { isTestingMode } from "@/lib/testingMode";
+import { watchPublicDips, type PublicDipFeed } from "@/lib/rsvp/public-dips";
 
 type DipReg = {
   id: string;
@@ -135,56 +132,25 @@ export default function VotePage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [myVotes, setMyVotes] = useState<string[]>([]);
+  const dipFeed = useRef<PublicDipFeed | null>(null);
 
   const votingOpen = eventSettings.votingOpen;
 
-  // Load dips from registrations (only docs with dip_name)
+  // Read the public projection; full RSVP records stay private on the server.
   useEffect(() => {
-    if (!db) return;
-
-    const q = query(
-      collection(db, "registrations"),
-      where("dip_name", "!=", ""),
-      orderBy("dip_name", "asc")
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const arr: DipReg[] = [];
-        snap.forEach((d) => {
-          const data = d.data() as Record<string, unknown>;
-          const dipName = (data.dip_name ?? "").toString().trim();
-          if (!dipName) return;
-
-          arr.push({
-            id: d.id,
-            dip_name: dipName,
-            name: typeof data.name === "string" ? data.name : null,
-            notes: typeof data.notes === "string" ? data.notes : null,
-            votes: typeof data.votes === "number" ? data.votes : 0,
-            year: typeof data.year === "number" ? data.year : year,
-            created_at: data.created_at ?? null,
-          });
-        });
-
-        // sort by votes desc then name asc
+    const feed = watchPublicDips(
+      (rows) => {
+        const arr: DipReg[] = rows.map((row) => ({ ...row, year: row.year ?? year }));
         arr.sort(
-          (a, b) =>
-            (b.votes ?? 0) - (a.votes ?? 0) ||
-            a.dip_name.localeCompare(b.dip_name)
+          (a, b) => (b.votes ?? 0) - (a.votes ?? 0) || a.dip_name.localeCompare(b.dip_name),
         );
-
         setDips(arr);
       },
-      (err) => {
-        console.error("Dip list subscribe error:", err);
-        setStatus("Could not load dips. Please refresh and try again.");
-      }
+      () => setStatus("Could not load dips. Please refresh and try again."),
     );
-
-    return () => unsub();
-  }, [db, year]);
+    dipFeed.current = feed;
+    return () => { feed.close(); dipFeed.current = null; };
+  }, [year]);
 
   // Load my votes
   useEffect(() => {
@@ -227,8 +193,6 @@ export default function VotePage() {
 
       await runTransaction(db, async (tx) => {
         const userSnap = await tx.get(userVoteRef);
-        const dipSnap = await tx.get(dipRef);
-        if (!dipSnap.exists()) throw new Error("Dip not found");
 
         const dipIds = userSnap.exists() ? readDipIds(userSnap.data()) : [];
 
@@ -256,6 +220,7 @@ export default function VotePage() {
       });
 
       setStatus(myVotes.includes(dipId) ? "Vote removed." : "Vote recorded 🎉");
+      void dipFeed.current?.refresh();
     } catch (e: unknown) {
       console.error(e);
       setStatus(e instanceof Error ? e.message : "Could not record vote.");

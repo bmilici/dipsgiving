@@ -1,5 +1,7 @@
 # Testing-only RSVP phone lookup
 
+This document records the original isolated testing implementation. The later approved production release is documented in [rsvp-production-release.md](rsvp-production-release.md).
+
 Branch: `dev/rsvp-phone-lookup`.
 Checkout: `/private/tmp/dipsgiving-rsvp-lookup-dev`.
 Local review: `http://localhost:3018/testing/register` and `http://localhost:3018/testing/register/dip`.

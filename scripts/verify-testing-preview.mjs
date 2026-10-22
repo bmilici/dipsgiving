@@ -76,7 +76,7 @@ for (const path of routes) {
     assert(text.includes(`href="/testing${target}"`), `${url}: navigation to /testing${target}`);
   }
   if (path === "") {
-    for (const marker of ["The Ultimate Dip Showdown", "The Dip Lineup", "Cast Your Vote", "Hall of Fame", "December 5, 2026", "4:00 PM"])
+    for (const marker of ["The Ultimate Dip Showdown", "Dip List", "Vote", "Champions", "December 5, 2026", "4:00 PM"])
       assert(text.includes(marker), `${url}: ${marker}`);
     assert(text.includes('/testing/illustrations/dip-table.svg'), "Preview illustration keeps its base path");
   }

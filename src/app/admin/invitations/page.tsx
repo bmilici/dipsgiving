@@ -1,20 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
-import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { getClientAuth, getClientDB } from "@/lib/firebase";
+import { adminRequest } from "@/lib/rsvp/admin-client";
 import { useEventSettings } from "@/lib/eventSettings";
 import AdminGate from "@/components/AdminGate";
 
@@ -52,30 +40,6 @@ function normalizeSmsPhone(phone: string) {
   return digits;
 }
 
-function useEnsureAnonAuth() {
-  const [ready, setReady] = useState(false);
-  const auth = getClientAuth();
-
-  useEffect(() => {
-    if (!auth) return;
-
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        try {
-          await signInAnonymously(auth);
-        } catch (err) {
-          console.error("Anonymous sign-in failed:", err);
-        }
-      }
-      setReady(true);
-    });
-
-    return () => unsub();
-  }, [auth]);
-
-  return ready;
-}
-
 function toInvitee(id: string, data: Record<string, unknown>): Invitee {
   return {
     id,
@@ -91,8 +55,10 @@ function toInvitee(id: string, data: Record<string, unknown>): Invitee {
 }
 
 export default function InvitationListPage() {
-  const authReady = useEnsureAnonAuth();
-  const db = getClientDB();
+  return <AdminGate><InvitationListContent /></AdminGate>;
+}
+
+function InvitationListContent() {
   const router = useRouter();
   const eventSettings = useEventSettings();
   const [invitees, setInvitees] = useState<Invitee[]>([]);
@@ -107,50 +73,38 @@ export default function InvitationListPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [savingAll, setSavingAll] = useState(false);
 
-  useEffect(() => {
-    if (!db || !authReady) return;
-
-    const q = query(collection(db, "invitationList"), orderBy("name", "asc"));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const rows: Invitee[] = [];
-        const nextDrafts: Record<string, Draft> = {};
-
-        snap.forEach((item) => {
-          const invitee = toInvitee(item.id, item.data() as Record<string, unknown>);
-          rows.push(invitee);
-          nextDrafts[invitee.id] = {
-            name: invitee.name,
-            phone: invitee.phone,
-            notes: invitee.notes,
-            invite_next_year: invitee.invite_next_year,
-          };
-        });
-
-        setInvitees(rows);
-        setDrafts((current) => {
-          const dirty = dirtyIds;
-          const merged: Record<string, Draft> = {};
-
-          for (const invitee of rows) {
-            merged[invitee.id] =
-              dirty.has(invitee.id) && current[invitee.id]
-                ? current[invitee.id]
-                : nextDrafts[invitee.id];
-          }
-
-          return merged;
-        });
-      },
-      (err) => {
-        console.error("Invitation list subscribe error:", err);
-        setStatus("Could not load invitation list.");
+  async function refreshInvitees() {
+    const result = await adminRequest("invitations");
+    const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
+    setInvitees(rows);
+    setDrafts((current) => Object.fromEntries(rows.map((invitee) => [invitee.id,
+      dirtyIds.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
+        name: invitee.name, phone: invitee.phone, notes: invitee.notes, invite_next_year: invitee.invite_next_year,
       }
-    );
+    ])));
+  }
 
-    return () => unsub();
-  }, [authReady, db, dirtyIds]);
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const result = await adminRequest("invitations");
+        if (!active) return;
+        const rows = (result.invitees as Invitee[]).map((row) => toInvitee(row.id, row));
+        setInvitees(rows);
+        setDrafts((current) => Object.fromEntries(rows.map((invitee) => [invitee.id,
+          dirtyIds.has(invitee.id) && current[invitee.id] ? current[invitee.id] : {
+            name: invitee.name, phone: invitee.phone, notes: invitee.notes, invite_next_year: invitee.invite_next_year,
+          }
+        ])));
+      } catch (failure) {
+        if (active) setStatus(failure instanceof Error ? failure.message : "Could not load invitation list.");
+      }
+    };
+    void refresh();
+    const timer = window.setInterval(refresh, 15000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [dirtyIds]);
 
   const filteredInvitees = useMemo(() => {
     const term = queryText.trim().toLowerCase();
@@ -304,7 +258,6 @@ export default function InvitationListPage() {
   }
 
   async function saveAllInvitees() {
-    if (!db) return;
 
     const dirtyDrafts = [...dirtyIds].map((id) => [id, drafts[id]] as const);
     const missingName = dirtyDrafts.some(([, draft]) => !draft?.name.trim());
@@ -318,17 +271,10 @@ export default function InvitationListPage() {
     setStatus(null);
 
     try {
-      await Promise.all(
-        dirtyDrafts.map(([id, draft]) =>
-          updateDoc(doc(db, "invitationList", id), {
-            name: draft.name.trim(),
-            phone: draft.phone.trim(),
-            notes: draft.notes.trim(),
-            invite_next_year: draft.invite_next_year,
-            updated_at: serverTimestamp(),
-          })
-        )
-      );
+      await Promise.all(dirtyDrafts.map(([id, draft]) =>
+        adminRequest("invitations", { action: "update", id, ...draft })
+      ));
+      await refreshInvitees();
 
       const savedCount = dirtyDrafts.length;
       setDirtyIds(new Set());
@@ -344,13 +290,13 @@ export default function InvitationListPage() {
   }
 
   async function removeInvitee(id: string) {
-    if (!db) return;
 
     setBusyId(id);
     setStatus(null);
 
     try {
-      await deleteDoc(doc(db, "invitationList", id));
+      await adminRequest("invitations", { action: "delete", id });
+      await refreshInvitees();
       setDirtyIds((current) => {
         const next = new Set(current);
         next.delete(id);
@@ -378,7 +324,6 @@ export default function InvitationListPage() {
 
   async function addInvitee(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!db) return;
 
     if (!newInvitee.name.trim()) {
       setStatus("Name is required.");
@@ -389,14 +334,8 @@ export default function InvitationListPage() {
     setStatus(null);
 
     try {
-      await addDoc(collection(db, "invitationList"), {
-        name: newInvitee.name.trim(),
-        phone: newInvitee.phone.trim(),
-        notes: newInvitee.notes.trim(),
-        invite_next_year: newInvitee.invite_next_year,
-        created_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-      });
+      await adminRequest("invitations", { action: "create", ...newInvitee });
+      await refreshInvitees();
       setNewInvitee(emptyDraft);
       setStatus("Invitation added.");
     } catch (err) {
@@ -408,7 +347,6 @@ export default function InvitationListPage() {
   }
 
   return (
-    <AdminGate>
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-50 py-10">
       <div className="mx-auto max-w-6xl px-4 space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -443,7 +381,7 @@ export default function InvitationListPage() {
           <button
             type="button"
             onClick={saveAllInvitees}
-            disabled={!authReady || !dirtyCount || savingAll}
+            disabled={!dirtyCount || savingAll}
             className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
           >
             {savingAll ? "Saving Changes" : "Save Changes"}
@@ -486,7 +424,7 @@ export default function InvitationListPage() {
           />
           <button
             type="submit"
-            disabled={!authReady || busyId === "new"}
+            disabled={busyId === "new"}
             className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
           >
             Add
@@ -636,6 +574,5 @@ export default function InvitationListPage() {
         </div>
       </div>
     </main>
-    </AdminGate>
   );
 }

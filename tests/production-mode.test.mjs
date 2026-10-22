@@ -56,6 +56,7 @@ test("testing rewrites and noindex headers remain isolated from live routes", as
   const config = loadTypeScript("next.config.ts", { VERCEL_ENV: "production", NEXT_PUBLIC_DESIGN_PREVIEW: "true" }).default;
   const rewrites = plain(await config.rewrites());
   assert.deepEqual(rewrites.beforeFiles, [
+    { source: "/testing/api/dips", destination: "/api/dips" },
     { source: "/testing", destination: "/testing/index.html" },
     { source: "/testing/register", destination: "/testing/register.html" },
     { source: "/testing/register/dip", destination: "/testing/register/dip.html" },
@@ -69,6 +70,10 @@ test("testing rewrites and noindex headers remain isolated from live routes", as
   }
   assert(rewrites.afterFiles.some(({ source, destination }) => source === "/Games" && destination === "/Games/index.html"));
   for (const header of plain(await config.headers())) {
-    assert(header.source.startsWith("/testing"), "Preview headers never affect a live route");
+    if (header.source === "/api/:path*") {
+      assert.deepEqual(header.headers, [{ key: "Cache-Control", value: "no-store, private" }]);
+    } else {
+      assert(header.source.startsWith("/testing"), "Preview headers never affect a live page");
+    }
   }
 });

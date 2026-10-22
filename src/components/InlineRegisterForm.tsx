@@ -4,14 +4,12 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   addDoc,
   collection,
-  onSnapshot,
-  orderBy,
-  query,
   serverTimestamp,
 } from "firebase/firestore";
 import { getClientDB } from "@/lib/firebase";
 import { useEventSettings } from "@/lib/eventSettings";
 import { isTestingMode } from "@/lib/testingMode";
+import { watchPublicDips } from "@/lib/rsvp/public-dips";
 
 type DipItem = {
   id: string;
@@ -39,38 +37,12 @@ export default function InlineRegisterForm() {
   /* ----------------------- Live dip list ----------------------- */
   const [dips, setDips] = useState<DipItem[]>([]);
   useEffect(() => {
-    if (!db) return;
-
-    const q = query(
-      collection(db, "registrations"),
-      orderBy("created_at", "desc")
-      // add limit(200) here if you expect a lot
+    const feed = watchPublicDips(
+      (items) => setDips(items),
+      () => { /* The read-only lineup can retry without affecting form state. */ },
     );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const items: DipItem[] = [];
-        snap.forEach((doc) => {
-          const d = doc.data() as any;
-          const dipName = (d?.dip_name ?? "").toString().trim();
-          if (dipName.length > 0) {
-            items.push({
-              id: doc.id,
-              name: d?.name ?? null,
-              dip_name: dipName,
-              notes: (d?.notes ?? null) as any,
-            });
-          }
-        });
-        setDips(items);
-      },
-      (err) => {
-        console.error("Dip list subscribe error:", err);
-      }
-    );
-    return () => unsub();
-  }, [db]);
+    return () => feed.close();
+  }, []);
 
   /* ----------------------- Submit ----------------------- */
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
