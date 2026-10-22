@@ -266,13 +266,19 @@ try {
   assert.equal((await save(editor, { dip_id: a, status: "confirmed", dip_name: dipName("Post-vote replacement"), notes: null })).response.status, 409);
   assert.equal((await db.doc(`registrationDips/${a}`).get()).data().voting_locked, true);
 
+  const legacyWithoutTimestamp = db.doc(`registrations/multi-http-untimestamped-${suffix}`);
+  const legacyWithoutTimestampData = { name: name("Legacy Without Timestamp"), event, type: "full_rsvp", party_size: 4, bringing_dip: false };
+  registrations.add(legacyWithoutTimestamp.id);
+  await legacyWithoutTimestamp.create(legacyWithoutTimestampData);
   const admin = await get("/api/admin/registrations", { cookie: adminCookie });
   assert.equal(admin.response.status, 200);
   assert.equal(admin.data.registrations.filter(row => row.id === primary.id).length, 1);
   assert.equal(admin.data.registrations.find(row => row.id === primary.id).party_size, 3);
   assert.equal(admin.data.dips.filter(row => [a, b, c].includes(row.id)).length, 3);
   assert.equal(admin.data.dipEditReviews.filter(row => row.registration_id === primary.id).length, 2);
-  expectCounts(admin.data.dipStatusCounts, { confirmed: 5, pending: 1 });
+  expectCounts(admin.data.dipStatusCounts, { confirmed: 5, pending: 1, without_dips: 1 });
+  assert(admin.data.registrations.some(row => row.id === legacyWithoutTimestamp.id), "An older RSVP without created_at must remain visible to the admin");
+  assert.deepEqual((await legacyWithoutTimestamp.get()).data(), legacyWithoutTimestampData);
   const ownStatuses = admin.data.registrationDips.filter(row => row.registration_id === primary.id);
   assert.equal(ownStatuses.filter(row => row.status === "confirmed").length, 3);
   assert.equal(ownStatuses.filter(row => row.status === "pending").length, 1);

@@ -308,6 +308,12 @@ test("development admin dip totals join independent confirmed entries without du
     "_dipEditReviews/review": { status: "pending_review", dip_id: "a", registration_id: "new", proposed: { status: "confirmed", dip_name: "New Salsa", notes: "Dairy" } },
   }));
   const before = fixture.db.registrations();
+  const collection = fixture.db.collection.bind(fixture.db);
+  fixture.db.collection = (name) => {
+    const query = collection(name);
+    if (name === "registrations") query.orderBy = () => { throw new Error("Timestamp filtering would hide legacy RSVP counts"); };
+    return query;
+  };
   const route = fixture.load("src/app/api/admin/registrations/route.ts");
   assert.equal((await route.GET(request("registrations"))).status, 401);
   const token = await signedIn(fixture);

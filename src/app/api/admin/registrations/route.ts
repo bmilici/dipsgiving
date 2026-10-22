@@ -10,7 +10,14 @@ export async function GET(request: Request) {
     if (isMultiDipEnabled && !multiDipServerEnabled()) throw new Error("Development database unavailable");
     const db = getRsvpDb();
     await requireAdmin(db, request);
-    const snapshot = await db.collection("registrations").orderBy("created_at", "desc").get();
+    const source = db.collection("registrations");
+    // Firestore orderBy excludes documents without that field. Legacy RSVPs
+    // must remain part of the new counts even when created_at was never saved.
+    const snapshot = multiDipServerEnabled() ? await source.get() : await source.orderBy("created_at", "desc").get();
+    if (multiDipServerEnabled()) snapshot.docs.sort((a, b) => {
+      const time = (value: unknown) => value && typeof value === "object" && "toMillis" in value && typeof value.toMillis === "function" ? value.toMillis() : 0;
+      return time(b.data().created_at) - time(a.data().created_at) || a.id.localeCompare(b.id);
+    });
     const registrations = snapshot.docs.map((doc) => {
       const record = doc.data();
       return {

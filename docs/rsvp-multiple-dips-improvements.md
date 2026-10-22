@@ -37,6 +37,8 @@ New additional dip IDs use `dip_` plus a SHA-256 digest of the owning RSVP ID an
 the request identifier. Initial dip IDs use the RSVP ID and the stable initial
 request discriminator. A request receipt binds each request to its normalized
 payload. Retries reuse the same dip ID; reuse with different content is rejected.
+New private receipts also retain the confirmation kind so a retry displays the
+same success message. Older receipts do not need to be rewritten.
 
 Returning guests keep the current name-and-phone lookup. Their summary and
 individual entries support choosing a pending dip, editing a particular
@@ -121,6 +123,9 @@ guest adds an entry. Multiple entries from one RSVP remain visible separately.
 Unverified historical entries require review and are not silently counted as
 confirmed or pending. These details are available only behind existing admin
 authorization.
+The development admin query also includes older RSVPs without `created_at`;
+sorting happens after reading them, so missing timestamps cannot remove a
+guest from the actual RSVP or no-dip totals. No legacy timestamp is backfilled.
 
 New successful RSVPs continue to normalize phones to US E.164 and atomically
 deduplicate them against the existing private invitation list. Existing manual
@@ -220,11 +225,21 @@ unchanged. All owned synthetic guests, dips, contacts, ballots, sessions,
 requests, proposals, Auth users, and winner/archive fixtures were cleaned up;
 prior demo event settings were restored. No production service was called.
 
-Final aggregate offline results, build checks, and any visual browser
-limitations are recorded in the task delivery when those checks complete.
+The full offline suite passed **306 tests** with zero failures; five opt-in
+emulator suites were skipped in that offline run. The separately enabled
+database suite passed **27 checks**, including independent **10/6** vote totals.
+The final admin regression checks and full localhost HTTP walkthrough also
+passed with an untimestamped legacy RSVP included in the actual admin response.
+TypeScript passed. Focused ESLint had zero errors and four image optimization
+suggestions for the preserved/native image elements.
+
+The visual browser connection was retried but failed before opening with the
+tool's `sandboxPolicy` initialization error. No screenshot or interactive visual
+verification is claimed. Component, API, and real database checks passed.
 
 ## Modified files
 
+- `docs/multiple-dips.md`
 - `docs/rsvp-multiple-dips-improvements.md`
 - `scripts/verify-multiple-dips.mjs`
 - `src/app/admin/page.tsx`
