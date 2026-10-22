@@ -112,6 +112,7 @@ function componentHarness(file, options = {}) {
       },
     },
     "@/components/EmptyState": "empty-state",
+    "@/components/ChampionPhoto": "champion-photo",
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon" },
     "next/link": "a",
   };

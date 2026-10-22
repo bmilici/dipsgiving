@@ -12,18 +12,36 @@ const feed = {
 };
 function harness({ testing = false } = {}) {
   const state = [], requests = [], effects = [];
+  const componentStates = new Map(), activeComponents = new Set();
+  let currentState = state;
+  let scope = "page";
   let cursor = 0;
   let finish;
-  const element = (type, props, key) => typeof type === "function" ? type(props || {}) : ({ type, props: props || {}, key });
+  const element = (type, props, key) => {
+    if (typeof type !== "function") return { type, props: props || {}, key };
+    const id = `${scope}/${type.name}:${key ?? props?.src ?? props?.id ?? "single"}`;
+    const previous = { state: currentState, scope, cursor };
+    activeComponents.add(id);
+    if (!componentStates.has(id)) componentStates.set(id, []);
+    currentState = componentStates.get(id); scope = id; cursor = 0;
+    try { return type(props || {}); }
+    finally { currentState = previous.state; scope = previous.scope; cursor = previous.cursor; }
+  };
   const modules = {
     react: {
-      useState(initial) { const index = cursor++; if (!(index in state)) state[index] = initial; return [state[index], next => { state[index] = typeof next === "function" ? next(state[index]) : next; }]; },
+      useState(initial) { const ownState = currentState, index = cursor++; if (!(index in ownState)) ownState[index] = initial; return [ownState[index], next => { ownState[index] = typeof next === "function" ? next(ownState[index]) : next; }]; },
       useEffect(effect) { effects.push(effect); },
     },
     "react/jsx-runtime": { jsx: element, jsxs: element },
     "@/components/EmptyState": props => element("empty-state", props),
-    "@/lib/testingMode": { testingAssetPath: path => testing && path.startsWith("/") ? `/testing${path}` : path },
+    "@/lib/testingMode": { testingAssetPath: path => testing && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/testing/") ? `/testing${path}` : path },
   };
+  const photo = {};
+  const photoCode = ts.transpileModule(readFileSync(new URL("../src/components/ChampionPhoto.tsx", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+  }).outputText;
+  vm.runInNewContext(photoCode, { exports: photo, require(name) { assert(Object.hasOwn(modules, name), `Unexpected photo dependency blocked: ${name}`); return modules[name]; } });
+  modules["@/components/ChampionPhoto"] = { __esModule: true, default: photo.default };
   const exports = {};
   const code = ts.transpileModule(readFileSync(new URL("../src/components/MultiDipChampionsPage.tsx", import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
@@ -33,7 +51,12 @@ function harness({ testing = false } = {}) {
     require(name) { assert(Object.hasOwn(modules, name), `Unexpected dependency blocked: ${name}`); return modules[name]; },
   });
   return { state, requests, effects,
-    render() { cursor = 0; effects.length = 0; return exports.default(); },
+    render() {
+      cursor = 0; currentState = state; scope = "page"; effects.length = 0; activeComponents.clear();
+      const tree = exports.default();
+      for (const id of componentStates.keys()) if (!activeComponents.has(id)) componentStates.delete(id);
+      return tree;
+    },
     async respond(body = feed, ok = true) { finish({ ok, async json() { return body; } }); await tick(); },
   };
 }
@@ -74,7 +97,7 @@ test("the winning dip, associated chef, year, ranking, award category and photos
   assert.match(content(tree), /People’s Choice/);
   assert.doesNotMatch(content(tree), /Cowboy Dip/);
   const images = nodes(tree, node => node.type === "img");
-  assert.deepEqual(images.map(image => image.props.src), ["/winners/event.jpg", "/winners/queso.jpg", "/winners/2024.jpg"]);
+  assert.deepEqual(images.map(image => image.props.src), ["/winners/event.jpg", "/winners/queso.jpg"]);
   assert.match(images[1].props.alt, /Smoked Queso.*2026.*Kim and Brian/);
   assert(images.every(image => image.props.loading === "lazy" && image.props.width && image.props.height));
 });
@@ -149,4 +172,25 @@ test("a read completed after unmount cannot replace the page state", async () =>
   cleanup(); await page.respond();
   assert.equal(page.state[0], null);
   assert.equal(page.requests[0].config.signal.aborted, true);
+});
+
+test("all three 2024 winners and their award text remain while the absent year photo is omitted and third-place filename is corrected", async () => {
+  const page = harness(); page.render(); page.effects[0]();
+  await page.respond({ years: [{ id: "2024", year: 2024, image: "/winners/2024.jpg", podium: [
+    { id: "2024-first", dip_name: "Cowboy Dip", by: "Kim and Brian", place: 1, image: "/winners/2024-1st.jpeg" },
+    { id: "2024-second", dip_name: "Buffalo Chicken Dip", by: "Natasha", place: 2, image: "/winners/2024-2nd.jpeg" },
+    { id: "2024-third", dip_name: "Smoked Queso", by: "Jordan", place: 3, image: "/winners/2024-3rd.jpg" },
+  ] }], historicalDips: [], has_unresolved: false });
+  let tree = page.render();
+  let images = nodes(tree, node => node.type === "img");
+  assert.deepEqual(images.map(image => image.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-2nd.jpeg", "/winners/2024-3rd.jpeg"]);
+  images[1].props.onError();
+  tree = page.render();
+  images = nodes(tree, node => node.type === "img");
+  assert.deepEqual(images.map(image => image.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-3rd.jpeg"]);
+  for (const expected of ["Dipsgiving 2024", "Cowboy Dip", "Kim and Brian", "1st Place", "Buffalo Chicken Dip", "Natasha", "2nd Place", "Smoked Queso", "Jordan", "3rd Place"]) assert.ok(content(tree).includes(expected), expected);
+  assert.equal(nodes(tree, node => ["2024-first", "2024-second", "2024-third"].includes(node.key)).length, 3);
+  const failedCard = nodes(tree, node => node.key === "2024-second")[0];
+  assert.equal(nodes(failedCard, node => node.type === "img").length, 0);
+  assert.equal(nodes(failedCard, node => node.props?.className?.includes("h-40") || node.props?.className?.includes("mb-5")).length, 0);
 });

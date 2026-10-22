@@ -73,6 +73,7 @@ function uiModules(env) {
     "@/components/MultiDipVotePage": "individual-dip-vote-page",
     "@/components/MultiDipChampionsPage": "individual-dip-champions-page",
     "@/components/EmptyState": "empty-state",
+    "@/components/ChampionPhoto": "champion-photo",
   };
 }
 

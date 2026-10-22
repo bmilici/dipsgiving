@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import EmptyState from "@/components/EmptyState";
 import { getClientDB } from "@/lib/firebase";
-import { testingAssetPath } from "@/lib/testingMode";
+import ChampionPhoto from "@/components/ChampionPhoto";
 import { isMultiDipEnabled } from "@/lib/rsvp/multi-dip-mode";
 import MultiDipChampionsPage from "@/components/MultiDipChampionsPage";
 
@@ -177,14 +177,9 @@ function HistoricDipChampions() {
                     </div>
 
                     {entry.image && (
-                      <img
-                        src={testingAssetPath(entry.image)}
+                      <ChampionPhoto
+                        src={entry.image}
                         alt={`${entry.dip_name}, place ${entry.place} at Dipsgiving ${year.id}${entry.by ? `, by ${entry.by}` : ""}`}
-                        width={320}
-                        height={200}
-                        loading="lazy"
-                        decoding="async"
-                        className="mx-auto mb-5 h-40 w-full max-w-80 rounded-xl object-contain"
                       />
                     )}
 

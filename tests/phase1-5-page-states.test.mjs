@@ -103,6 +103,11 @@ function pageHarness(file, { databaseAvailable = true, rsvpLookupEnabled = false
     },
     "@/components/PhoneRsvpForm": (props) => element("phone-rsvp-form", props),
     "@/components/EmptyState": EmptyState,
+    "@/components/ChampionPhoto": loadComponent("src/components/ChampionPhoto.tsx", {
+      react,
+      "react/jsx-runtime": jsx,
+      "@/lib/testingMode": { testingAssetPath: (path) => path },
+    }),
     "@/lib/testingMode": { isTestingMode: testingMode, testingAssetPath: (path) => path },
     "lucide-react": { Soup: "soup-icon", Trophy: "trophy-icon", CalendarDays: "calendar-icon" },
     "../../components/InlineRegisterForm": InlineRegisterForm,
