@@ -106,7 +106,13 @@ function AdminDashboardContent() {
           Dipsgiving Dashboard
         </h1>
 
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href="/admin/rsvps"
+            className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800"
+          >
+            RSVP List
+          </Link>
           <Link
             href="/admin/invitations"
             className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800"
@@ -123,12 +129,13 @@ function AdminDashboardContent() {
 
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
+          <Link href="/admin/rsvps" className="rounded-2xl border border-orange-200 bg-white/80 p-5 hover:bg-orange-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-700">
             <div className="text-sm text-orange-700/80">RSVPs</div>
             <div className="mt-1 text-3xl font-extrabold text-orange-900">
               {totalRSVPs}
             </div>
-          </div>
+            <p className="mt-2 text-sm text-orange-700 underline">View RSVPs &amp; Send Messages</p>
+          </Link>
 
           <div className="rounded-2xl border border-orange-200 bg-white/80 p-5">
             <div className="text-sm text-orange-700/80">Expected Attendees</div>

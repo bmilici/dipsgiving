@@ -46,6 +46,8 @@ function loadAdmin(env = {}, db = adminDb(), realAdmin = false) {
       if (id === "@/lib/rsvp/db") return { getRsvpDb: () => db };
       const local = {
         "@/lib/invitation-message": "src/lib/invitation-message.ts",
+        "@/lib/rsvp/admin-message": "src/lib/rsvp/admin-message.ts",
+        "@/lib/rsvp-messages": "src/lib/rsvp-messages.ts",
         "@/lib/rsvp/invitation-sync": "src/lib/rsvp/invitation-sync.ts",
         "@/lib/rsvp/validation": "src/lib/rsvp/validation.ts",
         "@/lib/rsvp/multi-dip-mode": "src/lib/rsvp/multi-dip-mode.ts",
@@ -78,7 +80,7 @@ async function signedIn(fixture) {
 test("admin passcode stays on server; no client passcode or localStorage bypass", () => {
   const source = readFileSync(path.join(root, "src/components/AdminGate.tsx"), "utf8");
   assert.doesNotMatch(source, /NEXT_PUBLIC_ADMIN_PASSCODE|localStorage|DIPSGIVING_ADMIN_PASSCODE/);
-  for (const filename of ["src/app/admin/page.tsx", "src/app/admin/invitations/page.tsx"]) {
+  for (const filename of ["src/app/admin/page.tsx", "src/app/admin/invitations/page.tsx", "src/app/admin/rsvps/page.tsx"]) {
     const page = readFileSync(path.join(root, filename), "utf8");
     assert.match(page, /return <AdminGate><\w+Content \/><\/AdminGate>/);
     assert.doesNotMatch(page, /firebase\/firestore|firebase\/auth/);
@@ -489,4 +491,35 @@ test("malformed saved message data fails closed rather than being silently overw
     assert.equal((await route.POST(request("invitation-message", token, { message: "Replacement", revision: 0 }))).status, 503);
     assert.deepEqual(fixture.db.records.get("_adminSettings/invitationMessage"), stored);
   }
+});
+
+test("RSVP message settings require admin access and stay independent of invitation settings and guest records", async () => {
+  const invitation = { message: "Keep the saved invitation exactly", revision: 9 };
+  const guest = { name: "Synthetic RSVP", phone: "+12025550101", party_size: 4 };
+  const fixture = loadAdmin({}, adminDb({ "_adminSettings/invitationMessage": invitation, "registrations/guest": guest }));
+  const route = fixture.load("src/app/api/admin/rsvp-message/route.ts");
+  assert.equal((await route.GET(request("rsvp-message"))).status, 401);
+  assert.equal((await route.POST(request("rsvp-message", "", { message: "Denied", revision: 0 }))).status, 401);
+  const token = await signedIn(fixture);
+  const initial = await route.GET(request("rsvp-message", token));
+  assert.equal(initial.status, 200);
+  assert.match(initial.headers.get("cache-control"), /no-store, private/);
+  const fallback = await initial.json();
+  assert.equal(fallback.revision, 0);
+  assert.match(fallback.message, /Thanks for RSVPing/);
+  assert(!fixture.db.records.has("_adminSettings/rsvpMessage"));
+  const message = "RSVP update 🥰\n\nBring a bathing suit for pool & hot tub!\nhttps://www.dipsgiving.com/";
+  assert.deepEqual(await (await route.POST(request("rsvp-message", token, { message, revision: 0 }))).json(), { ok: true, message, revision: 1 });
+  const fresh = loadAdmin({}, fixture.db).load("src/app/api/admin/rsvp-message/route.ts");
+  assert.deepEqual(await (await fresh.GET(request("rsvp-message", token))).json(), { message, revision: 1 });
+  assert.equal((await route.POST(request("rsvp-message", token, { message: "Stale overwrite", revision: 0 }))).status, 409);
+  const writes = fixture.db.writes.length;
+  assert.equal((await route.POST(request("rsvp-message", token, { message, revision: 0 }))).status, 200);
+  assert.equal(fixture.db.writes.length, writes);
+  for (const input of [{ message: " ", revision: 1 }, { message: "x".repeat(4001), revision: 1 }, { message: "Valid", revision: 1, phone: "+12025550101" }]) {
+    assert.equal((await route.POST(request("rsvp-message", token, input))).status, 400);
+  }
+  assert.equal((await route.POST(request("rsvp-message", token, { message: "Cross-site", revision: 1 }, "https://other.example"))).status, 403);
+  assert.deepEqual(fixture.db.records.get("_adminSettings/invitationMessage"), invitation);
+  assert.deepEqual(fixture.db.records.get("registrations/guest"), guest);
 });

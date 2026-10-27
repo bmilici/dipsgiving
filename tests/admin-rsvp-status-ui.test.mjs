@@ -21,7 +21,7 @@ function nodes(tree, predicate) {
 }
 
 function kpi(tree, label) {
-  const card = nodes(tree, node => node.type === "div" && children(node).some(child => child.type === "div" && text(child) === label))[0];
+  const card = nodes(tree, node => ["div", "a"].includes(node.type) && children(node).some(child => child.type === "div" && text(child) === label))[0];
   assert.ok(card, `Missing KPI ${label}`);
   const values = children(card).filter(child => child.type === "div");
   assert.equal(values.length, 2);
@@ -185,5 +185,16 @@ test("feature-disabled admin retains its three legacy KPIs and registration-back
   assert.deepEqual(rows.map(row => row.key), ["rsvp-family", "dip-only-row"]);
   assert.match(text(rows), /Legacy RSVP Dip Field.*Legacy Standalone Dip/);
   assert.doesNotMatch(text(rows), /Hot Sausage Cowboy Dip|Smoked Queso/);
+  page.unmount();
+});
+
+test("RSVP count and dashboard action both open the RSVP messaging list", async () => {
+  const page = harness();
+  const tree = await page.mount(fixture());
+  const links = nodes(tree, node => node.type === "a" && node.props.href === "/admin/rsvps");
+  assert.equal(links.length, 2);
+  assert.ok(links.some(link => text(link) === "RSVP List"));
+  assert.ok(links.some(link => /RSVPs3View RSVPs & Send Messages/.test(text(link))));
+  assert.equal(kpi(tree, "RSVPs"), "3");
   page.unmount();
 });
