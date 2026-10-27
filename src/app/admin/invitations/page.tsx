@@ -29,7 +29,7 @@ Milici Household
 
 Bring your best dip for a chance to win the grand prize of a YETI COOLER Sponsored by Amber Reyes, Real Estate Professional (https://www.amberreyesrealtor.com/) 🥰.
 
-smiLees (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc
+smiLee (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc
 
 We will provide the drinks, booze, & kid activities- PLEASE BRING an amazing dip (sweet or savory), a bathing suit, and an appetite!
 

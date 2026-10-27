@@ -541,7 +541,7 @@ test("the approved invitation preserves its paragraphs, sponsors, emojis and edi
   const message = messageField(initial).props.value;
   assert.ok(message.startsWith("The time has come for the 5th ANNUAL DIPSGIVING!\nSat, Dec 5, 2026, 4 p.m.\nMilici Household\n10600 Highgrove Pl, 33913\n\n"));
   assert.ok(message.includes("YETI COOLER Sponsored by Amber Reyes, Real Estate Professional (https://www.amberreyesrealtor.com/) 🥰."));
-  assert.ok(message.includes("smiLees (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc"));
+  assert.ok(message.includes("smiLee (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc"));
   assert.ok(message.includes("drinks, booze, & kid activities- PLEASE BRING"));
   assert.ok(message.includes("RSVP and register your dip HERE: https://www.dipsgiving.com/ - claim the buffalo chicken dip before it’s too late! 😆😆"));
   assert.ok(message.endsWith("Can’t wait to see you on Dec 5! Gate code to be provided upon RSVP."));
