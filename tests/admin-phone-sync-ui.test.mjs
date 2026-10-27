@@ -52,7 +52,7 @@ const status = (tree) => {
 
 // Execute the real authorized admin content with a closed import map. Every
 // request is a deferred local promise; no Firebase, network, or SMS can run.
-function harness() {
+function harness({ captureSms = false } = {}) {
   const hooks = [];
   const requests = [];
   const effects = [];
@@ -64,6 +64,7 @@ function harness() {
   const intervals = new Map();
   let cursor = 0;
   let smsAttempts = 0;
+  const smsUris = [];
   let timerId = 0;
   const sameDeps = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
   const react = {
@@ -97,8 +98,9 @@ function harness() {
     },
   };
   const location = { origin: "http://localhost.test" };
-  Object.defineProperty(location, "href", { set() {
+  Object.defineProperty(location, "href", { set(value) {
     smsAttempts++;
+    if (captureSms) { smsUris.push(value); return; }
     throw new Error("Opening SMS or navigating is forbidden in phone sync tests");
   } });
   const settings = { eventName: "5th Annual Dipsgiving", dateLabel: "December 5", timeLabel: "4pm" };
@@ -152,7 +154,7 @@ function harness() {
   }, { timeout: 2000 });
 
   return {
-    requests, confirmations, navigations, errors,
+    requests, confirmations, navigations, errors, smsUris,
     render() { cursor = 0; return exports.default(); },
     commit() {
       for (let pass = 0; pass < 12; pass++) {
@@ -530,4 +532,36 @@ test("a failed list refresh after an acknowledged save does not turn a saved row
   assert.equal(server.values()[0].notes, "Acknowledged saved note");
   page.assertNoSms();
   page.unmount();
+});
+
+test("the approved invitation preserves its paragraphs, sponsors, emojis and editable text in one encoded SMS", async () => {
+  const page = harness({ captureSms: true });
+  const initial = await page.mount();
+  const messageField = tree => nodes(tree, node => node.type === "textarea")[0];
+  const message = messageField(initial).props.value;
+  assert.ok(message.startsWith("The time has come for the 5th ANNUAL DIPSGIVING!\nSat, Dec 5, 2026, 4 p.m.\nMilici Household\n10600 Highgrove Pl, 33913\n\n"));
+  assert.ok(message.includes("YETI COOLER Sponsored by Amber Reyes, Real Estate Professional (https://www.amberreyesrealtor.com/) 🥰."));
+  assert.ok(message.includes("smiLees (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc"));
+  assert.ok(message.includes("drinks, booze, & kid activities- PLEASE BRING"));
+  assert.ok(message.includes("RSVP and register your dip HERE: https://www.dipsgiving.com/ - claim the buffalo chicken dip before it’s too late! 😆😆"));
+  assert.ok(message.endsWith("Can’t wait to see you on Dec 5! Gate code to be provided upon RSVP."));
+  assert.equal(message.split("\n\n").length, 6);
+  assert.doesNotMatch(message, /\]\(https?:\/\/|localhost\.test|<a\s/);
+  assert.equal(page.smsUris.length, 0, "Loading the default must not open or send a message");
+  const edited = message + "\n\nP.S. See you there!";
+  messageField(initial).props.onChange({ target: { value: edited } });
+  page.commit();
+  page.poll();
+  page.requests[1].resolve({ invitees: [existingInvitee] });
+  await tick();
+  const refreshed = page.commit();
+  assert.equal(messageField(refreshed).props.value, edited, "Refreshing contacts must preserve a custom message draft");
+  button(refreshed, "Open Message").props.onClick();
+  assert.equal(page.smsUris.length, 1);
+  const uri = new URL(page.smsUris[0]);
+  assert.equal(uri.protocol, "sms:");
+  assert.equal(decodeURIComponent(uri.pathname), "+12025550101");
+  assert.deepEqual([...uri.searchParams.keys()], ["body"]);
+  assert.equal(uri.searchParams.get("body"), edited, "Phone composer receives the complete text, newlines, URLs, ampersand and emojis");
+  assert.ok(page.requests.every(request => request.body === undefined), "No invitation data or message is sent to a server");
 });

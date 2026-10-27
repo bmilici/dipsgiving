@@ -3,7 +3,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminRequest } from "@/lib/rsvp/admin-client";
-import { useEventSettings } from "@/lib/eventSettings";
 import AdminGate from "@/components/AdminGate";
 
 type Invitee = {
@@ -22,6 +21,21 @@ type Draft = {
   notes: string;
   invite_next_year: boolean;
 };
+
+const DEFAULT_SMS_MESSAGE = `The time has come for the 5th ANNUAL DIPSGIVING!
+Sat, Dec 5, 2026, 4 p.m.
+Milici Household
+10600 Highgrove Pl, 33913
+
+Bring your best dip for a chance to win the grand prize of a YETI COOLER Sponsored by Amber Reyes, Real Estate Professional (https://www.amberreyesrealtor.com/) 🥰.
+
+smiLees (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc
+
+We will provide the drinks, booze, & kid activities- PLEASE BRING an amazing dip (sweet or savory), a bathing suit, and an appetite!
+
+RSVP and register your dip HERE: https://www.dipsgiving.com/ - claim the buffalo chicken dip before it’s too late! 😆😆
+
+Can’t wait to see you on Dec 5! Gate code to be provided upon RSVP.`;
 
 const emptyDraft: Draft = {
   name: "",
@@ -69,14 +83,12 @@ export default function InvitationListPage() {
 
 function InvitationListContent() {
   const router = useRouter();
-  const eventSettings = useEventSettings();
   const [invitees, setInvitees] = useState<Invitee[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const [newInvitee, setNewInvitee] = useState<Draft>(emptyDraft);
-  const [smsMessage, setSmsMessage] = useState("");
+  const [smsMessage, setSmsMessage] = useState(DEFAULT_SMS_MESSAGE);
   const [smsRecipientIndex, setSmsRecipientIndex] = useState(0);
-  const [siteUrl, setSiteUrl] = useState("");
   const [queryText, setQueryText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -194,28 +206,6 @@ function InvitationListContent() {
         (invitee) => invitee.id === nextSmsRecipient.id
       ) + 1
     : 0;
-  const defaultSmsMessage = useMemo(() => {
-    const date = eventSettings.dateLabel.trim();
-    const time = eventSettings.timeLabel.trim();
-    const hasDate = date && date.toLowerCase() !== "tbd";
-    const hasTime = time && time.toLowerCase() !== "tbd";
-    const when = [hasDate ? date : "", hasTime ? time : ""]
-      .filter(Boolean)
-      .join(" at ");
-    const dateText = when ? ` is ${when}` : " details are coming soon";
-    const link = siteUrl || "https://dipsgiving.com";
-
-    return `${eventSettings.eventName}${dateText}. Here is the link: ${link}`;
-  }, [eventSettings, siteUrl]);
-
-  useEffect(() => {
-    setSiteUrl(window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    setSmsMessage(defaultSmsMessage);
-  }, [defaultSmsMessage]);
-
   useEffect(() => {
     setSmsRecipientIndex(0);
   }, [selectedSmsCount]);
