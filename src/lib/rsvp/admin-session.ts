@@ -13,7 +13,7 @@ export class AdminError extends Error {
 
 export function assertAdminAvailable() {
   if (process.env.NEXT_PUBLIC_DESIGN_PREVIEW === "true") throw new AdminError(404, "Not found.");
-  if ((process.env.DIPSGIVING_ADMIN_PASSCODE || "").length < 16) throw new AdminError(503, "Admin access is temporarily unavailable.");
+  if ((process.env.DIPSGIVING_ADMIN_PASSCODE || "").length < 12) throw new AdminError(503, "Admin access is temporarily unavailable.");
 }
 
 export function adminReply(data: unknown, status = 200, cookie?: string, retryAfter?: number) {

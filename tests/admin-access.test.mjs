@@ -85,10 +85,25 @@ test("admin passcode stays on server; no client passcode or localStorage bypass"
 });
 
 test("missing, short, and preview admin configuration fails closed", () => {
-  for (const env of [{ DIPSGIVING_ADMIN_PASSCODE: "" }, { DIPSGIVING_ADMIN_PASSCODE: "short" }, { NEXT_PUBLIC_DESIGN_PREVIEW: "true" }]) {
+  for (const env of [{ DIPSGIVING_ADMIN_PASSCODE: "" }, { DIPSGIVING_ADMIN_PASSCODE: "short" }, { DIPSGIVING_ADMIN_PASSCODE: "x".repeat(11) }, { NEXT_PUBLIC_DESIGN_PREVIEW: "true" }]) {
     const { session } = loadAdmin(env);
     assert.throws(() => session.assertAdminAvailable(), session.AdminError);
   }
+});
+
+test("a twelve-character configured passcode signs in through the existing protected session flow", async () => {
+  const configured = "x".repeat(12);
+  const fixture = loadAdmin({ DIPSGIVING_ADMIN_PASSCODE: configured });
+  const route = fixture.load("src/app/api/admin/session/route.ts");
+  const wrong = await route.POST(request("session", "", { action: "login", passcode: "y".repeat(12) }));
+  assert.equal(wrong.status, 401);
+  const login = await route.POST(request("session", "", { action: "login", passcode: configured }));
+  assert.equal(login.status, 200);
+  const cookie = login.headers.get("set-cookie");
+  assert.match(cookie, /HttpOnly; SameSite=Strict/);
+  const token = cookie.split(";", 1)[0].split("=")[1];
+  assert.equal((await route.GET(request("session", token))).status, 200);
+  assert.equal((await route.GET(request())).status, 401);
 });
 
 test("admin session uses random token, hashed storage, one hour expiry, and TTL Date", async () => {
