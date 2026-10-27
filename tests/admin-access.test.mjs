@@ -45,6 +45,7 @@ function loadAdmin(env = {}, db = adminDb(), realAdmin = false) {
       if (id === "@/lib/rsvp/admin-session") return load("src/lib/rsvp/admin-session.ts");
       if (id === "@/lib/rsvp/db") return { getRsvpDb: () => db };
       const local = {
+        "@/lib/invitation-message": "src/lib/invitation-message.ts",
         "@/lib/rsvp/invitation-sync": "src/lib/rsvp/invitation-sync.ts",
         "@/lib/rsvp/validation": "src/lib/rsvp/validation.ts",
         "@/lib/rsvp/multi-dip-mode": "src/lib/rsvp/multi-dip-mode.ts",
@@ -409,5 +410,83 @@ test("real emulator admin sessions and invitation CRUD", { skip: process.env.DEM
     await db.collection("_rsvpAdminRateLimits").doc(hash("test-client")).delete();
     await db.terminate();
     await deleteApp(app);
+  }
+});
+
+test("invitation message is admin-only and a missing setting returns the default without writing", async () => {
+  const fixture = loadAdmin();
+  const route = fixture.load("src/app/api/admin/invitation-message/route.ts");
+  assert.equal((await route.GET(request("invitation-message"))).status, 401);
+  assert.equal((await route.POST(request("invitation-message", "", { message: "No access", revision: 0 }))).status, 401);
+  const token = await signedIn(fixture);
+  const response = await route.GET(request("invitation-message", token));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store, private");
+  const value = await response.json();
+  assert.equal(value.revision, 0);
+  assert.match(value.message, /^The time has come for the 5th ANNUAL DIPSGIVING!/);
+  assert(!fixture.db.records.has("_adminSettings/invitationMessage"));
+});
+
+test("saved message survives a new server instance with exact whitespace, links and emojis and preserves other data", async () => {
+  const unchanged = {
+    "registrations/guest": { name: "Guest", phone: "+12025550101", votes: 7 },
+    "invitationList/contact": { name: "Contact", notes: "Keep" },
+    "userVotes/voter": { dipIds: ["dip-a"] },
+    "winners/2024": { podium: [{ dip_name: "Original champion" }] },
+  };
+  const fixture = loadAdmin({}, adminDb(unchanged));
+  const token = await signedIn(fixture);
+  const route = fixture.load("src/app/api/admin/invitation-message/route.ts");
+  const message = "  Updated invitation 🥰\n\nPool & hot tub!\nhttps://www.dipsgiving.com/\n";
+  const response = await route.POST(request("invitation-message", token, { message, revision: 0 }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true, message, revision: 1 });
+  const stored = fixture.db.records.get("_adminSettings/invitationMessage");
+  assert.equal(stored.message, message);
+  assert.equal(stored.updated_at, "TEST_SERVER_TIMESTAMP");
+  const fresh = loadAdmin({}, fixture.db).load("src/app/api/admin/invitation-message/route.ts");
+  assert.deepEqual(await (await fresh.GET(request("invitation-message", token))).json(), { message, revision: 1 });
+  for (const [path, value] of Object.entries(unchanged)) assert.deepEqual(fixture.db.records.get(path), value);
+});
+
+test("message saves reject invalid bodies and cross-site requests without altering the existing message", async () => {
+  const original = { message: "Original invitation", revision: 3, retain: "metadata" };
+  const fixture = loadAdmin({}, adminDb({ "_adminSettings/invitationMessage": original }));
+  const token = await signedIn(fixture);
+  const route = fixture.load("src/app/api/admin/invitation-message/route.ts");
+  for (const body of [
+    { message: "", revision: 3 }, { message: " \n ", revision: 3 }, { message: "x".repeat(4001), revision: 3 },
+    { message: 42, revision: 3 }, { message: "Valid", revision: -1 }, { message: "Valid", revision: 0.5 },
+    { message: "Valid" }, { message: "Valid", revision: 3, id: "../another-setting" },
+  ]) assert.equal((await route.POST(request("invitation-message", token, body))).status, 400);
+  assert.equal((await route.POST(request("invitation-message", token, { message: "Changed", revision: 3 }, "https://evil.example"))).status, 403);
+  assert.deepEqual(fixture.db.records.get("_adminSettings/invitationMessage"), original);
+  assert.equal((await route.POST(request("invitation-message", token, { message: "x".repeat(17000), revision: 3 }))).status, 413);
+});
+
+test("message revisions prevent silent overwrites and make lost-response retries idempotent", async () => {
+  const fixture = loadAdmin(); const token = await signedIn(fixture);
+  const route = fixture.load("src/app/api/admin/invitation-message/route.ts");
+  const first = await route.POST(request("invitation-message", token, { message: "Saved once", revision: 0 }));
+  assert.equal(first.status, 200);
+  const before = structuredClone(fixture.db.records.get("_adminSettings/invitationMessage"));
+  const retries = fixture.db.writes.length;
+  assert.deepEqual(await (await route.POST(request("invitation-message", token, { message: "Saved once", revision: 0 }))).json(), { ok: true, message: "Saved once", revision: 1 });
+  assert.equal(fixture.db.writes.length, retries);
+  assert.equal((await route.POST(request("invitation-message", token, { message: "Stale overwrite", revision: 0 }))).status, 409);
+  assert.deepEqual(fixture.db.records.get("_adminSettings/invitationMessage"), before);
+  const results = await Promise.all(["One browser", "Another browser"].map(message => route.POST(request("invitation-message", token, { message, revision: 1 }))));
+  assert.deepEqual(results.map(result => result.status).sort(), [200, 409]);
+  assert.equal(fixture.db.records.get("_adminSettings/invitationMessage").revision, 2);
+});
+
+test("malformed saved message data fails closed rather than being silently overwritten", async () => {
+  for (const stored of [{ message: "Saved", revision: "bad" }, { message: "", revision: 1 }, { message: 42, revision: 1 }]) {
+    const fixture = loadAdmin({}, adminDb({ "_adminSettings/invitationMessage": stored }));
+    const token = await signedIn(fixture); const route = fixture.load("src/app/api/admin/invitation-message/route.ts");
+    assert.equal((await route.GET(request("invitation-message", token))).status, 503);
+    assert.equal((await route.POST(request("invitation-message", token, { message: "Replacement", revision: 0 }))).status, 503);
+    assert.deepEqual(fixture.db.records.get("_adminSettings/invitationMessage"), stored);
   }
 });

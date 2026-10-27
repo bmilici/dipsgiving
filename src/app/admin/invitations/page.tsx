@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "re
 import { useRouter } from "next/navigation";
 import { adminRequest } from "@/lib/rsvp/admin-client";
 import AdminGate from "@/components/AdminGate";
+import { DEFAULT_INVITATION_MESSAGE, MAX_INVITATION_MESSAGE_LENGTH, type InvitationMessageSettings } from "@/lib/invitation-message";
 
 type Invitee = {
   id: string;
@@ -21,21 +22,6 @@ type Draft = {
   notes: string;
   invite_next_year: boolean;
 };
-
-const DEFAULT_SMS_MESSAGE = `The time has come for the 5th ANNUAL DIPSGIVING!
-Sat, Dec 5, 2026, 4 p.m.
-Milici Household
-10600 Highgrove Pl, 33913
-
-Bring your best dip for a chance to win the grand prize of a YETI COOLER Sponsored by Amber Reyes, Real Estate Professional (https://www.amberreyesrealtor.com/) 🥰.
-
-smiLee (https://drsmilee.com/) will be sponsoring the DIPPERS!!!!- including veggies, chips, pita, Nila wafers, etc
-
-We will provide the drinks, booze, & kid activities- PLEASE BRING an amazing dip (sweet or savory), a bathing suit, and an appetite!
-
-RSVP and register your dip HERE: https://www.dipsgiving.com/ - claim the buffalo chicken dip before it’s too late! 😆😆
-
-Can’t wait to see you on Dec 5! Gate code to be provided upon RSVP.`;
 
 const emptyDraft: Draft = {
   name: "",
@@ -77,6 +63,13 @@ function toInvitee(id: string, data: Record<string, unknown>): Invitee {
   };
 }
 
+function messageSettings(value: unknown): InvitationMessageSettings {
+  const data = value as Partial<InvitationMessageSettings> | null;
+  if (!data || typeof data.message !== "string" || !data.message.trim() || data.message.length > MAX_INVITATION_MESSAGE_LENGTH ||
+      !Number.isSafeInteger(data.revision) || Number(data.revision) < 0) throw new Error("The saved message could not be loaded. Please try again.");
+  return { message: data.message, revision: Number(data.revision) };
+}
+
 export default function InvitationListPage() {
   return <AdminGate><InvitationListContent /></AdminGate>;
 }
@@ -87,7 +80,11 @@ function InvitationListContent() {
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const [newInvitee, setNewInvitee] = useState<Draft>(emptyDraft);
-  const [smsMessage, setSmsMessage] = useState(DEFAULT_SMS_MESSAGE);
+  const [smsMessage, setSmsMessage] = useState(DEFAULT_INVITATION_MESSAGE);
+  const [savedMessage, setSavedMessage] = useState<InvitationMessageSettings | null>(null);
+  const [messageLoading, setMessageLoading] = useState(true);
+  const [messageSaving, setMessageSaving] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
   const [smsRecipientIndex, setSmsRecipientIndex] = useState(0);
   const [queryText, setQueryText] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -100,6 +97,68 @@ function InvitationListContent() {
   const mutationPending = useRef(false);
   const refreshVersion = useRef(0);
   const active = useRef(false);
+  const smsMessageRef = useRef(DEFAULT_INVITATION_MESSAGE);
+  const savedMessageRef = useRef<InvitationMessageSettings | null>(null);
+  const messageSavePending = useRef(false);
+  const messageLoadVersion = useRef(0);
+  const messageDirty = savedMessage !== null && smsMessage !== savedMessage.message;
+
+  const hasUnsavedChanges = useCallback(() => {
+    return dirtyIdsRef.current.size > 0 ||
+      (savedMessageRef.current !== null && smsMessageRef.current !== savedMessageRef.current.message);
+  }, []);
+
+  const loadMessage = useCallback(async () => {
+    const version = ++messageLoadVersion.current;
+    setMessageLoading(true);
+    setMessageError(null);
+    try {
+      const saved = messageSettings(await adminRequest("invitation-message"));
+      if (!active.current || version !== messageLoadVersion.current) return;
+      smsMessageRef.current = saved.message;
+      savedMessageRef.current = saved;
+      setSmsMessage(saved.message);
+      setSavedMessage(saved);
+    } catch (failure) {
+      if (active.current && version === messageLoadVersion.current) setMessageError(failure instanceof Error ? failure.message : "Could not load the saved message.");
+    } finally {
+      if (active.current && version === messageLoadVersion.current) setMessageLoading(false);
+    }
+  }, []);
+
+  function reloadMessage() {
+    if (messageSavePending.current || messageLoading) return;
+    if (savedMessageRef.current && smsMessageRef.current !== savedMessageRef.current.message &&
+        !window.confirm("Replace your unsaved message with the saved version?")) return;
+    void loadMessage();
+  }
+
+  async function saveMessage() {
+    const previous = savedMessageRef.current;
+    if (messageSavePending.current || messageLoading || !previous) return;
+    const submitted = smsMessageRef.current;
+    if (!submitted.trim() || submitted.length > MAX_INVITATION_MESSAGE_LENGTH) {
+      setMessageError("Enter a message of up to 4,000 characters before saving.");
+      return;
+    }
+    if (submitted === previous.message) return;
+    messageSavePending.current = true;
+    setMessageSaving(true);
+    setMessageError(null);
+    try {
+      const saved = messageSettings(await adminRequest("invitation-message", { message: submitted, revision: previous.revision }));
+      if (saved.message !== submitted || saved.revision <= previous.revision) throw new Error("Could not confirm the message was saved. Your edits are kept; try again.");
+      if (!active.current) return;
+      // Acknowledging this submission must not discard edits made while saving.
+      savedMessageRef.current = saved;
+      setSavedMessage(saved);
+    } catch (failure) {
+      if (active.current) setMessageError(failure instanceof Error ? failure.message : "Could not save the message. Your edits are kept; try again.");
+    } finally {
+      messageSavePending.current = false;
+      if (active.current) setMessageSaving(false);
+    }
+  }
 
   const invalidateRefreshes = useCallback(() => { ++refreshVersion.current; }, []);
 
@@ -162,6 +221,10 @@ function InvitationListContent() {
     return () => { active.current = false; invalidateRefreshes(); window.clearInterval(timer); };
   }, [refreshInvitees, invalidateRefreshes]);
 
+  useEffect(() => {
+    void loadMessage();
+  }, [loadMessage]);
+
   const filteredInvitees = useMemo(() => {
     const term = queryText.trim().toLowerCase();
     if (!term) return invitees;
@@ -216,23 +279,23 @@ function InvitationListContent() {
   }, [selectedSmsRecipients.length, smsRecipientIndex]);
 
   useEffect(() => {
-    if (!dirtyCount) return;
+    if (!dirtyCount && !messageDirty) return;
 
     const warnBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!dirtyIdsRef.current.size) return;
+      if (!hasUnsavedChanges()) return;
       event.preventDefault();
       event.returnValue = "";
     };
 
     window.addEventListener("beforeunload", warnBeforeUnload);
     return () => window.removeEventListener("beforeunload", warnBeforeUnload);
-  }, [dirtyCount]);
+  }, [dirtyCount, messageDirty, hasUnsavedChanges]);
 
   useEffect(() => {
-    if (!dirtyCount) return;
+    if (!dirtyCount && !messageDirty) return;
 
     const warnBeforeNavigation = (event: MouseEvent) => {
-      if (!dirtyIdsRef.current.size) return;
+      if (!hasUnsavedChanges()) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -253,7 +316,7 @@ function InvitationListContent() {
     document.addEventListener("click", warnBeforeNavigation, true);
     return () =>
       document.removeEventListener("click", warnBeforeNavigation, true);
-  }, [dirtyCount]);
+  }, [dirtyCount, messageDirty, hasUnsavedChanges]);
 
   function updateDraft(id: string, patch: Partial<Draft>) {
     const current = draftsRef.current[id];
@@ -265,6 +328,7 @@ function InvitationListContent() {
   }
 
   function openSmsComposer() {
+    if (!savedMessageRef.current || messageLoading) return;
     if (!nextSmsRecipient) {
       setStatus("Select at least one person with a phone number.");
       return;
@@ -378,7 +442,7 @@ function InvitationListContent() {
 
   function goBackToDashboard() {
     if (
-      dirtyIdsRef.current.size &&
+      hasUnsavedChanges() &&
       !window.confirm("You have unsaved invitation changes. Leave without saving?")
     ) {
       return;
@@ -462,7 +526,7 @@ function InvitationListContent() {
             <div className="font-semibold text-orange-900">
               {dirtyCount
                 ? `${dirtyCount} unsaved change${dirtyCount === 1 ? "" : "s"}`
-                : "All changes saved"}
+                : "All contact changes saved"}
             </div>
             <div className="text-sm text-orange-700/80">
               Edit multiple people, then save everything at once.
@@ -543,18 +607,34 @@ function InvitationListContent() {
                   ? `, next: ${nextSmsRecipient.name} (${nextSmsPosition} of ${selectedSmsRecipients.length})`
                   : ""}
               </div>
+              <label htmlFor="invitation-sms-message" className="block text-sm text-orange-900">Invitation message</label>
+              <p id="invitation-message-help" className="text-sm text-orange-700/80">Edit the text and select Save Message to keep it for next time. Up to 4,000 characters.</p>
               <textarea
+                id="invitation-sms-message"
                 value={smsMessage}
-                onChange={(event) => setSmsMessage(event.target.value)}
-                rows={3}
+                onChange={(event) => { if (messageLoading || !savedMessageRef.current) return; smsMessageRef.current = event.target.value; setSmsMessage(event.target.value); }}
+                disabled={messageLoading || savedMessage === null}
+                maxLength={MAX_INVITATION_MESSAGE_LENGTH}
+                aria-describedby="invitation-message-help invitation-message-status"
+                rows={12}
                 className="w-full rounded-lg border border-orange-300 bg-white px-3 py-2 text-sm text-orange-950"
               />
+              <p id="invitation-message-status" role="status" aria-live="polite" className="text-sm text-orange-800">
+                {messageLoading ? "Loading saved message…" : messageSaving ? "Saving message…" : messageDirty ? "Unsaved message changes" : savedMessage?.revision ? "Message saved" : savedMessage ? "Default message" : "Saved message unavailable"}
+              </p>
+              {messageError && <div className="space-y-2">
+                <p role="alert" className="text-sm text-red-700">{messageError}</p>
+                <button type="button" onClick={reloadMessage} disabled={messageLoading || messageSaving} className="min-h-11 rounded-md text-sm font-semibold text-orange-700 underline disabled:opacity-50">Load Saved Message</button>
+              </div>}
             </div>
             <div className="flex flex-wrap gap-2">
+              <button type="button" aria-busy={messageSaving} onClick={() => void saveMessage()} disabled={messageLoading || messageSaving || savedMessage === null || !messageDirty || !smsMessage.trim()} className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300">
+                {messageSaving ? "Saving Message…" : "Save Message"}
+              </button>
               <button
                 type="button"
                 onClick={openSmsComposer}
-                disabled={!selectedSmsRecipients.length || !smsMessage.trim()}
+                disabled={messageLoading || savedMessage === null || !selectedSmsRecipients.length || !smsMessage.trim()}
                 className="rounded-lg bg-orange-700 px-4 py-2 text-sm font-medium text-white hover:bg-orange-800 disabled:bg-orange-300"
               >
                 {selectedSmsRecipients.length > 1

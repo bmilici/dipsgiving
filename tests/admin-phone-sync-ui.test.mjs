@@ -6,6 +6,10 @@ import ts from "typescript";
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const plain = (value) => JSON.parse(JSON.stringify(value));
+const messageDefaults = {};
+vm.runInNewContext(ts.transpileModule(readFileSync(new URL("../src/lib/invitation-message.ts", import.meta.url), "utf8"), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, { exports: messageDefaults });
 const existingInvitee = {
   id: "manual-existing", name: "Morgan", phone: "(202) 555-0101",
   notes: "Manually added", invite_next_year: true,
@@ -52,9 +56,10 @@ const status = (tree) => {
 
 // Execute the real authorized admin content with a closed import map. Every
 // request is a deferred local promise; no Firebase, network, or SMS can run.
-function harness({ captureSms = false } = {}) {
+function harness({ captureSms = false, savedMessage, deferMessageLoad = false } = {}) {
   const hooks = [];
   const requests = [];
+  const messageRequests = [];
   const effects = [];
   const confirmations = [];
   const navigations = [];
@@ -116,14 +121,15 @@ function harness({ captureSms = false } = {}) {
     "next/navigation": { useRouter: () => ({ push(path) { navigations.push(path); } }) },
     "@/components/AdminGate": ({ children }) => children,
     "@/lib/eventSettings": { useEventSettings: () => settings },
+    "@/lib/invitation-message": messageDefaults,
     "@/lib/rsvp/admin-client": { adminRequest(route, body) {
-      assert.equal(route, "invitations");
+      assert.ok(["invitations", "invitation-message"].includes(route));
       return new Promise((resolve, reject) => {
         const request = { route, body, settled: false,
           resolve(value) { request.settled = true; resolve(value); },
           reject(error) { request.settled = true; reject(error); },
         };
-        requests.push(request);
+        (route === "invitations" ? requests : messageRequests).push(request);
       });
     } },
   };
@@ -154,7 +160,7 @@ function harness({ captureSms = false } = {}) {
   }, { timeout: 2000 });
 
   return {
-    requests, confirmations, navigations, errors, smsUris,
+    requests, messageRequests, confirmations, navigations, errors, smsUris,
     render() { cursor = 0; return exports.default(); },
     commit() {
       for (let pass = 0; pass < 12; pass++) {
@@ -171,6 +177,8 @@ function harness({ captureSms = false } = {}) {
       assert.equal(requests.length, 1);
       assert.equal(requests[0].body, undefined);
       requests[0].resolve({ invitees });
+      assert.equal(messageRequests.length, 1);
+      if (!deferMessageLoad) messageRequests[0].resolve(savedMessage ?? { message: messageDefaults.DEFAULT_INVITATION_MESSAGE, revision: 0 });
       await tick();
       return this.commit();
     },
@@ -353,7 +361,7 @@ test("unchanged values and edits reverted to the saved baseline do not trigger u
   edit(page, existingInvitee.id, 2, `  ${existingInvitee.phone}  `);
   edit(page, existingInvitee.id, 3, existingInvitee.notes);
   let tree = page.commit();
-  assert.match(content(tree), /All changes saved/);
+  assert.match(content(tree), /All contact changes saved/);
   assert.equal(button(tree, "Save Changes").props.disabled, true);
   assertCleanNavigation(page);
   edit(page, existingInvitee.id, 3, "A temporary note");
@@ -383,7 +391,7 @@ test("an acknowledged multi-row save clears stale unload/link guards and survive
   assertCleanNavigation(page);
   const saved = page.commit();
   assert.match(status(saved), /2 changes saved/);
-  assert.match(content(saved), /All changes saved/);
+  assert.match(content(saved), /All contact changes saved/);
   assert.equal(dirtyRow(saved, existingInvitee.id), false);
   assert.equal(dirtyRow(saved, otherInvitee.id), false);
   assert.equal(button(saved, "Save Changes").props.disabled, true);
@@ -439,7 +447,7 @@ test("a partial save acknowledges successful rows while failed rows remain dirty
   assert.equal(rowInputs(partial, otherInvitee.id)[3].props.value, "Unsaved Jordan note");
   assert.match(content(partial), /1 unsaved change/);
   assert.doesNotMatch(status(partial), /2 changes saved/);
-  assert.doesNotMatch(content(partial), /All changes saved/);
+  assert.doesNotMatch(content(partial), /All contact changes saved/);
   assert.equal(page.beforeUnload().prevented, true);
   assert.equal(page.internalLink().prevented, true);
   const retryIndex = page.requests.length;
@@ -448,7 +456,7 @@ test("a partial save acknowledges successful rows while failed rows remain dirty
   const retryWrites = page.requests.slice(retryIndex).filter(request => request.body?.action === "update");
   assert.deepEqual(retryWrites.map(request => request.body.id), [otherInvitee.id]);
   const saved = page.commit();
-  assert.match(content(saved), /All changes saved/);
+  assert.match(content(saved), /All contact changes saved/);
   assert.equal(page.beforeUnload().prevented, false);
   assert.equal(page.internalLink().prevented, false);
   page.assertNoSms();
@@ -499,7 +507,7 @@ test("a poll started before saving cannot roll back an acknowledged row or resto
   const current = page.commit();
   assert.equal(rowInputs(current)[1].props.value, "Latest Saved Morgan");
   assert.equal(dirtyRow(current, existingInvitee.id), false);
-  assert.match(content(current), /All changes saved/);
+  assert.match(content(current), /All contact changes saved/);
   assertCleanNavigation(page);
   const freshPoll = page.poll();
   const read = page.requests.at(-1);
@@ -525,7 +533,7 @@ test("a failed list refresh after an acknowledged save does not turn a saved row
   const saved = page.commit();
   assert.match(status(saved), /1 change saved/);
   assert.match(status(saved), /list could not refresh.*Saved changes are confirmed/i);
-  assert.match(content(saved), /All changes saved/);
+  assert.match(content(saved), /All contact changes saved/);
   assert.equal(rowInputs(saved)[3].props.value, "Acknowledged saved note");
   assert.equal(dirtyRow(saved, existingInvitee.id), false);
   assert.equal(button(saved, "Save Changes").props.disabled, true);
@@ -564,4 +572,111 @@ test("the approved invitation preserves its paragraphs, sponsors, emojis and edi
   assert.deepEqual([...uri.searchParams.keys()], ["body"]);
   assert.equal(uri.searchParams.get("body"), edited, "Phone composer receives the complete text, newlines, URLs, ampersand and emojis");
   assert.ok(page.requests.every(request => request.body === undefined), "No invitation data or message is sent to a server");
+});
+
+const smsField = tree => nodes(tree, node => node.props.id === "invitation-sms-message")[0];
+const messageStatus = tree => content(nodes(tree, node => node.props.id === "invitation-message-status")[0]);
+function editMessage(page, value) { smsField(page.render()).props.onChange({ target: { value } }); return page.commit(); }
+
+test("saved message loads before editing or opening texts, with retry after a loading failure", async () => {
+  const page = harness({ deferMessageLoad: true, captureSms: true });
+  let tree = await page.mount();
+  assert.equal(smsField(tree).props.disabled, true);
+  assert.equal(button(tree, "Open Message").props.disabled, true);
+  button(tree, "Save Message").props.onClick();
+  button(tree, "Open Message").props.onClick();
+  assert.equal(page.messageRequests.length, 1);
+  assert.equal(page.smsUris.length, 0);
+  page.messageRequests[0].reject(new Error("Saved message unavailable"));
+  await tick(); tree = page.commit();
+  assert.equal(smsField(tree).props.disabled, true);
+  assert.match(content(tree), /Saved message unavailable/);
+  button(tree, "Load Saved Message").props.onClick();
+  page.messageRequests[1].resolve({ message: "Previously saved invitation", revision: 4 });
+  await tick(); tree = page.commit();
+  assert.equal(smsField(tree).props.value, "Previously saved invitation");
+  assert.equal(smsField(tree).props.disabled, false);
+  assert.equal(button(tree, "Save Message").props.disabled, true);
+  assert.equal(messageStatus(tree), "Message saved");
+  assert.equal(page.beforeUnload().prevented, false);
+});
+
+test("Save Message persists the exact draft, guards duplicate requests, and clears leave warnings immediately on acknowledgement", async () => {
+  const page = harness({ savedMessage: { message: "Original", revision: 2 } });
+  await page.mount();
+  const message = "Pool & hot tub! 🥰\n\nhttps://www.dipsgiving.com/";
+  let tree = editMessage(page, message);
+  assert.equal(messageStatus(tree), "Unsaved message changes");
+  assert.equal(page.beforeUnload().prevented, true);
+  assert.equal(page.internalLink().prevented, true);
+  button(tree, "Save Message").props.onClick();
+  button(tree, "Save Message").props.onClick();
+  tree = page.render();
+  assert.equal(button(tree, "Saving Message…").props.disabled, true);
+  assert.equal(page.messageRequests.length, 2);
+  assert.deepEqual(plain(page.messageRequests[1].body), { message, revision: 2 });
+  page.messageRequests[1].resolve({ ok: true, message, revision: 3 });
+  await tick(); // Before effects commit, event handlers already see the saved baseline.
+  assert.equal(page.beforeUnload().prevented, false);
+  tree = page.commit();
+  assert.equal(messageStatus(tree), "Message saved");
+  assert.equal(button(tree, "Save Message").props.disabled, true);
+  assert.equal(smsField(tree).props.value, message);
+  assert.equal(page.internalLink().prevented, false);
+  assert.equal(page.requests.length, 1, "Saving the message cannot write contacts");
+  const reopened = harness({ savedMessage: { message, revision: 3 } });
+  assert.equal(smsField(await reopened.mount()).props.value, message, "Reopening loads the persisted copy");
+});
+
+test("edits made during a message save remain unsaved and are not overwritten by its response", async () => {
+  const page = harness(); await page.mount();
+  button(editMessage(page, "First edit"), "Save Message").props.onClick();
+  editMessage(page, "Newer edit while saving");
+  page.messageRequests[1].resolve({ ok: true, message: "First edit", revision: 1 });
+  await tick(); let tree = page.commit();
+  assert.equal(smsField(tree).props.value, "Newer edit while saving");
+  assert.equal(messageStatus(tree), "Unsaved message changes");
+  assert.equal(page.beforeUnload().prevented, true);
+  button(tree, "Save Message").props.onClick();
+  assert.deepEqual(plain(page.messageRequests[2].body), { message: "Newer edit while saving", revision: 1 });
+  page.messageRequests[2].resolve({ ok: true, message: "Newer edit while saving", revision: 2 });
+  await tick(); tree = page.commit();
+  assert.equal(messageStatus(tree), "Message saved");
+  assert.equal(page.beforeUnload().prevented, false);
+});
+
+test("failed or malformed saves preserve edits and never falsely mark the message saved", async () => {
+  for (const failure of ["offline", "conflict", "mismatched reply", "stale revision"]) {
+    const page = harness(); await page.mount();
+    button(editMessage(page, "Keep this draft"), "Save Message").props.onClick();
+    if (failure === "offline" || failure === "conflict") page.messageRequests[1].reject(new Error(failure === "conflict" ? "The message changed in another tab" : "Could not save"));
+    else page.messageRequests[1].resolve({ ok: true, message: failure === "mismatched reply" ? "Wrong draft" : "Keep this draft", revision: failure === "stale revision" ? 0 : 1 });
+    await tick(); const tree = page.commit();
+    assert.equal(smsField(tree).props.value, "Keep this draft");
+    assert.equal(messageStatus(tree), "Unsaved message changes");
+    assert.equal(page.beforeUnload().prevented, true);
+    assert.equal(button(tree, "Save Message").props.disabled, false);
+    button(tree, "Load Saved Message").props.onClick();
+    assert.equal(page.messageRequests.length, 2, "Declining draft replacement cannot reload or discard it");
+    assert.match(page.confirmations.at(-1), /Replace your unsaved message/);
+  }
+});
+
+test("message saving does not acknowledge unsaved contact edits, and blank messages cannot be saved", async () => {
+  const page = harness(); let tree = await page.mount();
+  rowInputs(tree)[1].props.onChange({ target: { value: "Unsaved contact name" } });
+  tree = editMessage(page, "Saved message, separate from contacts");
+  button(tree, "Save Message").props.onClick();
+  page.messageRequests[1].resolve({ ok: true, message: "Saved message, separate from contacts", revision: 1 });
+  await tick(); tree = page.commit();
+  assert.equal(messageStatus(tree), "Message saved");
+  assert.match(content(tree), /1 unsaved change/);
+  assert.equal(page.beforeUnload().prevented, true);
+  assert.equal(rowInputs(tree)[1].props.value, "Unsaved contact name");
+  tree = editMessage(page, " \n ");
+  assert.equal(button(tree, "Save Message").props.disabled, true);
+  button(tree, "Save Message").props.onClick();
+  assert.equal(page.messageRequests.length, 2);
+  assert.match(content(page.commit()), /Enter a message of up to 4,000 characters/);
+  assert.equal(smsField(tree).props.maxLength, 4000);
 });
