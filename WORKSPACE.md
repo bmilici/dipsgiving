@@ -36,8 +36,8 @@ https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
 
 Preview: https://dipsgiving-6tne80twh-brad-milicis-projects.vercel.app/testing
 
-- Prize Sponsors: Amber Reyes and Via Brio.
+- Prize Sponsors: Amber Reyes.
 - Event sponsors: smiLee and Point Ybel.
-- Good friends, good businesses: One Fresh Hat and AT Pressure Washing.
+- Good friends, good businesses: One Fresh Hat, AT Pressure Washing, then Via Brio.
 
 These category changes are development-only and have not been promoted to production.

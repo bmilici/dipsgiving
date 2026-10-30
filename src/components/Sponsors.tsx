@@ -10,9 +10,9 @@ const defaultSponsors: readonly Sponsor[] = [
   { name: "Amber Reyes, Broker Associate", url: "https://www.amberreyesrealtor.com/", category: "Prize Sponsors", logo: "/sponsors/amber-reyes-realtor.png" },
   { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", category: "Event sponsors", logo: "/sponsors/smilee-logo.webp" },
   { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", category: "Event sponsors", logo: "/sponsors/pointybelbrew.png" },
-  { name: "Via Brio", url: "https://viabrioadvising.com/", category: "Prize Sponsors", logo: "/sponsors/via-brio.webp" },
   { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
   { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
+  { name: "Via Brio", url: "https://viabrioadvising.com/", category: "Good friends, good businesses", logo: "/sponsors/via-brio.webp" },
 ];
 
 export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: readonly Sponsor[] }) {
