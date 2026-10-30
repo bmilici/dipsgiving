@@ -28,5 +28,6 @@ Use branches within this folder for future work to avoid duplicate active copies
 
 ## Publication
 
-The sponsor update is committed and verified locally. Production publication is
-pending explicit user approval.
+The sponsor update was published with explicit user approval on October 30, 2026.
+Live sponsor order, links, and the Via Brio image were verified at
+https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
