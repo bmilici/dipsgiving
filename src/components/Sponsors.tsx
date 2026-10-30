@@ -6,10 +6,11 @@ type Sponsor = { name: string; url: string; logo: string };
 
 const defaultSponsors: readonly Sponsor[] = [
   { name: "Amber Reyes, Broker Associate", url: "https://www.amberreyesrealtor.com/", logo: "/sponsors/amber-reyes-realtor.png" },
+  { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", logo: "/sponsors/smilee-logo.webp" },
   { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
+  { name: "Via Brio", url: "https://viabrioadvising.com/", logo: "/sponsors/via-brio.webp" },
   { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
   { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
-  { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", logo: "/sponsors/smilee-logo.webp" },
 ];
 
 export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: readonly Sponsor[] }) {
