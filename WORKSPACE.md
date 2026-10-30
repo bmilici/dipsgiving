@@ -3,7 +3,7 @@
 Use this folder as the single active Dipsgiving checkout:
 `/Users/bmilici/Desktop/Current Projects/dipsgiving`
 
-Current branch: `work/dipsgiving-consolidated`.
+Current branch: `dev/sponsor-categories`.
 Sponsor update: `56463d5`, based on production source `2ba5d05`.
 Sponsor order: Amber Reyes, smiLee, Point Ybel, Via Brio, One Fresh Hat, AT.
 
@@ -31,3 +31,13 @@ Use branches within this folder for future work to avoid duplicate active copies
 The sponsor update was published with explicit user approval on October 30, 2026.
 Live sponsor order, links, and the Via Brio image were verified at
 https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
+
+## Sponsor categories development preview
+
+Preview: https://dipsgiving-6tne80twh-brad-milicis-projects.vercel.app/testing
+
+- Prize Sponsors: Amber Reyes and Via Brio.
+- Event sponsors: smiLee and Point Ybel.
+- Good friends, good businesses: One Fresh Hat and AT Pressure Washing.
+
+These category changes are development-only and have not been promoted to production.
