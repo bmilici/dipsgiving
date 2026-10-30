@@ -2,13 +2,15 @@ import Image from "next/image";
 import { HeartHandshake } from "lucide-react";
 import { testingAssetPath } from "@/lib/testingMode";
 
-type Sponsor = { name: string; url: string; logo: string };
+const sponsorCategories = ["Prize Sponsors", "Event sponsors", "Good friends, good businesses"] as const;
+type SponsorCategory = typeof sponsorCategories[number];
+type Sponsor = { name: string; url: string; logo: string; category?: SponsorCategory };
 
 const defaultSponsors: readonly Sponsor[] = [
-  { name: "Amber Reyes, Broker Associate", url: "https://www.amberreyesrealtor.com/", logo: "/sponsors/amber-reyes-realtor.png" },
-  { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", logo: "/sponsors/smilee-logo.webp" },
-  { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", logo: "/sponsors/pointybelbrew.png" },
-  { name: "Via Brio", url: "https://viabrioadvising.com/", logo: "/sponsors/via-brio.webp" },
+  { name: "Amber Reyes, Broker Associate", url: "https://www.amberreyesrealtor.com/", category: "Prize Sponsors", logo: "/sponsors/amber-reyes-realtor.png" },
+  { name: "smiLee Pediatric Dentistry & Orthodontics", url: "https://drsmilee.com/", category: "Event sponsors", logo: "/sponsors/smilee-logo.webp" },
+  { name: "Point Ybel Brewing", url: "https://pointybelbrew.com/", category: "Event sponsors", logo: "/sponsors/pointybelbrew.png" },
+  { name: "Via Brio", url: "https://viabrioadvising.com/", category: "Prize Sponsors", logo: "/sponsors/via-brio.webp" },
   { name: "One Fresh Hat", url: "https://www.onefreshhat.com/", logo: "/sponsors/onefreshhat.png" },
   { name: "A T PRECISION PRESSURE WASHING 239-219-9513", url: "https://atppw.com/", logo: "/sponsors/AT.png" },
 ];
@@ -22,12 +24,23 @@ export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: re
           <h2 id="sponsors-heading" className="mt-2 text-3xl text-forest sm:text-4xl">Good company. Great supporters.</h2>
         </div>
         {sponsors.length ? (
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
-            {sponsors.map(sponsor => (
+          <div className="mx-auto max-w-4xl space-y-10 sm:space-y-12">
+            {sponsorCategories.map((category, index) => {
+              const members = sponsors.filter(sponsor => (sponsor.category ?? "Good friends, good businesses") === category);
+              if (!members.length) return null;
+              return (
+                <div key={category} role="group" aria-labelledby={`sponsor-category-${index}`}>
+                  <h3 id={`sponsor-category-${index}`} className="mb-5 text-center text-2xl text-forest sm:text-3xl">{category}</h3>
+                  <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+            {members.map(sponsor => (
               <a key={sponsor.name} href={sponsor.url} target="_blank" rel="noopener noreferrer" className="festival-card festival-lift flex h-44 items-center justify-center p-5 sm:h-48 sm:p-6">
                 <Image src={testingAssetPath(sponsor.logo)} alt={sponsor.name} width={180} height={180} sizes="180px" className="h-32 w-full object-contain" loading="lazy" />
               </a>
             ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="festival-card mx-auto max-w-xl px-6 py-8 text-center">
