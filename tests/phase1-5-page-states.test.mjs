@@ -45,6 +45,12 @@ const EmptyState = loadComponent("src/components/EmptyState.tsx", {
   "@/lib/testingMode": { testingAssetPath: (path) => path },
 });
 
+const championImages = tree => {
+  const storyPhotos = new Set(nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title")
+    .flatMap(card => nodes(card, node => node.type === "img")));
+  return nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/") && !storyPhotos.has(node));
+};
+
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const snapshot = (rows) => ({
   forEach(callback) {
@@ -274,10 +280,11 @@ test("champions retain loading feedback until reads finish while the static 2025
   assert.ok(card);
   assert.match(content(card), /The Great Voting Disaster of 2025/);
   assert.match(content(card), /NO OFFICIAL CHAMPION/);
-  assert.match(content(card), /Official Result: Everyone Lost\. Especially IT\./);
+  assert.match(content(card), /That said, RJ has self-proclaimed himself the winner\./);
+  assert.match(content(card), /Official Status: No winner\.RJ Status: Fully convinced he won\./);
   const [illustration] = nodes(card, (node) => node.type === "img");
-  assert.equal(illustration.props.src, "/testing/illustrations/voting-disaster-2025.svg");
-  assert.match(illustration.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
+  assert.equal(illustration.props.src, "/testing/winners/2025-rj-self-proclaimed.webp");
+  assert.match(illustration.props.alt, /RJ smiling in a white outfit.*self-proclaimed champion/);
   assert.equal(nodes(card, (node) => node.type === "a").length, 0);
   assert.doesNotMatch(content(loaded), /1st Place|2nd Place|3rd Place|by guest/);
 });
@@ -299,7 +306,7 @@ test("archived dips without winner documents preserve history and suppress the c
   assert.match(content(tree), /Garden Dipby TaylorFresh herbs/);
   assert.match(content(tree), /Classic Quesoby Jordan/);
   assert.equal(nodes(tree, (node) => node.type === "li").length, 2);
-  assert.equal(nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/")).length, 0);
+  assert.equal(championImages(tree).length, 0);
   assert.equal(nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title").length, 1);
 });
 
@@ -316,7 +323,7 @@ test("real winners remain visible with lazy, sized, descriptive images when arch
   assert.equal(emptyCards(tree).length, 0);
   assert.match(content(tree), /Dipsgiving 2026/);
   assert.match(content(tree), /Pepper Partyby Casey/);
-  const [image] = nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/"));
+  const [image] = championImages(tree);
   assert.equal(image.props.src, "/winners/2026-pepper.jpg");
   assert.match(image.props.alt, /Pepper Party.*2026.*Casey/);
   assert.equal(image.props.loading, "lazy");
@@ -353,20 +360,20 @@ test("legacy Champions interleaves custom-ID future results and archives by year
   assert(indices.every(index => index >= 0) && indices.every((index, i) => i === 0 || index > indices[i - 1]));
   assert.match(text, /Dipsgiving 2027/);
   for (const expected of ["Monty and Bethany", "Fried Pickle", "The Neals", "Butter Chicken", "The Packlas", "Original 2025"]) assert(text.includes(expected));
-  assert.deepEqual(nodes(tree, node => node.type === "img" && node.props.src.startsWith("/winners/")).map(node => node.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-2nd.jpeg", "/winners/2024-3rd.jpeg"]);
+  assert.deepEqual(championImages(tree).map(node => node.props.src), ["/winners/2024-1st.jpeg", "/winners/2024-2nd.jpeg", "/winners/2024-3rd.jpeg"]);
   const disasterYear = nodes(tree, node => node.props["data-champions-year"] === 2025)[0];
   assert.doesNotMatch(content(disasterYear), /1st Place|2nd Place|3rd Place/);
   assert.equal(nodes(disasterYear, node => node.type === "h2" && content(node) === "Dipsgiving 2025").length, 0);
   assert.equal(JSON.stringify({ winners, archives }), before);
 });
 
-test("the 2025 story illustration uses the testing asset prefix while preserving its accessible error label", async () => {
+test("the unofficial 2025 portrait uses the testing prefix and descriptive alt text", async () => {
   const page = championsPage({ testingMode: true }); page.render(); page.startEffects();
   await page.resolveRead("winners", []); await page.resolveRead("historicalDips", []);
   const card = nodes(page.render(), node => node.props["aria-labelledby"] === "voting-disaster-2025-title")[0];
   const image = nodes(card, node => node.type === "img")[0];
-  assert.equal(image.props.src, "/testing/illustrations/voting-disaster-2025.svg");
-  assert.match(image.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
+  assert.equal(image.props.src, "/testing/winners/2025-rj-self-proclaimed.webp");
+  assert.match(image.props.alt, /RJ smiling in a white outfit.*self-proclaimed champion/);
 });
 
 test("a champions read error never claims the historical record is empty", async () => {

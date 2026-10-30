@@ -9,15 +9,18 @@ export default function VotingDisaster2025() {
     >
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-2 bg-[repeating-linear-gradient(135deg,#324F3C_0px,#324F3C_12px,#E7AA42_12px,#E7AA42_24px)]" />
       <div className="grid min-w-0 items-center gap-5 pt-2 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] md:gap-8">
-        <img
-          src={testingAssetPath("/illustrations/voting-disaster-2025.svg")}
-          alt="A retro voting computer and broken trophy display ERROR 404: CHAMPION NOT FOUND."
-          width={600}
-          height={460}
-          loading="lazy"
-          decoding="async"
-          className="mx-auto h-auto w-full max-w-72 sm:max-w-80"
-        />
+        <figure className="mx-auto w-full max-w-72 sm:max-w-80">
+          <img
+            src={testingAssetPath("/winners/2025-rj-self-proclaimed.webp")}
+            alt="RJ smiling in a white outfit; Dipsgiving 2025’s self-proclaimed champion."
+            width={768}
+            height={1024}
+            loading="lazy"
+            decoding="async"
+            className="h-auto w-full rounded-2xl border border-forest/20 shadow-sm"
+          />
+          <figcaption className="mt-3 text-center text-sm font-semibold text-forest">Self-Proclaimed Champion: RJ</figcaption>
+        </figure>
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <p className="festival-kicker text-forest">Dipsgiving 2025</p>
@@ -27,11 +30,15 @@ export default function VotingDisaster2025() {
             The Great Voting Disaster of 2025
           </h2>
           <p className="text-base leading-7 text-espresso">
-            The dips were delicious. The competition was fierce. Unfortunately, the person running the website was apparently not qualified to run an election.
+            Due to a catastrophic voting failure, no official Dipsgiving champion was crowned in 2025.
           </p>
-          <p className="border-t border-dashed border-forest/30 pt-4 text-sm font-bold leading-6 text-burnt-orange sm:text-base">
-            Official Result: Everyone Lost. Especially IT.
+          <p className="text-base leading-7 text-espresso">
+            That said, <strong>RJ has self-proclaimed himself the winner.</strong>
           </p>
+          <div className="space-y-1 border-t border-dashed border-forest/30 pt-4 text-sm leading-6 text-burnt-orange sm:text-base">
+            <p><strong>Official Status:</strong> No winner.</p>
+            <p><strong>RJ Status:</strong> Fully convinced he won.</p>
+          </div>
         </div>
       </div>
     </section>

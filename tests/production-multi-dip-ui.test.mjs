@@ -154,10 +154,11 @@ test("the static 2025 story uses the current environment's asset path without SD
     const tree = imports["@/components/VotingDisaster2025"].default();
     assert.match(text(tree), /The Great Voting Disaster of 2025/);
     assert.match(text(tree), /NO OFFICIAL CHAMPION/);
-    assert.match(text(tree), /Official Result: Everyone Lost\. Especially IT\./);
+    assert.match(text(tree), /RJ has self-proclaimed himself the winner\./);
+    assert.match(text(tree), /Official Status: No winner\.RJ Status: Fully convinced he won\./);
     const image = nodes(tree, node => node.type === "img")[0];
-    assert.equal(image.props.src, `${preview ? "/testing" : ""}/illustrations/voting-disaster-2025.svg`);
-    assert.match(image.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
+    assert.equal(image.props.src, `${preview ? "/testing" : ""}/winners/2025-rj-self-proclaimed.webp`);
+    assert.match(image.props.alt, /RJ smiling in a white outfit.*self-proclaimed champion/);
     assert.doesNotMatch(text(tree), /1st Place|2nd Place|3rd Place|Created by/);
   }
 });

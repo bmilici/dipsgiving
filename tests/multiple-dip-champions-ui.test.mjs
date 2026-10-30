@@ -80,7 +80,11 @@ function content(tree) {
   if (tree == null || typeof tree === "boolean") return "";
   return typeof tree === "object" ? content(tree.props?.children) : String(tree);
 }
-const photos = tree => nodes(tree, node => node.type === "img" && /\/(?:testing\/)?winners\//.test(node.props.src));
+const photos = tree => {
+  const storyPhotos = new Set(nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title")
+    .flatMap(card => nodes(card, node => node.type === "img")));
+  return nodes(tree, node => node.type === "img" && /\/(?:testing\/)?winners\//.test(node.props.src) && !storyPhotos.has(node));
+};
 const disasterCards = tree => nodes(tree, node => node.props?.["aria-labelledby"] === "voting-disaster-2025-title");
 function openContenders(page, tree) {
   const button = nodes(tree, node => node.type === "button" && node.props["aria-controls"] === "historical-dips-2025-panel")[0];
@@ -156,14 +160,19 @@ test("an empty official archive still displays the exact static 2025 story witho
   const card = cards[0];
   for (const expected of [
     "2025", "The Great Voting Disaster of 2025", "NO OFFICIAL CHAMPION",
-    "The dips were delicious. The competition was fierce. Unfortunately, the person running the website was apparently not qualified to run an election.",
-    "Official Result: Everyone Lost. Especially IT.",
+    "Due to a catastrophic voting failure, no official Dipsgiving champion was crowned in 2025.",
+    "That said, RJ has self-proclaimed himself the winner.",
+    "Official Status: No winner.",
+    "RJ Status: Fully convinced he won.",
   ]) assert.ok(content(card).includes(expected), expected);
+  assert.equal(nodes(card, node => node.type === "strong" && content(node) === "RJ has self-proclaimed himself the winner.").length, 1);
   assert.equal(nodes(card, node => node.type === "h2" && node.props.id === "voting-disaster-2025-title").length, 1);
   const [illustration] = nodes(card, node => node.type === "img");
-  assert.equal(illustration.props.src, "/illustrations/voting-disaster-2025.svg");
-  assert.match(illustration.props.alt, /ERROR 404: CHAMPION NOT FOUND/);
-  assert.ok(illustration.props.width > 0 && illustration.props.height > 0);
+  assert.equal(illustration.props.src, "/winners/2025-rj-self-proclaimed.webp");
+  assert.match(illustration.props.alt, /RJ smiling in a white outfit.*self-proclaimed champion/);
+  assert.equal(illustration.props.width / illustration.props.height, 3 / 4);
+  assert.match(illustration.props.className, /h-auto w-full rounded/);
+  assert.equal(content(nodes(card, node => node.type === "figcaption")[0]), "Self-Proclaimed Champion: RJ");
   assert.equal(photos(tree).length, 0);
   assert.equal(nodes(tree, node => node.type === "empty-state").length, 0);
   assert.doesNotMatch(content(tree), /1st Place|2nd Place|3rd Place|Created by/);
@@ -187,7 +196,7 @@ test("API and photo URLs keep the testing base path and uncached read-only reque
   assert.equal(page.requests[0].config.method, undefined);
   const tree = page.render();
   assert(photos(tree).every(image => image.props.src.startsWith("/testing/winners/")));
-  assert.equal(nodes(disasterCards(tree), node => node.type === "img")[0].props.src, "/testing/illustrations/voting-disaster-2025.svg");
+  assert.equal(nodes(disasterCards(tree), node => node.type === "img")[0].props.src, "/testing/winners/2025-rj-self-proclaimed.webp");
 });
 
 test("a single-winner root photo is rendered once when it also belongs to the winning entry", async () => {
