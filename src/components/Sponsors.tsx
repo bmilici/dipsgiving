@@ -31,12 +31,12 @@ export default function Sponsors({ sponsors = defaultSponsors }: { sponsors?: re
               return (
                 <div key={category} role="group" aria-labelledby={`sponsor-category-${index}`}>
                   <h3 id={`sponsor-category-${index}`} className="mb-5 text-center text-2xl text-forest sm:text-3xl">{category}</h3>
-                  <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-            {members.map(sponsor => (
-              <a key={sponsor.name} href={sponsor.url} target="_blank" rel="noopener noreferrer" className="festival-card festival-lift flex h-44 items-center justify-center p-5 sm:h-48 sm:p-6">
-                <Image src={testingAssetPath(sponsor.logo)} alt={sponsor.name} width={180} height={180} sizes="180px" className="h-32 w-full object-contain" loading="lazy" />
-              </a>
-            ))}
+                  <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                    {members.map(sponsor => (
+                      <a key={sponsor.name} href={sponsor.url} target="_blank" rel="noopener noreferrer" className="festival-card festival-lift flex h-44 w-full max-w-xs items-center justify-center p-5 sm:h-48 sm:w-64 sm:p-6">
+                        <Image src={testingAssetPath(sponsor.logo)} alt={sponsor.name} width={180} height={180} sizes="180px" className="h-32 w-full object-contain" loading="lazy" />
+                      </a>
+                    ))}
                   </div>
                 </div>
               );
