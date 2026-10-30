@@ -1,0 +1,32 @@
+# Dipsgiving workspace
+
+Use this folder as the single active Dipsgiving checkout:
+`/Users/bmilici/Desktop/Current Projects/dipsgiving`
+
+Current branch: `work/dipsgiving-consolidated`.
+Sponsor update: `56463d5`, based on production source `2ba5d05`.
+Sponsor order: Amber Reyes, smiLee, Point Ybel, Via Brio, One Fresh Hat, AT.
+
+## Preserved work
+
+Previous primary-folder changes, including untracked files, are preserved in the
+Git stash named `Preserve primary workspace before consolidation 2026-10-30`.
+Inspect with `git stash show --stat --include-untracked stash@{0}`.
+Recover on the original `main` baseline in this folder when needed; do not blindly
+apply this stash onto the current release source.
+
+Unpublished development commits remain on `dev/rj-2025-champions`.
+All previous branches remain available in this repository.
+
+Private archives of the three removed temporary checkouts, including their local
+configuration but excluding Git metadata, dependencies, and build outputs, are in
+`local-only/consolidation-2026-10-30/`. Keep these archives private.
+The original primary-folder local-only files and environment configuration remain here.
+
+The temporary checkouts were removed using `git worktree remove` after archiving.
+Use branches within this folder for future work to avoid duplicate active copies.
+
+## Publication
+
+The sponsor update is committed and verified locally. Production publication is
+pending explicit user approval.
