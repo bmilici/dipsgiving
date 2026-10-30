@@ -34,7 +34,7 @@ https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
 
 ## Sponsor categories development preview
 
-Preview: https://dipsgiving-6tne80twh-brad-milicis-projects.vercel.app/testing
+Preview: https://dipsgiving-qytbsj019-brad-milicis-projects.vercel.app/testing
 
 - Prize Sponsors: Amber Reyes.
 - Event sponsors: smiLee and Point Ybel.
