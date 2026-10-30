@@ -32,7 +32,7 @@ The sponsor update was published with explicit user approval on October 30, 2026
 Live sponsor order, links, and the Via Brio image were verified at
 https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
 
-## Sponsor categories development preview
+## Sponsor categories
 
 Preview: https://dipsgiving-dcb6jzypj-brad-milicis-projects.vercel.app/testing
 
@@ -40,7 +40,10 @@ Preview: https://dipsgiving-dcb6jzypj-brad-milicis-projects.vercel.app/testing
 - Event sponsors: smiLee and Point Ybel.
 - Good friends, good businesses: One Fresh Hat, AT Pressure Washing, then Via Brio.
 
-These category changes are development-only and have not been promoted to production.
+The grouped, centered sponsor layout was approved and published on October 30, 2026.
+Deployment: `dpl_Bbc9MkAjeELd5t5N53BZ9qHjVS6q`.
+The public homepage was verified for all headings, sponsor memberships and order,
+and centered layout markup after promotion.
 
 Sponsor cards are centered in every group. All three friends sponsors share one row
 on desktop; cards wrap and stay centered on smaller screens. Verified at 1280px and 390px.
