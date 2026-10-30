@@ -34,10 +34,13 @@ https://www.dipsgiving.com/. Deployment: `dpl_5K1nJdTohLoKitFCABbpw3ZB5zCS`.
 
 ## Sponsor categories development preview
 
-Preview: https://dipsgiving-qytbsj019-brad-milicis-projects.vercel.app/testing
+Preview: https://dipsgiving-dcb6jzypj-brad-milicis-projects.vercel.app/testing
 
 - Prize Sponsors: Amber Reyes.
 - Event sponsors: smiLee and Point Ybel.
 - Good friends, good businesses: One Fresh Hat, AT Pressure Washing, then Via Brio.
 
 These category changes are development-only and have not been promoted to production.
+
+Sponsor cards are centered in every group. All three friends sponsors share one row
+on desktop; cards wrap and stay centered on smaller screens. Verified at 1280px and 390px.
